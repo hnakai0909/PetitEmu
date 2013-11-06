@@ -36,13 +36,17 @@ int Str2VarID(const char* arg){
 }
 
 uint16_t* GetVarID(uint16_t* p,int* tmpint,int* errtmp){
-	int tmpstr_p=0;
+	int tmpints[10],tmpstr_p=0;
 	char tmpstr[STR_LEN_MAX];
 	char p_char=Code2Char(*p);
 	memset(tmpstr,0x00,sizeof(tmpstr));
 	*errtmp=ERR_NO_ERROR;
 	while(isalpha(p_char)||(p_char=='_')||(isdigit(p_char))){
-		if((tmpstr_p==0)&&(isdigit(p_char)))break;
+		if((tmpstr_p==0)&&(isdigit(p_char))){
+			*tmpint=-1;
+			*errtmp=ERR_SYNTAX_ERROR;
+			return p;
+		}
 		if(tmpstr_p>=8){
 			*errtmp=ERR_STRING_TOO_LONG;
 			return p;
@@ -52,15 +56,57 @@ uint16_t* GetVarID(uint16_t* p,int* tmpint,int* errtmp){
 		p++;
 		p_char=Code2Char(*p);
 	}
-	if(Code2Char(*p)=='$'){
-		tmpstr[tmpstr_p]='$';
-		tmpstr_p++;
-		p++;
-	}
-	if(Code2Char(*p)=='('){
-		tmpstr[tmpstr_p]='(';
-		tmpstr_p++;
-		p++;
+	p_char=Code2Char(*p);
+	switch(p_char){
+		case '$':
+			tmpstr[tmpstr_p]='$';
+			tmpstr_p++;
+			p++;
+			break;
+		case '(':case '[':
+			tmpstr[tmpstr_p]=p_char;
+			tmpstr_p++;
+			p++;
+			tmpints[0]=1;
+			p=readformula(p,errtmp);
+			if(*errtmp!=ERR_NO_ERROR)return p;
+			if(Code2Char(*p)==','){
+				tmpints[0]=2;
+				p=jumpspace(p+1);
+				p=readformula(p,errtmp);
+				if(*errtmp!=ERR_NO_ERROR)return p;
+			}
+			switch(Code2Char(*p)){
+				case ')':
+					if(p_char!='('){
+						*errtmp=ERR_SYNTAX_ERROR;
+						return p;
+					}
+					if(!pop_calcstack_int(&tmpints[1])){
+						*errtmp=ERR_SYNTAX_ERROR;
+						return p;
+					}
+					if(tmpints[0]==2){
+						if(!pop_calcstack_int(&tmpints[2])){
+							*errtmp=ERR_SYNTAX_ERROR;
+							return p;
+						}
+					}
+					break;
+				case ']':
+					if(p_char!='['){
+						*errtmp=ERR_SYNTAX_ERROR;
+						return p;
+					}
+					break;
+				default:
+					*errtmp=ERR_SYNTAX_ERROR;
+					return p;
+					break;
+			}
+			break;
+		default:
+			break;
 	}
 	p=jumpspace(p);
 	*tmpint=Str2VarID(tmpstr);
@@ -687,11 +733,17 @@ void RunInteractive(char* input){
 		return;
 	}else{
 		Psys_ERR=errtmp;
-		if((errtmp==ERR_NO_ERROR)&&(op_sl==0)&&(calc_sl==0)){
-			puts("OK");
-			print2console("OK",0);
+		if(errtmp==ERR_NO_ERROR){
+			if((op_sl==0)&&(calc_sl==0)){
+				puts("OK");
+				print2console("OK",0);
+			}else{
+				printf("op_sl:%d calc_sl:%d",op_sl,calc_sl);
+				strcpy(tmpstr,GetErrorMessage(ERR_UNDEFINED));
+				printf("%s\n",tmpstr);
+				print2console(tmpstr,0);
+			}
 		}else{
-			printf("op_sl:%d calc_sl:%d",op_sl,calc_sl);
 			memset(tmpstr,0x00,sizeof(tmpstr));
 			if(error_occured_token!=0){
 				strcpy(tmpstr,TokenCode2Str(error_occured_token));
@@ -703,8 +755,9 @@ void RunInteractive(char* input){
 				printf("%s\n",tmpstr);
 				print2console(tmpstr,0);
 			}else{
-				printf("%s\n",GetErrorMessage(errtmp));
-				print2console(GetErrorMessage(errtmp),0);
+				strcpy(tmpstr,GetErrorMessage(errtmp));
+				printf("%s\n",tmpstr);
+				print2console(tmpstr,0);
 			}
 			if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[2],DX_PLAYTYPE_BACKBIT);
 		}
@@ -865,9 +918,9 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					if(!errtmp)return ERR_UNDEFINED;
 					errtmp=push_calcstack(TYPE_FUNC,Char2Code('('),NULL,0);
 					if(!errtmp)return ERR_UNDEFINED;
+					srcpos=jumpspace(srcpos+1);
 					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=jumpspace(srcpos+1);
 					if((*srcpos==0x0000)||(Code2Char(*srcpos)==':')){
 						errtmp=push_calcstack(TYPE_VOID,0,NULL,0);
 						if(!errtmp)return ERR_UNDEFINED;
