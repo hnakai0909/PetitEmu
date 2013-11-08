@@ -920,15 +920,8 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					if(!errtmp)return ERR_UNDEFINED;
 					srcpos=jumpspace(srcpos+1);
 					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					if((*srcpos==0x0000)||(Code2Char(*srcpos)==':')){
-						errtmp=push_calcstack(TYPE_VOID,0,NULL,0);
-						if(!errtmp)return ERR_UNDEFINED;
-						errtmp=push_calcstack(TYPE_FUNC,Char2Code(')'),NULL,0);
-						if(!errtmp)return ERR_UNDEFINED;
-						state=ST_NEW_STATEMENT;
-						break;
-					}
+					Variable[tmpint].isDim=true;
+					if((*srcpos==0x0000)||(Code2Char(*srcpos)==':'))return ERR_SYNTAX_ERROR;
 					srcpos=readformula(srcpos,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					argcount=1;
