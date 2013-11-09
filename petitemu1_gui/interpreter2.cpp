@@ -810,7 +810,7 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 	const uint16_t *srcend=input+srclen;
 	
 	uint16_t t=0;
-	char c=0,*c2;
+	char c=0,*c2,p_char;
 	char tmpstr[STR_LEN_MAX],tmpstr2[STR_LEN_MAX*2],tmpstr3[STR_LEN_MAX];
 	unsigned char tmpstr_p=0;
 	int cnt=0,i=0,argcount=0;
@@ -914,29 +914,46 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					state=ST_NEW_STATEMENT;
 					break;
 				case TOKEN_DIM:
-					errtmp=push_calcstack(TYPE_FUNC,TOKEN_DIM,NULL,0);
-					if(!errtmp)return ERR_UNDEFINED;
-					errtmp=push_calcstack(TYPE_FUNC,Char2Code('('),NULL,0);
-					if(!errtmp)return ERR_UNDEFINED;
 					srcpos=jumpspace(srcpos+1);
-					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
+					memset(tmpstr,0x00,sizeof(tmpstr));
+					p_char=Code2Char(*srcpos);
+					tmpstr_p=0;
+					while(isalpha(p_char)||(p_char=='_')||(isdigit(p_char))){
+						if((tmpstr_p==0)&&(isdigit(p_char))){
+							return ERR_SYNTAX_ERROR;
+						}
+						if(tmpstr_p>=8)return ERR_STRING_TOO_LONG;
+						tmpstr[tmpstr_p]=toupper(p_char);
+						tmpstr_p++;
+						srcpos++;
+						p_char=Code2Char(*srcpos);
+					}
+					p_char=Code2Char(*srcpos);
+					if(p_char=='$'){
+						tmpstr[tmpstr_p]='$';
+						tmpstr_p++;
+						srcpos++;
+						tmpint2=1;
+					}else{
+						tmpint2=0;
+					}
+					tmpint=Str2VarID(tmpstr);
+					if(tmpint!=-1)return ERR_DUPLICATE_DEFINITION;
+					tmpint=NewVar(tmpstr);
 					Variable[tmpint].isDim=true;
 					if((*srcpos==0x0000)||(Code2Char(*srcpos)==':'))return ERR_SYNTAX_ERROR;
 					srcpos=readformula(srcpos,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					argcount=1;
 					while(Code2Char(*srcpos)==','){
-						errtmp=push_calcstack(TYPE_SPECIAL,Char2Code(','),NULL,0);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
 						srcpos=jumpspace(srcpos+1);
 						srcpos=readformula(srcpos,&errtmp);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						errtmp=ProcessRemainingOperator();
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
 						argcount++;
 					}
-					errtmp=push_calcstack(TYPE_FUNC,Char2Code(')'),NULL,argcount);
-					if(!errtmp)return ERR_UNDEFINED;
-					errtmp=ProcessRemainingOperator();
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					
 					state=ST_NEW_STATEMENT;
 					break;
 				case TOKEN_READ:
