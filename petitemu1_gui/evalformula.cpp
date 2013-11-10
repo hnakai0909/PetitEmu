@@ -212,6 +212,7 @@ int push_calcstack(int type,int32_t value,char* str,int argc){
 }
 
 bool pop_calcstack_int(int32_t* arg){
+	if(calc_sl<=0)return false;
 	calc_sl--;
 	if(calc_s[calc_sl].type==TYPE_INT_LIT){
 		*arg=calc_s[calc_sl].value;
@@ -225,6 +226,7 @@ bool pop_calcstack_int(int32_t* arg){
 }
 
 bool pop_calcstack_str(char* arg){
+	if(calc_sl<=0)return false;
 	calc_sl--;
 	if(calc_s[calc_sl].type==TYPE_STR_LIT){
 		memset(arg,0x00,sizeof(arg));
@@ -239,6 +241,7 @@ bool pop_calcstack_str(char* arg){
 }
 
 bool pop_calcstack_var(int* arg){
+	if(calc_sl<=0)return false;
 	calc_sl--;
 	if(
 		(calc_s[calc_sl].type==TYPE_INT_VAR)||(calc_s[calc_sl].type==TYPE_STR_VAR)||
@@ -256,6 +259,7 @@ bool pop_calcstack_var(int* arg){
 }
 
 bool pop_calcstack_void(void){
+	if(calc_sl<=0)return false;
 	calc_sl--;
 	if(calc_s[calc_sl].type==TYPE_VOID){
 		if(log_en)printf("pop cs(%d) VOID\n",calc_sl);
@@ -269,21 +273,24 @@ bool pop_calcstack_void(void){
 
 int RegistDim(int VarID,int d1,int d2){
 	int unit_length=0;
+	if(Variable[VarID].isStr){
+		unit_length=STR_LEN_MAX;
+	}else{
+		unit_length=4;
+	}
+	if(dim_count>=1024)return ERR_OUT_OF_MEMORY;
 	dim_index[dim_count].address=dim_mem+dim_p;
 	dim_index[dim_count].VarID=VarID;
 	dim_index[dim_count].indexmax1=d1;
 	dim_index[dim_count].indexmax2=d2;
 	dim_index[dim_count].isStr=Variable[VarID].isStr;
 	Variable[VarID].isDim=true;
+	Variable[VarID].value=dim_count;
 	dim_count++;
-	if(Variable[VarID].isStr){
-		unit_length=STR_LEN_MAX;
-	}else{
-		unit_length=4;
-	}
 	if(d2==0)d2=1;
-	dim_p+=d1*d2*(unit_length);
-	return true;
+	if((dim_p+d1*d2*unit_length)>=DIM_MAX)return ERR_OUT_OF_MEMORY;
+	dim_p+=(d1*d2*unit_length);
+	return ERR_NO_ERROR;
 }
 
 void ClearDim(void){

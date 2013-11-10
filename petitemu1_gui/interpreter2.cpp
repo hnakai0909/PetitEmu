@@ -123,10 +123,10 @@ uint16_t* GetVarID(uint16_t* p,int* tmpint,int* errtmp){
 		//êVãKìoò^
 		*tmpint=NewVar(tmpstr);
 		if(Variable[*tmpint].isStr){
-			*errtmp=push_calcstack(TYPE_STR_VAR,*tmpint,NULL,2);
+			*errtmp=push_calcstack(TYPE_STR_VAR,*tmpint,NULL,0);
 			if(*errtmp!=ERR_NO_ERROR)return p;
 		}else{
-			*errtmp=push_calcstack(TYPE_INT_VAR,*tmpint,NULL,2);
+			*errtmp=push_calcstack(TYPE_INT_VAR,*tmpint,NULL,0);
 			if(*errtmp!=ERR_NO_ERROR)return p;
 		}
 	}
@@ -193,7 +193,7 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 	int cnt=0,tmp=0,beforetokentype=0,nest_depth=0;
 	char argcount[100],brackettype[100];
 	char p_char;
-	int32_t tmpint=0;
+	int32_t tmpint=0,tmpints[100];
 	int64_t tmpint2=0;
 	double tmpw=0;
 	*errtmp=ERR_NO_ERROR;
@@ -218,49 +218,66 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 				p_char=Code2Char(*p);
 				cnt++;
 			}
-			if(p_char=='$'){
+			p_char=Code2Char(*p);
+			if(p_char=='$'){ 
 				tmpstr[tmpstr_p]=p_char;
 				tmpstr_p++;
 				p++;
 				p_char=Code2Char(*p);
 				cnt++;
 			}
-			tmp=Str2VarID(tmpstr);
-			if(tmp!=-1){
+			p_char=Code2Char(*p);
+			if(p_char=='(' || p_char=='['){
+				tmpstr[tmpstr_p]=p_char;
+				tmpstr_p++;
+				tmp=Str2VarID(tmpstr);
 				if((beforetokentype==TYPE_INT_LIT)||(beforetokentype==TYPE_STR_LIT)){
 					//Next statement
 					//çsÇ´âﬂÇ¨ÇΩÇÃÇñﬂÇ∑
 					p-=cnt;
 					return p;
 				}
-				if(Variable[tmp].isStr){
-					*errtmp=push_calcstack(TYPE_STR_LIT,0,Variable[tmp].string,0);
-					if(*errtmp!=ERR_NO_ERROR)return p;
-					beforetokentype=TYPE_STR_LIT;
-				}else{
-					*errtmp=push_calcstack(TYPE_INT_LIT,Variable[tmp].value,NULL,0);
-					if(*errtmp!=ERR_NO_ERROR)return p;
-					beforetokentype=TYPE_INT_LIT;
-				}
+				if(tmp==-1)tmpint=NewVar(tmpstr);
+				beforetokentype=TYPE_FUNC;
 			}else{
-				if((beforetokentype==TYPE_INT_LIT)||(beforetokentype==TYPE_STR_LIT)){
-					//Next statement
-					//çsÇ´âﬂÇ¨ÇΩÇÃÇñﬂÇ∑
-					p-=cnt;
-					return p;
-				}
-				tmpint=NewVar(tmpstr);
-				if(Variable[tmpint].isStr){
-					*errtmp=push_calcstack(TYPE_STR_LIT,0,NULL,0);
-					if(*errtmp!=ERR_NO_ERROR)return p;
-					beforetokentype=TYPE_STR_LIT;
-				}else{
-					*errtmp=push_calcstack(TYPE_INT_LIT,0,NULL,0);
-					if(*errtmp!=ERR_NO_ERROR)return p;
-					beforetokentype=TYPE_INT_LIT;
-				}
+					tmp=Str2VarID(tmpstr);
+					if(tmp!=-1){
+						if((beforetokentype==TYPE_INT_LIT)||(beforetokentype==TYPE_STR_LIT)){
+							//Next statement
+							//çsÇ´âﬂÇ¨ÇΩÇÃÇñﬂÇ∑
+							p-=cnt;
+							return p;
+						}
+						if(Variable[tmp].isStr){
+							*errtmp=push_calcstack(TYPE_STR_LIT,0,Variable[tmp].string,0);
+							if(*errtmp!=ERR_NO_ERROR)return p;
+							beforetokentype=TYPE_STR_LIT;
+						}else{
+							*errtmp=push_calcstack(TYPE_INT_LIT,Variable[tmp].value,NULL,0);
+							if(*errtmp!=ERR_NO_ERROR)return p;
+							beforetokentype=TYPE_INT_LIT;
+						}
+					}else{
+						if((beforetokentype==TYPE_INT_LIT)||(beforetokentype==TYPE_STR_LIT)){
+							//Next statement
+							//çsÇ´âﬂÇ¨ÇΩÇÃÇñﬂÇ∑
+							p-=cnt;
+							return p;
+						}
+						tmpint=NewVar(tmpstr);
+						if(Variable[tmpint].isStr){
+							*errtmp=push_calcstack(TYPE_STR_LIT,0,NULL,0);
+							if(*errtmp!=ERR_NO_ERROR)return p;
+							beforetokentype=TYPE_STR_LIT;
+						}else{
+							*errtmp=push_calcstack(TYPE_INT_LIT,0,NULL,0);
+							if(*errtmp!=ERR_NO_ERROR)return p;
+							beforetokentype=TYPE_INT_LIT;
+						}
+					}
+					p=jumpspace(p);
+					break;
 			}
-			p=jumpspace(p);
 			p_char=Code2Char(*p);
 		}else if(isdigit(p_char)){
 			if(beforetokentype==TYPE_INT_LIT){
@@ -814,7 +831,7 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 	char tmpstr[STR_LEN_MAX],tmpstr2[STR_LEN_MAX*2],tmpstr3[STR_LEN_MAX];
 	unsigned char tmpstr_p=0;
 	int cnt=0,i=0,argcount=0;
-	int32_t tmpint=0;
+	int32_t tmpint=0,tmpint3=0;
 	int64_t tmpint2=0;
 	int lastprintmode=0,errtmp=ERR_NO_ERROR;
 	
@@ -937,23 +954,32 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					}else{
 						tmpint2=0;
 					}
+					if(Code2Char(*srcpos)=='('){
+						tmpstr[tmpstr_p]='(';
+						tmpstr_p++;
+					}else{
+						return ERR_SYNTAX_ERROR;
+					}
 					tmpint=Str2VarID(tmpstr);
 					if(tmpint!=-1)return ERR_DUPLICATE_DEFINITION;
 					tmpint=NewVar(tmpstr);
 					Variable[tmpint].isDim=true;
+					Variable[tmpint].isStr=tmpint2;
 					if((*srcpos==0x0000)||(Code2Char(*srcpos)==':'))return ERR_SYNTAX_ERROR;
 					srcpos=readformula(srcpos,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					argcount=1;
-					while(Code2Char(*srcpos)==','){
-						srcpos=jumpspace(srcpos+1);
-						srcpos=readformula(srcpos,&errtmp);
+					argcount=0/*ï¬Ç∂äáå Ç©ÇÁGETÇ≈Ç´ÇÈÇÕÇ∏*/;
+					tmpint2=tmpint;
+					if(!pop_calcstack_int(&tmpint))return ERR_UNDEFINED;
+					if(argcount==1){
+						errtmp=RegistDim(tmpint2,tmpint,0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						errtmp=ProcessRemainingOperator();
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						argcount++;
+					}else if(argcount==2){
+						if(!pop_calcstack_int(&tmpint3))return ERR_UNDEFINED;
+						RegistDim(tmpint2,tmpint,tmpint3);
+					}else{
+						return ERR_SYNTAX_ERROR;
 					}
-					
 					state=ST_NEW_STATEMENT;
 					break;
 				case TOKEN_READ:
