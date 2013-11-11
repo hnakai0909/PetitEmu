@@ -45,6 +45,8 @@ extern "C" {
 #define TYPE_SPECIAL 8
 #define TYPE_SPECIAL2 9
 #define TYPE_VOID 10
+#define TYPE_DIM 11
+#define TYPE_DIM_PTR 12
 
 #define ATYPE_VOID	0
 #define ATYPE_INT	1

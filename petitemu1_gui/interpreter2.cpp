@@ -57,77 +57,46 @@ uint16_t* GetVarID(uint16_t* p,int* tmpint,int* errtmp){
 		p_char=Code2Char(*p);
 	}
 	p_char=Code2Char(*p);
-	switch(p_char){
-		case '$':
-			tmpstr[tmpstr_p]='$';
-			tmpstr_p++;
-			p++;
-			break;
-		case '(':case '[':
-			tmpstr[tmpstr_p]=p_char;
-			tmpstr_p++;
-			p++;
-			tmpints[0]=1;
-			p=readformula(p,errtmp);
-			if(*errtmp!=ERR_NO_ERROR)return p;
-			if(Code2Char(*p)==','){
-				tmpints[0]=2;
-				p=jumpspace(p+1);
-				p=readformula(p,errtmp);
+	if(p_char=='$'){
+		tmpstr[tmpstr_p]=p_char;
+		tmpstr_p++;
+		p++;
+	}
+	p_char=Code2Char(*p);
+	if(p_char=='('||p_char=='['){
+		tmpstr[tmpstr_p]=p_char;
+		tmpstr_p++;
+		tmpints[0]=Str2VarID(tmpstr);
+		if(tmpints[0]==-1){
+			tmpints[0]=NewVar(tmpstr);
+			RegistDim(tmpints[0],10,0);
+		}
+		*errtmp=push_calcstack(TYPE_DIM_PTR,tmpints[0],NULL,0);
+		if(*errtmp!=ERR_NO_ERROR)return p;
+		p=readformula(p,errtmp);
+		if(*errtmp!=ERR_NO_ERROR)return p;
+	}else{
+		p=jumpspace(p);
+		*tmpint=Str2VarID(tmpstr);
+		if(*tmpint!=-1){
+			//ä˘ë∂
+			if(tmpstr[tmpstr_p-1]=='$'){
+				*errtmp=push_calcstack(TYPE_STR_VAR,*tmpint,NULL,0);
+				if(*errtmp!=ERR_NO_ERROR)return p;
+			}else{
+				*errtmp=push_calcstack(TYPE_INT_VAR,*tmpint,NULL,0);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 			}
-			switch(Code2Char(*p)){
-				case ')':
-					if(p_char!='('){
-						*errtmp=ERR_SYNTAX_ERROR;
-						return p;
-					}
-					if(!pop_calcstack_int(&tmpints[1])){
-						*errtmp=ERR_SYNTAX_ERROR;
-						return p;
-					}
-					if(tmpints[0]==2){
-						if(!pop_calcstack_int(&tmpints[2])){
-							*errtmp=ERR_SYNTAX_ERROR;
-							return p;
-						}
-					}
-					break;
-				case ']':
-					if(p_char!='['){
-						*errtmp=ERR_SYNTAX_ERROR;
-						return p;
-					}
-					break;
-				default:
-					*errtmp=ERR_SYNTAX_ERROR;
-					return p;
-					break;
+		}else{
+			//êVãKìoò^
+			*tmpint=NewVar(tmpstr);
+			if(Variable[*tmpint].isStr){
+				*errtmp=push_calcstack(TYPE_STR_VAR,*tmpint,NULL,0);
+				if(*errtmp!=ERR_NO_ERROR)return p;
+			}else{
+				*errtmp=push_calcstack(TYPE_INT_VAR,*tmpint,NULL,0);
+				if(*errtmp!=ERR_NO_ERROR)return p;
 			}
-			break;
-		default:
-			break;
-	}
-	p=jumpspace(p);
-	*tmpint=Str2VarID(tmpstr);
-	if(*tmpint!=-1){
-		//ä˘ë∂
-		if(tmpstr[tmpstr_p-1]=='$'){
-			*errtmp=push_calcstack(TYPE_STR_VAR,*tmpint,NULL,0);
-			if(*errtmp!=ERR_NO_ERROR)return p;
-		}else{
-			*errtmp=push_calcstack(TYPE_INT_VAR,*tmpint,NULL,0);
-			if(*errtmp!=ERR_NO_ERROR)return p;
-		}
-	}else{
-		//êVãKìoò^
-		*tmpint=NewVar(tmpstr);
-		if(Variable[*tmpint].isStr){
-			*errtmp=push_calcstack(TYPE_STR_VAR,*tmpint,NULL,0);
-			if(*errtmp!=ERR_NO_ERROR)return p;
-		}else{
-			*errtmp=push_calcstack(TYPE_INT_VAR,*tmpint,NULL,0);
-			if(*errtmp!=ERR_NO_ERROR)return p;
 		}
 	}
 	return p;
@@ -237,46 +206,50 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 					p-=cnt;
 					return p;
 				}
-				if(tmp==-1)tmpint=NewVar(tmpstr);
-				beforetokentype=TYPE_FUNC;
+				if(tmp==-1){
+					tmpint=NewVar(tmpstr);
+					RegistDim(tmpint,10,0);
+				}
+				*errtmp=push_calcstack(TYPE_DIM,tmpint,NULL,0);
+				if(*errtmp!=ERR_NO_ERROR)return p;
+				beforetokentype=TYPE_FUNC;//ñ{óàÇÕTYPE_DIMÇæÇ™ï÷ãXìIÇ…ÅB
 			}else{
-					tmp=Str2VarID(tmpstr);
-					if(tmp!=-1){
-						if((beforetokentype==TYPE_INT_LIT)||(beforetokentype==TYPE_STR_LIT)){
-							//Next statement
-							//çsÇ´âﬂÇ¨ÇΩÇÃÇñﬂÇ∑
-							p-=cnt;
-							return p;
-						}
-						if(Variable[tmp].isStr){
-							*errtmp=push_calcstack(TYPE_STR_LIT,0,Variable[tmp].string,0);
-							if(*errtmp!=ERR_NO_ERROR)return p;
-							beforetokentype=TYPE_STR_LIT;
-						}else{
-							*errtmp=push_calcstack(TYPE_INT_LIT,Variable[tmp].value,NULL,0);
-							if(*errtmp!=ERR_NO_ERROR)return p;
-							beforetokentype=TYPE_INT_LIT;
-						}
-					}else{
-						if((beforetokentype==TYPE_INT_LIT)||(beforetokentype==TYPE_STR_LIT)){
-							//Next statement
-							//çsÇ´âﬂÇ¨ÇΩÇÃÇñﬂÇ∑
-							p-=cnt;
-							return p;
-						}
-						tmpint=NewVar(tmpstr);
-						if(Variable[tmpint].isStr){
-							*errtmp=push_calcstack(TYPE_STR_LIT,0,NULL,0);
-							if(*errtmp!=ERR_NO_ERROR)return p;
-							beforetokentype=TYPE_STR_LIT;
-						}else{
-							*errtmp=push_calcstack(TYPE_INT_LIT,0,NULL,0);
-							if(*errtmp!=ERR_NO_ERROR)return p;
-							beforetokentype=TYPE_INT_LIT;
-						}
+				tmp=Str2VarID(tmpstr);
+				if(tmp!=-1){
+					if((beforetokentype==TYPE_INT_LIT)||(beforetokentype==TYPE_STR_LIT)){
+						//Next statement
+						//çsÇ´âﬂÇ¨ÇΩÇÃÇñﬂÇ∑
+						p-=cnt;
+						return p;
 					}
-					p=jumpspace(p);
-					break;
+					if(Variable[tmp].isStr){
+						*errtmp=push_calcstack(TYPE_STR_LIT,0,Variable[tmp].string,0);
+						if(*errtmp!=ERR_NO_ERROR)return p;
+						beforetokentype=TYPE_STR_LIT;
+					}else{
+						*errtmp=push_calcstack(TYPE_INT_LIT,Variable[tmp].value,NULL,0);
+						if(*errtmp!=ERR_NO_ERROR)return p;
+						beforetokentype=TYPE_INT_LIT;
+					}
+				}else{
+					if((beforetokentype==TYPE_INT_LIT)||(beforetokentype==TYPE_STR_LIT)){
+						//Next statement
+						//çsÇ´âﬂÇ¨ÇΩÇÃÇñﬂÇ∑
+						p-=cnt;
+						return p;
+					}
+					tmpint=NewVar(tmpstr);
+					if(Variable[tmpint].isStr){
+						*errtmp=push_calcstack(TYPE_STR_LIT,0,NULL,0);
+						if(*errtmp!=ERR_NO_ERROR)return p;
+						beforetokentype=TYPE_STR_LIT;
+					}else{
+						*errtmp=push_calcstack(TYPE_INT_LIT,0,NULL,0);
+						if(*errtmp!=ERR_NO_ERROR)return p;
+						beforetokentype=TYPE_INT_LIT;
+					}
+				}
+				p=jumpspace(p);
 			}
 			p_char=Code2Char(*p);
 		}else if(isdigit(p_char)){
@@ -962,24 +935,15 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					}
 					tmpint=Str2VarID(tmpstr);
 					if(tmpint!=-1)return ERR_DUPLICATE_DEFINITION;
-					tmpint=NewVar(tmpstr);
-					Variable[tmpint].isDim=true;
-					Variable[tmpint].isStr=tmpint2;
-					if((*srcpos==0x0000)||(Code2Char(*srcpos)==':'))return ERR_SYNTAX_ERROR;
+					errtmp=push_calcstack(TYPE_INT_LIT,tmpint2,NULL,0);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					errtmp=push_calcstack(TYPE_STR_LIT,0,tmpstr,0);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					errtmp=push_calcstack(TYPE_FUNC,TOKEN_DIM,NULL,0);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					srcpos=readformula(srcpos,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					argcount=0/*ï¬Ç∂äáå Ç©ÇÁGETÇ≈Ç´ÇÈÇÕÇ∏*/;
-					tmpint2=tmpint;
-					if(!pop_calcstack_int(&tmpint))return ERR_UNDEFINED;
-					if(argcount==1){
-						errtmp=RegistDim(tmpint2,tmpint,0);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-					}else if(argcount==2){
-						if(!pop_calcstack_int(&tmpint3))return ERR_UNDEFINED;
-						RegistDim(tmpint2,tmpint,tmpint3);
-					}else{
-						return ERR_SYNTAX_ERROR;
-					}
+					ProcessRemainingOperator();
 					state=ST_NEW_STATEMENT;
 					break;
 				case TOKEN_READ:

@@ -309,7 +309,7 @@ int print2console(char *string,int indent_option){
 }
 
 void PutStartMessage(void){
-	print2console("Petitemulator PETITEMU ver0.10",0);
+	print2console("Petitemulator PETITEMU ver0.20",0);
 	print2console("SMILEBASIC ver1.20",0);
 	print2console("1048576 byte free",0);
 	print2console("hnakai 2013",0);

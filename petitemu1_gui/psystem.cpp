@@ -4,7 +4,7 @@ enum SystemMode systemmode;
 
 bool InitWindow(void){
 	SetGraphMode(256,384,32);
-	SetMainWindowText("Petitemu ver 0.10");
+	SetMainWindowText("PetitEmu ver 0.20");
 	ChangeWindowMode(TRUE);
 	if(DxLib_Init()==-1)return false;
 	return true;

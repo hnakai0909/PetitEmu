@@ -151,7 +151,7 @@ int push_calcstack(int type,int32_t value,char* str,int argc){
 			}
 			if(op_sl>0){
 				pop_opstack(&op,&argcount);
-				if(isFunction(op)||isNoArgInstruction(op)||isArgInstruction(op)){
+				if(isFunction(op)||isNoArgInstruction(op)||isArgInstruction(op)||(op>=0&&op<1024)){
 					errtmp=EvalFormula(op,argc);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 				}else{
@@ -178,6 +178,8 @@ int push_calcstack(int type,int32_t value,char* str,int argc){
 			//Unknown token
 			return ERR_SYNTAX_ERROR;
 		}
+	}else if(type==TYPE_DIM){
+		push_opstack(value,argc);
 	}else if(type==TYPE_SPECIAL){
 		if(value==Char2Code(',')){
 			tmp=0;
@@ -278,7 +280,7 @@ int RegistDim(int VarID,int d1,int d2){
 	}else{
 		unit_length=4;
 	}
-	if(dim_count>=1024)return ERR_OUT_OF_MEMORY;
+	if(dim_count>=VAR_MAX)return ERR_OUT_OF_MEMORY;
 	dim_index[dim_count].address=dim_mem+dim_p;
 	dim_index[dim_count].VarID=VarID;
 	dim_index[dim_count].indexmax1=d1;
@@ -1086,16 +1088,27 @@ int EvalFormula(const int arg,const int argcount){
 			BGData[bgpage][tmpints[6]][tmpints[5]][tmpints[4]].v_inverse=tmpints[0];
 			break;
 		case TOKEN_DIM:
-			if(argcount==1){
-				if(argtypes[1]!=ATYPE_VAR || argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
-			}else if(argcount==2){
-				if(argtypes[2]!=ATYPE_VAR || argtypes[1]!=ATYPE_INT || argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
-			}else if(argcount==0){
+			if(!pop_calcstack_str(tmpstr))return ERR_SYNTAX_ERROR;
+			if(!pop_calcstack_int(&tmpints[2]))return ERR_SYNTAX_ERROR;
+			tmpints[1]=FloorInt(tmpints[1]);tmpints[0]=FloorInt(tmpints[0]);
+			
+			if(argcount==0){
 				return ERR_SYNTAX_ERROR;
-			}else{
+			}else if(argcount>2){
 				return ERR_MISSING_OPERAND;
 			}
-
+			tmpint=NewVar(tmpstr);
+			Variable[tmpint].isDim=true;
+			Variable[tmpint].isStr=tmpints[2];
+			if(argcount==2){
+				if(argtypes[1]!=ATYPE_INT || argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
+				errtmp=RegistDim(tmpint,tmpints[1],tmpints[0]);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+			}else{
+				if(argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
+				errtmp=RegistDim(tmpint,tmpints[0],0);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+			}
 			break;
 		case OP_SUBSTITUTE:
 			if(argcount<2)return ERR_MISSING_OPERAND;
@@ -1126,6 +1139,40 @@ int EvalFormula(const int arg,const int argcount){
 			}
 			break;
 		default:
+			//”z—ñ
+			if(arg>=0 && arg<1024){
+				if(argcount==1){
+					tmpints[0]=FloorInt(tmpints[0]);
+					if(argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
+					tmpints[3]=Variable[arg].value;
+					if(dim_index[tmpints[3]].indexmax2!=0)return ERR_SYNTAX_ERROR;
+					if(tmpints[0]>=dim_index[tmpints[3]].indexmax1)return ERR_SUBSCRIPT_OUT_OF_RANGE;
+					if(dim_index[tmpints[3]].isStr){
+						errtmp=push_calcstack(TYPE_STR_LIT,0,(char*)(dim_index[tmpints[3]].address+tmpints[0]*256),0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+					}else{
+						errtmp=push_calcstack(TYPE_INT_LIT,(int32_t)*(dim_index[tmpints[3]].address+tmpints[0]*4),NULL,0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+					}
+				}else if(argcount==2){
+					tmpints[0]=FloorInt(tmpints[0]);
+					tmpints[1]=FloorInt(tmpints[1]);
+					if(argtypes[0]!=ATYPE_INT || argtypes[1]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
+					tmpints[3]=Variable[arg].value;
+					if(dim_index[tmpints[3]].indexmax2==0)return ERR_SYNTAX_ERROR;
+					if(tmpints[1]>=dim_index[tmpints[3]].indexmax1 || tmpints[0]>=dim_index[tmpints[3]].indexmax2)return ERR_SUBSCRIPT_OUT_OF_RANGE;
+					if(dim_index[tmpints[3]].isStr){
+						errtmp=push_calcstack(TYPE_STR_LIT,0,(char*)(dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*256),0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+					}else{
+						errtmp=push_calcstack(TYPE_INT_LIT,(int32_t)*(dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*4),NULL,0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+					}
+				}else{
+					return ERR_SYNTAX_ERROR;
+				}
+				break;
+			}
 			printf("!!!!!(%d)\n",arg);
 			break;
 	}
