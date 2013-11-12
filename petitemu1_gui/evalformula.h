@@ -186,6 +186,8 @@ int push_calcstack(int type,int32_t value,char* str,int argc);
 bool pop_calcstack_int(int32_t* arg);
 bool pop_calcstack_str(char* arg);
 bool pop_calcstack_var(int* arg);
+bool pop_calcstack_intptr(int* arg);
+bool pop_calcstack_strptr(int* arg);
 bool pop_calcstack_void(void);
 
 int RegistDim(int VarID,int d1,int d2);

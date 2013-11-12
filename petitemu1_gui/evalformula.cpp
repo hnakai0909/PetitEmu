@@ -3,7 +3,7 @@
 
 struct VARIABLE Variable[VAR_MAX];
 
-bool log_en=false;
+bool log_en=true;
 
 //プチコンシステム変数(文字列)
 char Psys_DATE_D[10];	//DATE$
@@ -151,7 +151,7 @@ int push_calcstack(int type,int32_t value,char* str,int argc){
 			}
 			if(op_sl>0){
 				pop_opstack(&op,&argcount);
-				if(isFunction(op)||isNoArgInstruction(op)||isArgInstruction(op)||(op>=0&&op<1024)){
+				if(isFunction(op)||isNoArgInstruction(op)||isArgInstruction(op)||(op>=0&&op<2047)){
 					errtmp=EvalFormula(op,argc);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 				}else{
@@ -180,6 +180,8 @@ int push_calcstack(int type,int32_t value,char* str,int argc){
 		}
 	}else if(type==TYPE_DIM){
 		push_opstack(value,argc);
+	}else if(type==TYPE_DIM_PTR){
+		push_opstack(value+1024,argc);
 	}else if(type==TYPE_SPECIAL){
 		if(value==Char2Code(',')){
 			tmp=0;
@@ -260,6 +262,36 @@ bool pop_calcstack_var(int* arg){
 	return false;
 }
 
+bool pop_calcstack_intptr(int* arg){
+	if(calc_sl<=0)return false;
+	calc_sl--;
+	if(calc_s[calc_sl].type==TYPE_INT_PTR){
+	 	memset(arg,0x00,sizeof(arg));
+		*arg=calc_s[calc_sl].value;
+		if(log_en)printf("pop cs(%d) INTPTR %d\n",calc_sl,calc_s[calc_sl].value);
+		memset(calc_s+calc_sl,0x00,sizeof(calc_s+calc_sl));
+		return true;
+	}else{
+		calc_sl++;
+	}
+	return false;
+}
+
+bool pop_calcstack_strptr(int* arg){
+	if(calc_sl<=0)return false;
+	calc_sl--;
+	if(calc_s[calc_sl].type==TYPE_STR_PTR){
+	 	memset(arg,0x00,sizeof(arg));
+		*arg=calc_s[calc_sl].value;
+		if(log_en)printf("pop cs(%d) STRPTR %d\n",calc_sl,calc_s[calc_sl].value);
+		memset(calc_s+calc_sl,0x00,sizeof(calc_s+calc_sl));
+		return true;
+	}else{
+		calc_sl++;
+	}
+	return false;
+}
+
 bool pop_calcstack_void(void){
 	if(calc_sl<=0)return false;
 	calc_sl--;
@@ -332,6 +364,12 @@ int EvalFormula(const int arg,const int argcount){
 			}else if(pop_calcstack_var(&tmpint)){
 				tmpints[i]=tmpint;
 				argtypes[i]=ATYPE_VAR;
+			}else if(pop_calcstack_intptr(&tmpint)){
+				tmpints[i]=tmpint;
+				argtypes[i]=ATYPE_INT_PTR;
+			}else if(pop_calcstack_strptr(&tmpint)){
+				tmpints[i]=tmpint;
+				argtypes[i]=ATYPE_STR_PTR;
 			}else{
 				return ERR_SYNTAX_ERROR;
 			}
@@ -1113,29 +1151,43 @@ int EvalFormula(const int arg,const int argcount){
 		case OP_SUBSTITUTE:
 			if(argcount<2)return ERR_MISSING_OPERAND;
 			if(argcount>2)return ERR_SYNTAX_ERROR;
-			if(argtypes[1]!=ATYPE_VAR)return ERR_SYNTAX_ERROR;
-			tmpint=GetSystemVariableType(tmpints[1]);
-			if(tmpint!=0){
-				switch(tmpint){
-					case 2:
-						*GetSystemVariableIntPtr(tmpints[1])=FloorInt(tmpints[0])*4096;
-						break;
-					case 4:
-						memset(Psys_MEM,0x00,sizeof(Psys_MEM));
-						strcpy(Psys_MEM,tmpstrs[0]);
-						break;
-					case 1: case 3: default:
-						return ERR_SYNTAX_ERROR;
+			if(argtypes[1]!=ATYPE_VAR && argtypes[1]!=ATYPE_INT_PTR && argtypes[1]!=ATYPE_STR_PTR)return ERR_SYNTAX_ERROR;
+			if(argtypes[1]==ATYPE_VAR){
+				tmpint=GetSystemVariableType(tmpints[1]);
+				if(tmpint!=0){
+					switch(tmpint){
+						case 2:
+							*GetSystemVariableIntPtr(tmpints[1])=FloorInt(tmpints[0])*4096;
+							break;
+						case 4:
+							memset(Psys_MEM,0x00,sizeof(Psys_MEM));
+							strcpy(Psys_MEM,tmpstrs[0]);
+							break;
+						case 1: case 3: default:
+							return ERR_SYNTAX_ERROR;
+						}
+				}else if(argtypes[0]==ATYPE_INT){
+					if(Variable[tmpints[1]].isStr)return ERR_TYPE_MISMATCH;
+					Variable[tmpints[1]].value=tmpints[0];
+				}else if(argtypes[0]==ATYPE_STR){
+					if(!(Variable[tmpints[1]].isStr))return ERR_TYPE_MISMATCH;
+					memset(Variable[tmpints[1]].string,0x00,sizeof(Variable[tmpints[1]].string));
+					strcpy(Variable[tmpints[1]].string,tmpstrs[0]);
+				}else{
+					return ERR_SYNTAX_ERROR;
 				}
-			}else if(argtypes[0]==ATYPE_INT){
-				if(Variable[tmpints[1]].isStr)return ERR_TYPE_MISMATCH;
-				Variable[tmpints[1]].value=tmpints[0];
-			}else if(argtypes[0]==ATYPE_STR){
-				if(!(Variable[tmpints[1]].isStr))return ERR_TYPE_MISMATCH;
-				memset(Variable[tmpints[1]].string,0x00,sizeof(Variable[tmpints[1]].string));
-				strcpy(Variable[tmpints[1]].string,tmpstrs[0]);
 			}else{
-				return ERR_SYNTAX_ERROR;
+				//PTR
+				if(argtypes[0]==ATYPE_INT){
+					if(argtypes[1]==ATYPE_STR_PTR)return ERR_TYPE_MISMATCH;
+					*(int32_t*)(tmpints[1])=tmpints[0];
+				}else if(argtypes[0]==ATYPE_STR){
+					if(argtypes[1]==ATYPE_INT_PTR)return ERR_TYPE_MISMATCH;
+					memset((char*)(tmpints[1]),0x00,sizeof(BYTE)*256);
+					strcpy((char*)(tmpints[1]),tmpstrs[0]);
+				}else{
+					return ERR_SYNTAX_ERROR;
+				}
 			}
 			break;
 		default:
@@ -1151,7 +1203,7 @@ int EvalFormula(const int arg,const int argcount){
 						errtmp=push_calcstack(TYPE_STR_LIT,0,(char*)(dim_index[tmpints[3]].address+tmpints[0]*256),0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}else{
-						errtmp=push_calcstack(TYPE_INT_LIT,(int32_t)*(dim_index[tmpints[3]].address+tmpints[0]*4),NULL,0);
+						errtmp=push_calcstack(TYPE_INT_LIT,*(int32_t *)(dim_index[tmpints[3]].address+tmpints[0]*4),NULL,0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}
 				}else if(argcount==2){
@@ -1172,8 +1224,41 @@ int EvalFormula(const int arg,const int argcount){
 					return ERR_SYNTAX_ERROR;
 				}
 				break;
+			//配列ポインタ?
+			}else if(arg>=1024 && arg<2048){
+				if(argcount==1){
+					tmpints[0]=FloorInt(tmpints[0]);
+					if(argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
+					tmpints[3]=Variable[arg-1024].value;
+					if(dim_index[tmpints[3]].indexmax2!=0)return ERR_SYNTAX_ERROR;
+					if(tmpints[0]>=dim_index[tmpints[3]].indexmax1)return ERR_SUBSCRIPT_OUT_OF_RANGE;
+					if(dim_index[tmpints[3]].isStr){
+						errtmp=push_calcstack(TYPE_STR_PTR,(int32_t)(dim_index[tmpints[3]].address+tmpints[0]*256),NULL,0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+					}else{
+						errtmp=push_calcstack(TYPE_INT_PTR,(int32_t)(dim_index[tmpints[3]].address+tmpints[0]*4),NULL,0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+					}
+				}else if(argcount==2){
+					tmpints[0]=FloorInt(tmpints[0]);
+					tmpints[1]=FloorInt(tmpints[1]);
+					if(argtypes[0]!=ATYPE_INT || argtypes[1]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
+					tmpints[3]=Variable[arg-1024].value;
+					if(dim_index[tmpints[3]].indexmax2==0)return ERR_SYNTAX_ERROR;
+					if(tmpints[1]>=dim_index[tmpints[3]].indexmax1 || tmpints[0]>=dim_index[tmpints[3]].indexmax2)return ERR_SUBSCRIPT_OUT_OF_RANGE;
+					if(dim_index[tmpints[3]].isStr){
+						errtmp=push_calcstack(TYPE_STR_PTR,(int32_t)(dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*256),NULL,0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+					}else{
+						errtmp=push_calcstack(TYPE_INT_PTR,(int32_t)(dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*4),NULL,0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+					}
+				}else{
+					return ERR_SYNTAX_ERROR;
+				}
+				break;
 			}
-			printf("!!!!!(%d)\n",arg);
+			printf("!!!!!Unknown function(%d)\n",arg);
 			break;
 	}
 	return ERR_NO_ERROR;

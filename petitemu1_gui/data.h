@@ -47,11 +47,15 @@ extern "C" {
 #define TYPE_VOID 10
 #define TYPE_DIM 11
 #define TYPE_DIM_PTR 12
+#define TYPE_INT_PTR 13
+#define TYPE_STR_PTR 14
 
 #define ATYPE_VOID	0
 #define ATYPE_INT	1
 #define ATYPE_STR	2
 #define ATYPE_VAR	3
+#define ATYPE_INT_PTR	4
+#define ATYPE_STR_PTR	5
 
 #define KEY_TIME_TO_RENSYA 40
 #define KEY_RENSYA_INTERVAL 4

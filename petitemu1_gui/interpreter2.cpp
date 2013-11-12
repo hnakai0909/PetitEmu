@@ -75,6 +75,8 @@ uint16_t* GetVarID(uint16_t* p,int* tmpint,int* errtmp){
 		if(*errtmp!=ERR_NO_ERROR)return p;
 		p=readformula(p,errtmp);
 		if(*errtmp!=ERR_NO_ERROR)return p;
+		*errtmp=ProcessRemainingOperator();
+		if(*errtmp!=ERR_NO_ERROR)return p;
 	}else{
 		p=jumpspace(p);
 		*tmpint=Str2VarID(tmpstr);
@@ -199,14 +201,14 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 			if(p_char=='(' || p_char=='['){
 				tmpstr[tmpstr_p]=p_char;
 				tmpstr_p++;
-				tmp=Str2VarID(tmpstr);
+				tmpint=Str2VarID(tmpstr);
 				if((beforetokentype==TYPE_INT_LIT)||(beforetokentype==TYPE_STR_LIT)){
 					//Next statement
 					//s‚«‰ß‚¬‚½‚Ì‚ð–ß‚·
 					p-=cnt;
 					return p;
 				}
-				if(tmp==-1){
+				if(tmpint==-1){
 					tmpint=NewVar(tmpstr);
 					RegistDim(tmpint,10,0);
 				}
@@ -387,7 +389,7 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 				*errtmp=push_calcstack(TYPE_FUNC,OP_EQUAL,NULL,2);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 			}else{
-				*errtmp=ERR_SYNTAX_ERROR;
+				*errtmp=ERR_NO_ERROR;
 				return p;
 			}
 			p++;
@@ -448,8 +450,8 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 				argcount[nest_depth]++;
 			}
 			*errtmp=push_calcstack(TYPE_FUNC,Char2Code(')'),NULL,argcount[nest_depth]);
-			argcount[nest_depth]=0;
 			if(*errtmp!=ERR_NO_ERROR)return p;
+			argcount[nest_depth]=0;
 			p=jumpspace(p+1);
 			p_char=Code2Char(*p);
 			beforetokentype=TYPE_SPECIAL2;
@@ -904,46 +906,48 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					state=ST_NEW_STATEMENT;
 					break;
 				case TOKEN_DIM:
-					srcpos=jumpspace(srcpos+1);
-					memset(tmpstr,0x00,sizeof(tmpstr));
-					p_char=Code2Char(*srcpos);
-					tmpstr_p=0;
-					while(isalpha(p_char)||(p_char=='_')||(isdigit(p_char))){
-						if((tmpstr_p==0)&&(isdigit(p_char))){
+					do{
+						srcpos=jumpspace(srcpos+1);
+						memset(tmpstr,0x00,sizeof(tmpstr));
+						p_char=Code2Char(*srcpos);
+						tmpstr_p=0;
+						while(isalpha(p_char)||(p_char=='_')||(isdigit(p_char))){
+							if((tmpstr_p==0)&&(isdigit(p_char))){
+								return ERR_SYNTAX_ERROR;
+							}
+							if(tmpstr_p>=8)return ERR_STRING_TOO_LONG;
+							tmpstr[tmpstr_p]=toupper(p_char);
+							tmpstr_p++;
+							srcpos++;
+							p_char=Code2Char(*srcpos);
+						}
+						p_char=Code2Char(*srcpos);
+						if(p_char=='$'){
+							tmpstr[tmpstr_p]='$';
+							tmpstr_p++;
+							srcpos++;
+							tmpint2=1;
+						}else{
+							tmpint2=0;
+						}
+						if(Code2Char(*srcpos)=='('){
+							tmpstr[tmpstr_p]='(';
+							tmpstr_p++;
+						}else{
 							return ERR_SYNTAX_ERROR;
 						}
-						if(tmpstr_p>=8)return ERR_STRING_TOO_LONG;
-						tmpstr[tmpstr_p]=toupper(p_char);
-						tmpstr_p++;
-						srcpos++;
-						p_char=Code2Char(*srcpos);
-					}
-					p_char=Code2Char(*srcpos);
-					if(p_char=='$'){
-						tmpstr[tmpstr_p]='$';
-						tmpstr_p++;
-						srcpos++;
-						tmpint2=1;
-					}else{
-						tmpint2=0;
-					}
-					if(Code2Char(*srcpos)=='('){
-						tmpstr[tmpstr_p]='(';
-						tmpstr_p++;
-					}else{
-						return ERR_SYNTAX_ERROR;
-					}
-					tmpint=Str2VarID(tmpstr);
-					if(tmpint!=-1)return ERR_DUPLICATE_DEFINITION;
-					errtmp=push_calcstack(TYPE_INT_LIT,tmpint2,NULL,0);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					errtmp=push_calcstack(TYPE_STR_LIT,0,tmpstr,0);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					errtmp=push_calcstack(TYPE_FUNC,TOKEN_DIM,NULL,0);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=readformula(srcpos,&errtmp);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					ProcessRemainingOperator();
+						tmpint=Str2VarID(tmpstr);
+						if(tmpint!=-1)return ERR_DUPLICATE_DEFINITION;
+						errtmp=push_calcstack(TYPE_INT_LIT,tmpint2,NULL,0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						errtmp=push_calcstack(TYPE_STR_LIT,0,tmpstr,0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						errtmp=push_calcstack(TYPE_FUNC,TOKEN_DIM,NULL,0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						srcpos=readformula(srcpos,&errtmp);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						ProcessRemainingOperator();
+					}while(Code2Char(*srcpos)==',');
 					state=ST_NEW_STATEMENT;
 					break;
 				case TOKEN_READ:
