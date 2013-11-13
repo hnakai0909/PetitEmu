@@ -3,7 +3,8 @@
 
 struct VARIABLE Variable[VAR_MAX];
 
-bool log_en=true;
+bool log_en=false;
+int log_en2=false;
 
 //プチコンシステム変数(文字列)
 char Psys_DATE_D[10];	//DATE$
@@ -85,6 +86,8 @@ int keybuffer_qtail;//書く位置(キュー末尾)
 uint16_t translated_source[10000];
 unsigned char* source_ptr;
 uint32_t cur_line=0;
+uint32_t read_curline;
+uint32_t read_curcol;
 
 uint32_t srcline_begin_token_pos[10000];
 uint32_t srcline_token_count[10000];
@@ -95,8 +98,6 @@ int labelcount;
 bool breakflag=0;
 
 int keyboard_special=0;
-
-int data_read_ptr=0;
 
 BYTE dim_mem[DIM_MAX*STR_LEN_MAX];
 int dim_p;
@@ -245,6 +246,7 @@ bool pop_calcstack_str(char* arg){
 }
 
 bool pop_calcstack_var(int* arg){
+	int tmpint;
 	if(calc_sl<=0)return false;
 	calc_sl--;
 	if(
@@ -253,7 +255,20 @@ bool pop_calcstack_var(int* arg){
 	){
 	 	memset(arg,0x00,sizeof(arg));
 		*arg=calc_s[calc_sl].value;
-		if(log_en)printf("pop cs(%d) VAR %s\n",calc_sl,Variable[calc_s[calc_sl].value].name);
+		if(log_en){
+			tmpint=GetSystemVariableType(calc_s[calc_sl].value);
+			switch(tmpint){
+				case 2:
+					printf("pop cs(%d) SYSVAR %s\n",calc_sl,TokenCode2Str(calc_s[calc_sl].value));
+					break;
+				case 4:
+					printf("pop cs(%d) SYSVAR MEM$\n",calc_sl);
+					break;
+				default:
+					printf("pop cs(%d) VAR %s\n",calc_sl,Variable[calc_s[calc_sl].value].name);
+			}
+			
+		}
 		memset(calc_s+calc_sl,0x00,sizeof(calc_s+calc_sl));
 		return true;
 	}else{

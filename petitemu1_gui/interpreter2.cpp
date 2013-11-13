@@ -699,6 +699,7 @@ void RunInteractive(char* input){
 			if(Psys_CSRX!=0)print2console("",0);
 			printf("%s\n",tmpstr);
 			print2console(tmpstr,0);
+			runmode=RMD_STOP;
 			return;
 		}
 		runmode=RMD_STOP;
@@ -800,7 +801,7 @@ int ResistLabel(uint16_t* input){
 int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 	uint16_t *srcpos=input,*tmppos;
 	const uint16_t *srcend=input+srclen;
-	
+	uint32_t tmpline=0;
 	uint16_t t=0;
 	char c=0,*c2,p_char;
 	char tmpstr[STR_LEN_MAX],tmpstr2[STR_LEN_MAX*2],tmpstr3[STR_LEN_MAX];
@@ -900,6 +901,7 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 							lastprintmode=0;
 							srcpos++;
 							if(isInstruction(*srcpos))return ERR_SYNTAX_ERROR;
+							break;
 						}
 						if(tmpint==1)break;
 					}
@@ -1146,6 +1148,7 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					tmpint+=ForGosub_s[ForGosub_sl].step;
 					Variable[ForGosub_s[ForGosub_sl].VarID].value=tmpint;
 					tmppos=srcpos;
+					tmpline=cur_line;
 					srcpos=input+ForGosub_s[ForGosub_sl].col;
 					cur_line=ForGosub_s[ForGosub_sl].line;
 					srcpos=readformula(srcpos,&errtmp);
@@ -1158,6 +1161,8 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					if(Code2Char(*srcpos)==':'){
 						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint){
 							srcpos=tmppos+1;
+							cur_line=tmpline;
+							gotoline(cur_line);
 						}else{
 							ForGosub_s[ForGosub_sl].step=4096;
 							ForGosub_sl++;
@@ -1167,6 +1172,8 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					}else if(Code2Char(*srcpos)=='\'' || *srcpos==0x0000 || *srcpos==0x000D){
 						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint){
 							srcpos=tmppos+1;
+							cur_line=tmpline+1;
+							gotoline(cur_line);
 							state=ST_NEW_STATEMENT;
 							break;
 						}else{
@@ -1189,6 +1196,7 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					if(tmpint>0){
 						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint2){
 							srcpos=tmppos+1;
+							cur_line=tmpline;
 							state=ST_NEW_STATEMENT;
 							break;
 						}
@@ -1196,6 +1204,7 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					if(tmpint<0){
 						if(Variable[ForGosub_s[ForGosub_sl].VarID].value<tmpint2){
 							srcpos=tmppos+1;
+							cur_line=tmpline;
 							state=ST_NEW_STATEMENT;
 							break;
 						}
@@ -1579,6 +1588,7 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 			}
 		}
 		tmpint=draw_console();
+		if(log_en2)printf("%s/",TokenCode2Str(*srcpos));
 		if(!tmpint)return ERR_UNDEFINED;
 		if(breakflag)return ERR_NO_ERROR;
 	}

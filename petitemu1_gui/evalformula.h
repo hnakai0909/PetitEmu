@@ -49,6 +49,7 @@ struct CalcStack {
 };
 
 extern bool log_en;
+extern int log_en2;
 
 extern struct VARIABLE Variable[VAR_MAX];
 
@@ -147,11 +148,13 @@ extern unsigned char keybuffer[KEYBUFFER_MAX];
 extern int keybuffer_qhead;//ì«Çﬁà íu
 extern int keybuffer_qtail;//èëÇ≠à íu
 
-//mallocÇ∑ÇÈ...
+//mallocÇ∑ÇÈ...?
 extern uint16_t translated_source[10000];
 
 extern unsigned char* source_ptr;
 extern uint32_t cur_line;
+extern uint32_t read_curline;
+extern uint32_t read_curcol;
 
 extern uint32_t srcline_begin_token_pos[10000];
 extern uint32_t srcline_token_count[10000];
@@ -161,8 +164,6 @@ extern int labellist_line[10000];
 extern int labelcount;
 extern bool breakflag;
 extern int keyboard_special;
-
-extern int data_read_ptr;
 
 extern BYTE dim_mem[DIM_MAX*STR_LEN_MAX];
 extern int dim_p;
