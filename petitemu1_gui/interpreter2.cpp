@@ -1012,7 +1012,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 						//‚±‚±‚Å‰E•Ó’l‚ðcalcstack‚É“Ë‚Áž‚Þ
 						
-						
+						//read_srcpos
 
 						srcpos=JumpSpace(srcpos);
 					}while(Code2Char(*srcpos)==',');
@@ -1241,9 +1241,9 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					tmpint2=tmpint;
 					if(Code2Char(*srcpos)==':'){
 						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint){
-							srcpos=tmppos+1;
 							cur_line=tmpline;
 							GOTOLINE(cur_line);
+							srcpos=tmppos+1;
 						}else{
 							ForGosub_s[ForGosub_sl].step=4096;
 							ForGosub_sl++;
@@ -1252,9 +1252,10 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						break;
 					}else if(Code2Char(*srcpos)=='\'' || *srcpos==0x0000 || *srcpos==0x000D){
 						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint){
-							srcpos=tmppos+1;
 							cur_line=tmpline+1;
 							GOTOLINE(cur_line);
+							srcpos=tmppos;
+							if(*srcpos==TOKEN_NEXT)srcpos++;
 							state=ST_NEW_STATEMENT;
 							break;
 						}else{
