@@ -22,7 +22,7 @@
 #include "pgui.h"
 #include "pfile.h"
 
-#define gotoline(line) srcpos=input+srcline_begin_token_pos[line];Psys_ERL=line;
+#define GOTOLINE(line) srcpos=input+srcline_begin_token_pos[line];Psys_ERL=line;
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,15 +48,18 @@ char dec2int(const char arg);
 int Str2VarID(const char* arg);
 uint16_t* GetVarID(uint16_t* p,int* tmpint,int* errtmp);
 int ProcessRemainingOperator(void);
-uint16_t* jumpspace(uint16_t* p);
-uint16_t* forjump(uint16_t* p,int* errtmp);
-uint16_t* readformula(uint16_t* p,int* errtmp);
+uint16_t* JumpSpace(uint16_t* p);
+uint16_t* ForJump(uint16_t* p,int* errtmp);
+uint16_t* ReadFormula(uint16_t* p,int* errtmp);
 void TranslateRaw2Code(unsigned char* input,uint16_t* output,int* outlen);
 void TranslateCode2Raw(uint16_t* input,unsigned char* output);
 void RunInteractive(char* input);
 int RunProgram(void);
 int ResistLabel(uint16_t* input);
-int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag);
+uint16_t* GetLabelName(uint16_t* p,char* tmpstr,int* errtmp);
+int ReadGotoLine(uint16_t *input,unsigned int line);
+int ReadSeekNext(void);
+int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag);
 
 int NewVar(char* name);
 

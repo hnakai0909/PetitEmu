@@ -153,8 +153,8 @@ extern uint16_t translated_source[10000];
 
 extern unsigned char* source_ptr;
 extern uint32_t cur_line;
-extern uint32_t read_curline;
-extern uint32_t read_curcol;
+extern uint16_t *read_srcpos;
+extern bool read_initialized;
 
 extern uint32_t srcline_begin_token_pos[10000];
 extern uint32_t srcline_token_count[10000];
@@ -180,16 +180,16 @@ struct Dimention {
 
 //関数プロトタイプ宣言
 
-int push_opstack(uint16_t op,int argcount);
-int pop_opstack(uint16_t* op,int* argcount);
+int PushOpStack(uint16_t op,int argcount);
+int PopOpStack(uint16_t* op,int* argcount);
 
-int push_calcstack(int type,int32_t value,char* str,int argc);
-bool pop_calcstack_int(int32_t* arg);
-bool pop_calcstack_str(char* arg);
-bool pop_calcstack_var(int* arg);
-bool pop_calcstack_intptr(int* arg);
-bool pop_calcstack_strptr(int* arg);
-bool pop_calcstack_void(void);
+int PushCalcStack(int type,int32_t value,char* str,int argc);
+bool PopCalcStack_int(int32_t* arg);
+bool PopCalcStack_str(char* arg);
+bool PopCalcStack_var(int* arg);
+bool PopCalcStack_intptr(int* arg);
+bool PopCalcStack_strptr(int* arg);
+bool PopCalcStack_void(void);
 
 int RegistDim(int VarID,int d1,int d2);
 void ClearDim(void);

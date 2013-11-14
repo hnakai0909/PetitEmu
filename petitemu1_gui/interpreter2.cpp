@@ -67,36 +67,37 @@ uint16_t* GetVarID(uint16_t* p,int* tmpint,int* errtmp){
 		tmpstr[tmpstr_p]=p_char;
 		tmpstr_p++;
 		tmpints[0]=Str2VarID(tmpstr);
+		*tmpint=tmpints[0];
 		if(tmpints[0]==-1){
 			tmpints[0]=NewVar(tmpstr);
 			RegistDim(tmpints[0],10,0);
 		}
-		*errtmp=push_calcstack(TYPE_DIM_PTR,tmpints[0],NULL,0);
+		*errtmp=PushCalcStack(TYPE_DIM_PTR,tmpints[0],NULL,0);
 		if(*errtmp!=ERR_NO_ERROR)return p;
-		p=readformula(p,errtmp);
+		p=ReadFormula(p,errtmp);
 		if(*errtmp!=ERR_NO_ERROR)return p;
 		*errtmp=ProcessRemainingOperator();
 		if(*errtmp!=ERR_NO_ERROR)return p;
 	}else{
-		p=jumpspace(p);
+		p=JumpSpace(p);
 		*tmpint=Str2VarID(tmpstr);
 		if(*tmpint!=-1){
 			//既存
 			if(tmpstr[tmpstr_p-1]=='$'){
-				*errtmp=push_calcstack(TYPE_STR_VAR,*tmpint,NULL,0);
+				*errtmp=PushCalcStack(TYPE_STR_VAR,*tmpint,NULL,0);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 			}else{
-				*errtmp=push_calcstack(TYPE_INT_VAR,*tmpint,NULL,0);
+				*errtmp=PushCalcStack(TYPE_INT_VAR,*tmpint,NULL,0);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 			}
 		}else{
 			//新規登録
 			*tmpint=NewVar(tmpstr);
 			if(Variable[*tmpint].isStr){
-				*errtmp=push_calcstack(TYPE_STR_VAR,*tmpint,NULL,0);
+				*errtmp=PushCalcStack(TYPE_STR_VAR,*tmpint,NULL,0);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 			}else{
-				*errtmp=push_calcstack(TYPE_INT_VAR,*tmpint,NULL,0);
+				*errtmp=PushCalcStack(TYPE_INT_VAR,*tmpint,NULL,0);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 			}
 		}
@@ -109,7 +110,7 @@ int ProcessRemainingOperator(void){
 	int argcount=0,errtmp;	
 	uint16_t op=0;
 	while(op_sl>0)  {
-		pop_opstack(&op,&argcount);
+		PopOpStack(&op,&argcount);
 		if((op==Char2Code('('))||(op==Char2Code(')'))) {
 			//括弧が対応していない
 			return ERR_SYNTAX_ERROR;
@@ -120,12 +121,12 @@ int ProcessRemainingOperator(void){
 	return ERR_NO_ERROR;
 }
 
-uint16_t* jumpspace(uint16_t* p){
+uint16_t* JumpSpace(uint16_t* p){
 	for(;(*p==Char2Code(' '));p++){}
 	return p;
 }
 
-uint16_t* forjump(uint16_t* p,int* errtmp){
+uint16_t* ForJump(uint16_t* p,int* errtmp){
 	int nest=0;
 	uint16_t* srcpos;
 	uint16_t* input=p;
@@ -133,9 +134,9 @@ uint16_t* forjump(uint16_t* p,int* errtmp){
 	*errtmp=ERR_NO_ERROR;
 	for(i=cur_line+1;i<(srclinecount-cur_line-1);i++){
 		srcpos=p;
-		gotoline(i);
+		GOTOLINE(i);
 		p=srcpos;
-		while(*p!=0x000D){
+		while(*p!=0x000D && *p!=TOKEN_REM && *p!=TOKEN_REM2){
 			srcpos=p;
 			if(*p==TOKEN_FOR)nest++;
 			if(*p==TOKEN_NEXT){
@@ -157,7 +158,7 @@ uint16_t* forjump(uint16_t* p,int* errtmp){
 	return srcpos+1;
 }
 
-uint16_t* readformula(uint16_t* p,int *errtmp){
+uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 	char tmpstr[STR_LEN_MAX],tmpstr2[512];
 	char tmpstr_p=0;
 	uint16_t *pbegin=p;
@@ -212,7 +213,7 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 					tmpint=NewVar(tmpstr);
 					RegistDim(tmpint,10,0);
 				}
-				*errtmp=push_calcstack(TYPE_DIM,tmpint,NULL,0);
+				*errtmp=PushCalcStack(TYPE_DIM,tmpint,NULL,0);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 				beforetokentype=TYPE_FUNC;//本来はTYPE_DIMだが便宜的に。
 			}else{
@@ -225,11 +226,11 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 						return p;
 					}
 					if(Variable[tmp].isStr){
-						*errtmp=push_calcstack(TYPE_STR_LIT,0,Variable[tmp].string,0);
+						*errtmp=PushCalcStack(TYPE_STR_LIT,0,Variable[tmp].string,0);
 						if(*errtmp!=ERR_NO_ERROR)return p;
 						beforetokentype=TYPE_STR_LIT;
 					}else{
-						*errtmp=push_calcstack(TYPE_INT_LIT,Variable[tmp].value,NULL,0);
+						*errtmp=PushCalcStack(TYPE_INT_LIT,Variable[tmp].value,NULL,0);
 						if(*errtmp!=ERR_NO_ERROR)return p;
 						beforetokentype=TYPE_INT_LIT;
 					}
@@ -242,16 +243,16 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 					}
 					tmpint=NewVar(tmpstr);
 					if(Variable[tmpint].isStr){
-						*errtmp=push_calcstack(TYPE_STR_LIT,0,NULL,0);
+						*errtmp=PushCalcStack(TYPE_STR_LIT,0,NULL,0);
 						if(*errtmp!=ERR_NO_ERROR)return p;
 						beforetokentype=TYPE_STR_LIT;
 					}else{
-						*errtmp=push_calcstack(TYPE_INT_LIT,0,NULL,0);
+						*errtmp=PushCalcStack(TYPE_INT_LIT,0,NULL,0);
 						if(*errtmp!=ERR_NO_ERROR)return p;
 						beforetokentype=TYPE_INT_LIT;
 					}
 				}
-				p=jumpspace(p);
+				p=JumpSpace(p);
 			}
 			p_char=Code2Char(*p);
 		}else if(isdigit(p_char)){
@@ -294,9 +295,9 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 				for(;isdigit(Code2Char(*p));p++);
 				p_char=Code2Char(*p);
 			}
-			*errtmp=push_calcstack(TYPE_INT_LIT,tmpint,NULL,0);
+			*errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,NULL,0);
 			if(*errtmp!=ERR_NO_ERROR)return p;
-			p=jumpspace(p);
+			p=JumpSpace(p);
 			p_char=Code2Char(*p);
 			beforetokentype=TYPE_INT_LIT;
 		}else if(p_char=='&'){
@@ -334,10 +335,10 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 				*errtmp=ERR_SYNTAX_ERROR;
 				return p;
 			}
-			*errtmp=push_calcstack(TYPE_INT_LIT,tmpint,NULL,0);
+			*errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,NULL,0);
 			if(*errtmp!=ERR_NO_ERROR)return p;
 			beforetokentype=TYPE_INT_LIT;
-			p=jumpspace(p);
+			p=JumpSpace(p);
 			p_char=Code2Char(*p);
 		}else if(p_char=='"'){
 			p++;
@@ -354,17 +355,17 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 				p_char=Code2Char(*p);
 			}
 			if(p_char=='"'){p++;p_char=Code2Char(*p);}
-			*errtmp=push_calcstack(TYPE_STR_LIT,0,tmpstr,0);
+			*errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 			if(*errtmp!=ERR_NO_ERROR)return p;
 			beforetokentype=TYPE_STR_LIT;
 		}else if(p_char=='<'){
 			if(*(p+1)==Char2Code('=')){
 				p++;
 				p_char=Code2Char(*p);
-				*errtmp=push_calcstack(TYPE_FUNC,OP_SHONARI_EQUAL,NULL,2);
+				*errtmp=PushCalcStack(TYPE_FUNC,OP_SHONARI_EQUAL,NULL,2);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 			}else{
-				*errtmp=push_calcstack(TYPE_FUNC,Char2Code('<'),NULL,2);
+				*errtmp=PushCalcStack(TYPE_FUNC,Char2Code('<'),NULL,2);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 			}
 			beforetokentype=TYPE_FUNC;
@@ -373,10 +374,10 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 			if(*(p+1)==Char2Code('=')){
 				p++;
 				p_char=Code2Char(*p);
-				*errtmp=push_calcstack(TYPE_FUNC,OP_DAINARI_EQUAL,NULL,2);
+				*errtmp=PushCalcStack(TYPE_FUNC,OP_DAINARI_EQUAL,NULL,2);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 			}else{
-				*errtmp=push_calcstack(TYPE_FUNC,Char2Code('>'),NULL,2);
+				*errtmp=PushCalcStack(TYPE_FUNC,Char2Code('>'),NULL,2);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 			}
 			p++;
@@ -386,7 +387,7 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 			if(*(p+1)==Char2Code('=')){
 				p++;
 				p_char=Code2Char(*p);
-				*errtmp=push_calcstack(TYPE_FUNC,OP_EQUAL,NULL,2);
+				*errtmp=PushCalcStack(TYPE_FUNC,OP_EQUAL,NULL,2);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 			}else{
 				*errtmp=ERR_NO_ERROR;
@@ -399,7 +400,7 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 			if(*(p+1)==Char2Code('=')){
 				p++;
 				p_char=Code2Char(*p);
-				*errtmp=push_calcstack(TYPE_FUNC,OP_NOTEQUAL,NULL,2);
+				*errtmp=PushCalcStack(TYPE_FUNC,OP_NOTEQUAL,NULL,2);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 				beforetokentype=TYPE_FUNC;
 			}else{
@@ -413,16 +414,16 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 				return p;
 			}else{
 				argcount[nest_depth-1]++;
-				p=jumpspace(p+1);
+				p=JumpSpace(p+1);
 				p_char=Code2Char(*p);
-				*errtmp=push_calcstack(TYPE_SPECIAL,Char2Code(','),NULL,0);
+				*errtmp=PushCalcStack(TYPE_SPECIAL,Char2Code(','),NULL,0);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 				beforetokentype=TYPE_SPECIAL;
 			}
 		}else if((p_char==':')||(p_char==';')||(p_char=='\'')||(p_char=='?')){
 			if(pbegin==p){
 				//式なし
-				*errtmp=push_calcstack(TYPE_VOID,0,NULL,0);
+				*errtmp=PushCalcStack(TYPE_VOID,0,NULL,0);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 				return p;
 			}else{
@@ -431,9 +432,9 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 			}
 		}else if(p_char=='('){
 			brackettype[nest_depth]=0;
-			*errtmp=push_calcstack(TYPE_FUNC,Char2Code('('),NULL,0);
+			*errtmp=PushCalcStack(TYPE_FUNC,Char2Code('('),NULL,0);
 			if(*errtmp!=ERR_NO_ERROR)return p;
-			p=jumpspace(p+1);
+			p=JumpSpace(p+1);
 			p_char=Code2Char(*p);
 			nest_depth++;
 			beforetokentype=TYPE_SPECIAL;
@@ -444,22 +445,22 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 				return p;
 			}
 			if(beforetokentype==TYPE_SPECIAL){
-				*errtmp=push_calcstack(TYPE_VOID,0,NULL,0);
+				*errtmp=PushCalcStack(TYPE_VOID,0,NULL,0);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 			}else{
 				argcount[nest_depth]++;
 			}
-			*errtmp=push_calcstack(TYPE_FUNC,Char2Code(')'),NULL,argcount[nest_depth]);
+			*errtmp=PushCalcStack(TYPE_FUNC,Char2Code(')'),NULL,argcount[nest_depth]);
 			if(*errtmp!=ERR_NO_ERROR)return p;
 			argcount[nest_depth]=0;
-			p=jumpspace(p+1);
+			p=JumpSpace(p+1);
 			p_char=Code2Char(*p);
 			beforetokentype=TYPE_SPECIAL2;
 		}else if(p_char=='['){
 			brackettype[nest_depth]=1;
-			*errtmp=push_calcstack(TYPE_FUNC,Char2Code('['),NULL,0);
+			*errtmp=PushCalcStack(TYPE_FUNC,Char2Code('['),NULL,0);
 			if(*errtmp!=ERR_NO_ERROR)return p;
-			p=jumpspace(p+1);
+			p=JumpSpace(p+1);
 			p_char=Code2Char(*p);
 			nest_depth++;
 			beforetokentype=TYPE_SPECIAL;
@@ -470,32 +471,32 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 				return p;
 			}
 			argcount[nest_depth]++;
-			*errtmp=push_calcstack(TYPE_FUNC,Char2Code(']'),NULL,argcount[nest_depth]);
+			*errtmp=PushCalcStack(TYPE_FUNC,Char2Code(']'),NULL,argcount[nest_depth]);
 			if(*errtmp!=ERR_NO_ERROR)return p;
-			p=jumpspace(p+1);
+			p=JumpSpace(p+1);
 			p_char=Code2Char(*p);
 			beforetokentype=TYPE_SPECIAL2;
 		}else if(p_char=='-'){
 			if((beforetokentype==0)||(beforetokentype==TYPE_FUNC)||(beforetokentype==TYPE_SPECIAL)){
-				*errtmp=push_calcstack(TYPE_FUNC,OP_MINUSSIGN,NULL,1);
+				*errtmp=PushCalcStack(TYPE_FUNC,OP_MINUSSIGN,NULL,1);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 				p++;p_char=Code2Char(*p);
 				beforetokentype=TYPE_FUNC;
 			}else{
-				*errtmp=push_calcstack(TYPE_FUNC,Char2Code('-'),NULL,2);
+				*errtmp=PushCalcStack(TYPE_FUNC,Char2Code('-'),NULL,2);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 				p++;p_char=Code2Char(*p);
 				beforetokentype=TYPE_FUNC;
 			}
 		}else if(isOperator(*p)){
-			*errtmp=push_calcstack(TYPE_FUNC,*p,NULL,2);
+			*errtmp=PushCalcStack(TYPE_FUNC,*p,NULL,2);
 			if(*errtmp!=ERR_NO_ERROR)return p;
 			p++;p_char=Code2Char(*p);
 			beforetokentype=TYPE_FUNC;
 		}else if(isFunction(*p)){
-			*errtmp=push_calcstack(TYPE_FUNC,*p,NULL,0);
+			*errtmp=PushCalcStack(TYPE_FUNC,*p,NULL,0);
 			if(*errtmp!=ERR_NO_ERROR)return p;
-			p=jumpspace(p+1);
+			p=JumpSpace(p+1);
 			p_char=Code2Char(*p);
 			beforetokentype=TYPE_FUNC;
 		}else if(isSystemVariable(*p)){
@@ -503,7 +504,7 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 			switch(tmp){
 				case 1:case 2:
 					tmpint=*(GetSystemVariableIntPtr(*p));
-					*errtmp=push_calcstack(TYPE_INT_LIT,tmpint,NULL,0);
+					*errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,NULL,0);
 					if(*errtmp!=ERR_NO_ERROR)return p;
 					beforetokentype=TYPE_INT_LIT;
 					p++;p_char=Code2Char(*p);
@@ -511,7 +512,7 @@ uint16_t* readformula(uint16_t* p,int *errtmp){
 				case 3:case 4:
 					memset(tmpstr,0x00,sizeof(tmpstr));
 					strcpy(tmpstr,GetSystemVariableStrPtr(*p));
-					*errtmp=push_calcstack(TYPE_STR_LIT,0,tmpstr,0);
+					*errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 					if(*errtmp!=ERR_NO_ERROR)return p;
 					beforetokentype=TYPE_STR_LIT;
 					p++;p_char=Code2Char(*p);
@@ -683,10 +684,11 @@ void RunInteractive(char* input){
 	char tmpstr[STR_LEN_MAX];
 	error_occured_token=0;
 	breakflag=0;
+	read_initialized=false;
 	TranslateRaw2Code((unsigned char*)input,codedata,&codelen);
 	runmode=RMD_LINE;
-	if(Psys_CSRX!=0)print2console("",0);
-	errtmp=interpretation(codedata,codelen,true,&runflag);
+	if(Psys_CSRX!=0)Print2Console("",0);
+	errtmp=Interpretation(codedata,codelen,true,&runflag);
 	ClearKeyBuffer();
 	runmode=RMD_STOP;
 	if(runflag==1){
@@ -696,30 +698,30 @@ void RunInteractive(char* input){
 		if(breakflag==1){
 			memset(tmpstr,0x00,sizeof(tmpstr));
 			sprintf(tmpstr,"BREAK in %d",cur_line+1);
-			if(Psys_CSRX!=0)print2console("",0);
+			if(Psys_CSRX!=0)Print2Console("",0);
 			printf("%s\n",tmpstr);
-			print2console(tmpstr,0);
+			Print2Console(tmpstr,0);
 			runmode=RMD_STOP;
 			return;
 		}
 		runmode=RMD_STOP;
 		Psys_ERR=errtmp;
 		if((errtmp==ERR_NO_ERROR)&&(op_sl==0)&&(calc_sl==0)){
-			if(Psys_CSRX!=0)print2console("",0);
+			if(Psys_CSRX!=0)Print2Console("",0);
 			puts("OK");
-			print2console("OK",0);
+			Print2Console("OK",0);
 		}else{
 			Psys_ERL=cur_line+1;
 			printf("op_sl:%d calc_sl:%d",op_sl,calc_sl);
 			memset(tmpstr,0x00,sizeof(tmpstr));
-			if(Psys_CSRX!=0)print2console("",0);
+			if(Psys_CSRX!=0)Print2Console("",0);
 			if(error_occured_token!=0){
 				sprintf(tmpstr,"%s (%d,%s)",GetErrorMessage(errtmp),Psys_ERL,TokenCode2Str(error_occured_token));
 				printf("%s\n",tmpstr);
-				print2console(tmpstr,0);
+				Print2Console(tmpstr,0);
 			}else{
 				printf("%s\n",GetErrorMessage(errtmp));
-				print2console(GetErrorMessage(errtmp),0);
+				Print2Console(GetErrorMessage(errtmp),0);
 			}
 			if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[2],DX_PLAYTYPE_BACKBIT);
 		}
@@ -729,12 +731,12 @@ void RunInteractive(char* input){
 		if(errtmp==ERR_NO_ERROR){
 			if((op_sl==0)&&(calc_sl==0)){
 				puts("OK");
-				print2console("OK",0);
+				Print2Console("OK",0);
 			}else{
 				printf("op_sl:%d calc_sl:%d",op_sl,calc_sl);
 				strcpy(tmpstr,GetErrorMessage(ERR_UNDEFINED));
 				printf("%s\n",tmpstr);
-				print2console(tmpstr,0);
+				Print2Console(tmpstr,0);
 			}
 		}else{
 			memset(tmpstr,0x00,sizeof(tmpstr));
@@ -746,11 +748,11 @@ void RunInteractive(char* input){
 					sprintf(tmpstr,"%s (%s)",GetErrorMessage(errtmp),TokenCode2Str(error_occured_token));	
 				}
 				printf("%s\n",tmpstr);
-				print2console(tmpstr,0);
+				Print2Console(tmpstr,0);
 			}else{
 				strcpy(tmpstr,GetErrorMessage(errtmp));
 				printf("%s\n",tmpstr);
-				print2console(tmpstr,0);
+				Print2Console(tmpstr,0);
 			}
 			if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[2],DX_PLAYTYPE_BACKBIT);
 		}
@@ -764,7 +766,7 @@ int RunProgram(void){
 	TranslateRaw2Code(source_ptr,translated_source,&srclen);
 	errtmp=ResistLabel(translated_source);
 	if(errtmp!=ERR_NO_ERROR)return errtmp;
-	return interpretation(translated_source,srclen,false,&dummy);
+	return Interpretation(translated_source,srclen,false,&dummy);
 }
 
 int ResistLabel(uint16_t* input){
@@ -775,8 +777,8 @@ int ResistLabel(uint16_t* input){
 	cur_line=0;
 	memset(labellist_name,0x00,sizeof(labellist_name));
 	for(i=0;i<srclinecount;i++){
-		gotoline(i);
-		srcpos=jumpspace(srcpos);
+		GOTOLINE(i);
+		srcpos=JumpSpace(srcpos);
 		if(*srcpos==TOKEN_LABEL || *srcpos==TOKEN_LABEL2){
 			srcpos++;
 			memset(tmpstr,0x00,sizeof(tmpstr));
@@ -798,7 +800,52 @@ int ResistLabel(uint16_t* input){
 	return ERR_NO_ERROR;
 }
 
-int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
+uint16_t* GetLabelName(uint16_t* p,char* tmpstr,int* errtmp){
+	int i=0;
+	uint16_t c;
+	memset(tmpstr,0x00,sizeof(tmpstr));
+	for(i=0;i<8;i++){
+		c=Code2Char(*p);
+		if((c==' ')||(*p==0x000D)||(*p==0x0000)||(c==':')||(c=='\''))break;
+		if((c!='_')&&(!isalpha(c))&&(!isdigit(c))){
+			*errtmp=ERR_SYNTAX_ERROR;
+			return p;
+		}
+		tmpstr[i]=toupper(c);
+		p++;
+	}
+	if(i==0){
+		*errtmp=ERR_SYNTAX_ERROR;
+		return p;
+	}
+	*errtmp=ERR_NO_ERROR;
+	return p;
+}
+
+int ReadGotoLine(uint16_t* input,unsigned int line){
+	int errtmp=ERR_NO_ERROR;
+	read_srcpos=input+srcline_begin_token_pos[line];
+	errtmp=ReadSeekNext();
+	if(errtmp!=ERR_NO_ERROR)return errtmp;
+	return ERR_NO_ERROR;
+}
+
+int ReadSeekNext(void){
+	while(*read_srcpos!=TOKEN_DATA && *read_srcpos!=0x0000){
+		//コメントは次行まで読み飛ばし
+		if(*read_srcpos==TOKEN_REM ||*read_srcpos==TOKEN_REM2){
+			while(*read_srcpos!=0x000D && *read_srcpos!=0x0000)read_srcpos++;
+		}
+	}
+	if(*read_srcpos==0x0000){
+		return ERR_OUT_OF_DATA;
+	}
+	read_srcpos=JumpSpace(read_srcpos+1);
+	read_initialized=true;
+	return ERR_NO_ERROR;
+}
+
+int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 	uint16_t *srcpos=input,*tmppos;
 	const uint16_t *srcend=input+srclen;
 	uint32_t tmpline=0;
@@ -831,14 +878,14 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 				case TOKEN_PRINT:case TOKEN_PRINT2:
 					srcpos++;
 					while(srcpos<srcend){
-						srcpos=jumpspace(srcpos);
-						srcpos=readformula(srcpos,&errtmp);
+						srcpos=JumpSpace(srcpos);
+						srcpos=ReadFormula(srcpos,&errtmp);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 						errtmp=ProcessRemainingOperator();
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						if(!pop_calcstack_void()){
+						if(!PopCalcStack_void()){
 							memset(tmpstr,0x00,sizeof(tmpstr));
-							i=pop_calcstack_int(&tmpint);
+							i=PopCalcStack_int(&tmpint);
 							if(i){
 								if(tmpint%4096==0){
 									sprintf(tmpstr,"%d",tmpint/4096);
@@ -850,54 +897,54 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 									if(tmpstr[i]=='.')tmpstr[i]=0;
 								}
 							}else{
-								i=pop_calcstack_str(tmpstr);
+								i=PopCalcStack_str(tmpstr);
 							}
 							tmpint=0;
 							switch(Code2Char(*srcpos)){
 								case ';':
 									lastprintmode=1;
-									print2console(tmpstr,1);
-									srcpos=jumpspace(srcpos+1);
+									Print2Console(tmpstr,1);
+									srcpos=JumpSpace(srcpos+1);
 									if(*srcpos==0x000D){
 										cur_line++;
 										if(cur_line>=srclinecount)return ERR_NO_ERROR;
-										gotoline(cur_line);
+										GOTOLINE(cur_line);
 										tmpint=1;
 									}
 									break;
 								case ',':
 									lastprintmode=2;
-									print2console(tmpstr,2);
-									srcpos=jumpspace(srcpos+1);
+									Print2Console(tmpstr,2);
+									srcpos=JumpSpace(srcpos+1);
 									if(*srcpos==0x000D){
 										cur_line++;
 										if(cur_line>=srclinecount)return ERR_NO_ERROR;
-										gotoline(cur_line);
+										GOTOLINE(cur_line);
 										tmpint=1;
 									}
 									break;
 								case '\'':
 									lastprintmode=0;
-									print2console(tmpstr,0);
+									Print2Console(tmpstr,0);
 									cur_line++;
 									if(cur_line>=srclinecount)return ERR_NO_ERROR;
-									gotoline(cur_line);
+									GOTOLINE(cur_line);
 									tmpint=1;
 									break;
 								case ':':
 									lastprintmode=0;
-									print2console(tmpstr,0);
+									Print2Console(tmpstr,0);
 									srcpos++;
 									tmpint=1;
 									break;
 								default:
 									lastprintmode=0;
-									print2console(tmpstr,0);
+									Print2Console(tmpstr,0);
 									tmpint=1;
 									break;
 							}
 						}else{
-							print2console("",lastprintmode);
+							Print2Console("",lastprintmode);
 							lastprintmode=0;
 							srcpos++;
 							if(isInstruction(*srcpos))return ERR_SYNTAX_ERROR;
@@ -909,7 +956,7 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					break;
 				case TOKEN_DIM:
 					do{
-						srcpos=jumpspace(srcpos+1);
+						srcpos=JumpSpace(srcpos+1);
 						memset(tmpstr,0x00,sizeof(tmpstr));
 						p_char=Code2Char(*srcpos);
 						tmpstr_p=0;
@@ -940,35 +987,69 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						}
 						tmpint=Str2VarID(tmpstr);
 						if(tmpint!=-1)return ERR_DUPLICATE_DEFINITION;
-						errtmp=push_calcstack(TYPE_INT_LIT,tmpint2,NULL,0);
+						errtmp=PushCalcStack(TYPE_INT_LIT,tmpint2,NULL,0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						errtmp=push_calcstack(TYPE_STR_LIT,0,tmpstr,0);
+						errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						errtmp=push_calcstack(TYPE_FUNC,TOKEN_DIM,NULL,0);
+						errtmp=PushCalcStack(TYPE_FUNC,TOKEN_DIM,NULL,0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						srcpos=readformula(srcpos,&errtmp);
+						srcpos=ReadFormula(srcpos,&errtmp);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 						ProcessRemainingOperator();
 					}while(Code2Char(*srcpos)==',');
 					state=ST_NEW_STATEMENT;
 					break;
 				case TOKEN_READ:
-					//state=ST_READ;
+					if(!read_initialized){
+						errtmp=ReadSeekNext();
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+					}
+					do{
+						srcpos=JumpSpace(srcpos+1);
+						srcpos=GetVarID(srcpos,&tmpint,&errtmp);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),NULL,2);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						//ここで右辺値をcalcstackに突っ込む
+						
+						
+
+						srcpos=JumpSpace(srcpos);
+					}while(Code2Char(*srcpos)==',');
+					state=ST_NEW_STATEMENT;
+					break;
+				case TOKEN_RESTORE:
+					srcpos=JumpSpace(srcpos+1);
+					if(*srcpos!=TOKEN_LABEL && *srcpos!=TOKEN_LABEL2)return ERR_SYNTAX_ERROR;
+					srcpos=JumpSpace(srcpos+1);
+					srcpos=GetLabelName(srcpos,tmpstr,&errtmp);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					tmpint=0;
+					for(i=0;i<labelcount;i++){
+						if(strcmp(labellist_name[i],tmpstr)==0){
+							ReadGotoLine(input,i);
+							read_initialized=false;
+							tmpint=1;
+							break;
+						}
+					}
+					if(tmpint==0)return ERR_UNDEFINED_LABEL;
+					break;
 				case TOKEN_DATA:
 					cur_line++;
 					if(cur_line>=srclinecount)return ERR_NO_ERROR;
-					gotoline(cur_line);
+					GOTOLINE(cur_line);
 				case TOKEN_IF:
-					srcpos=jumpspace(srcpos+1);
-					srcpos=readformula(srcpos,&errtmp);
+					srcpos=JumpSpace(srcpos+1);
+					srcpos=ReadFormula(srcpos,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=jumpspace(srcpos);
-					errtmp=pop_calcstack_int(&tmpint);
+					srcpos=JumpSpace(srcpos);
+					errtmp=PopCalcStack_int(&tmpint);
 					if(!errtmp)return ERR_UNDEFINED;
 					if(*srcpos==TOKEN_THEN){
-						srcpos=jumpspace(srcpos+1);
+						srcpos=JumpSpace(srcpos+1);
 						if(*srcpos==TOKEN_LABEL || *srcpos==TOKEN_LABEL2){
 							srcpos++;
 							memset(tmpstr,0x00,sizeof(tmpstr));
@@ -984,14 +1065,14 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 							if(tmpint==0){
 								cur_line++;
 								if(cur_line>=srclinecount)return ERR_NO_ERROR;
-								gotoline(cur_line);
+								GOTOLINE(cur_line);
 								break;
 							}
 							tmpint2=0;
 							for(i=0;i<labelcount;i++){
 								if(strcmp(labellist_name[i],tmpstr)==0){
 									cur_line=labellist_line[i];
-									gotoline(cur_line);
+									GOTOLINE(cur_line);
 									tmpint2=1;
 									break;
 								}
@@ -1005,13 +1086,13 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						}else{
 							cur_line++;
 							if(cur_line>=srclinecount)return ERR_NO_ERROR;
-							gotoline(cur_line);
+							GOTOLINE(cur_line);
 						}
 					}else if(*srcpos==TOKEN_GOTO){
 						if(tmpint==0){
 							cur_line++;
 							if(cur_line>=srclinecount)return ERR_NO_ERROR;
-							gotoline(cur_line);
+							GOTOLINE(cur_line);
 						}
 						//式が成り立っている場合は、そのままの状態で次の解析をさせる
 					}else{
@@ -1020,34 +1101,34 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					break;
 				case TOKEN_FOR:
 					memset(ForGosub_s+ForGosub_sl,0x00,sizeof(ForGosub_s+ForGosub_sl));
-					srcpos=jumpspace(srcpos+1);
+					srcpos=JumpSpace(srcpos+1);
 					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					ForGosub_s[ForGosub_sl].VarID=tmpint;
 					if(Code2Char(*srcpos)!='=')return ERR_SYNTAX_ERROR;
-					srcpos=jumpspace(srcpos+1);
-					errtmp=push_calcstack(TYPE_FUNC,Char2Code('='),NULL,2);
+					srcpos=JumpSpace(srcpos+1);
+					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),NULL,2);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=readformula(srcpos,&errtmp);
+					srcpos=ReadFormula(srcpos,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=jumpspace(srcpos);
+					srcpos=JumpSpace(srcpos);
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					//代入処理ここまで
 					if(*srcpos!=TOKEN_TO)return ERR_SYNTAX_ERROR;
-					srcpos=jumpspace(srcpos+1);
+					srcpos=JumpSpace(srcpos+1);
 					ForGosub_s[ForGosub_sl].line=cur_line;
 					ForGosub_s[ForGosub_sl].col=srcpos-input;
-					srcpos=readformula(srcpos,&errtmp);
+					srcpos=ReadFormula(srcpos,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=jumpspace(srcpos);
+					srcpos=JumpSpace(srcpos);
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					if(!pop_calcstack_int(&tmpint))return ERR_SYNTAX_ERROR;
+					if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
 					if(*srcpos==Char2Code(':')){
 						srcpos++;
 						if((Variable[ForGosub_s[ForGosub_sl].VarID].value)>tmpint){
-							srcpos=forjump(srcpos,&errtmp);
+							srcpos=ForJump(srcpos,&errtmp);
 							if(errtmp!=ERR_NO_ERROR)return errtmp;
 						}else{
 							ForGosub_s[ForGosub_sl].step=4096;
@@ -1057,7 +1138,7 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						}
 					}else if(*srcpos==Char2Code('\'') || *srcpos==0x0000 || *srcpos==0x000D){
 						if((Variable[ForGosub_s[ForGosub_sl].VarID].value)>tmpint){
-							srcpos=forjump(srcpos,&errtmp);
+							srcpos=ForJump(srcpos,&errtmp);
 							if(errtmp!=ERR_NO_ERROR)return errtmp;
 							break;
 						}else{
@@ -1065,27 +1146,27 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 							ForGosub_sl++;
 							cur_line++;
 							if(cur_line>=srclinecount)return ERR_NO_ERROR;
-							gotoline(cur_line);
+							GOTOLINE(cur_line);
 							break;
 						}
 					}
 					if(*srcpos!=TOKEN_STEP)return ERR_SYNTAX_ERROR;
-					srcpos=jumpspace(srcpos+1);
-					srcpos=readformula(srcpos,&errtmp);
+					srcpos=JumpSpace(srcpos+1);
+					srcpos=ReadFormula(srcpos,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=jumpspace(srcpos);
+					srcpos=JumpSpace(srcpos);
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					if(!pop_calcstack_int(&tmpint))return ERR_SYNTAX_ERROR;
+					if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
 					if(tmpint>0){
 						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint){
-							srcpos=forjump(srcpos,&errtmp);
+							srcpos=ForJump(srcpos,&errtmp);
 							if(errtmp!=ERR_NO_ERROR)return errtmp;
 						}
 					}
 					if(tmpint<0){
 						if(Variable[ForGosub_s[ForGosub_sl].VarID].value<tmpint){
-							srcpos=forjump(srcpos,&errtmp);
+							srcpos=ForJump(srcpos,&errtmp);
 							if(errtmp!=ERR_NO_ERROR)return errtmp;
 						}
 					}
@@ -1094,20 +1175,20 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					state=ST_NEW_STATEMENT;
 					break;
 				case TOKEN_INPUT:
-					srcpos=jumpspace(srcpos+1);
+					srcpos=JumpSpace(srcpos+1);
 					memset(tmpstr,0x00,sizeof(tmpstr));
 					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					errtmp=push_calcstack(TYPE_FUNC,Char2Code('='),NULL,2);
+					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),NULL,2);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=jumpspace(srcpos);
+					srcpos=JumpSpace(srcpos);
 					memset(tmpstr,0x00,sizeof(tmpstr));
 					tmpstr_p=0;
 					tmpint=0;
 					do{
-						if(tmpint==1)print2console("?REDO FROM START",0);
+						if(tmpint==1)Print2Console("?REDO FROM START",0);
 						//入力
-						//lineinput(tmpstr);
+						//LineInput(tmpstr);
 						InputLine(tmpstr);
 						tmpint=1;
 					
@@ -1117,10 +1198,10 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					//失敗した時？知らん。
 
 					if(c=='$'){
-						errtmp=push_calcstack(TYPE_STR_LIT,0,tmpstr,0);
+						errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}else{
-						errtmp=push_calcstack(TYPE_INT_LIT,tmpint,NULL,0);
+						errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,NULL,0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}
 					errtmp=ProcessRemainingOperator();
@@ -1132,7 +1213,7 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					ForGosub_sl--;
 					memset(tmpstr,0x00,sizeof(tmpstr));
 					tmpstr_p=0;
-					srcpos=jumpspace(srcpos);
+					srcpos=JumpSpace(srcpos);
 					while(isalpha(Code2Char(*srcpos))||(Code2Char(*srcpos)=='_')||(isdigit(Code2Char(*srcpos)))){
 						if(tmpstr_p>=8)return ERR_STRING_TOO_LONG;
 						tmpstr[tmpstr_p]=toupper(Code2Char(*srcpos));
@@ -1151,18 +1232,18 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					tmpline=cur_line;
 					srcpos=input+ForGosub_s[ForGosub_sl].col;
 					cur_line=ForGosub_s[ForGosub_sl].line;
-					srcpos=readformula(srcpos,&errtmp);
+					srcpos=ReadFormula(srcpos,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=jumpspace(srcpos);
+					srcpos=JumpSpace(srcpos);
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					if(!pop_calcstack_int(&tmpint))return ERR_SYNTAX_ERROR;
+					if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
 					tmpint2=tmpint;
 					if(Code2Char(*srcpos)==':'){
 						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint){
 							srcpos=tmppos+1;
 							cur_line=tmpline;
-							gotoline(cur_line);
+							GOTOLINE(cur_line);
 						}else{
 							ForGosub_s[ForGosub_sl].step=4096;
 							ForGosub_sl++;
@@ -1173,7 +1254,7 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint){
 							srcpos=tmppos+1;
 							cur_line=tmpline+1;
-							gotoline(cur_line);
+							GOTOLINE(cur_line);
 							state=ST_NEW_STATEMENT;
 							break;
 						}else{
@@ -1181,18 +1262,18 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 							ForGosub_sl++;
 							cur_line++;
 							if(cur_line>=srclinecount)return ERR_NO_ERROR;
-							gotoline(cur_line);
+							GOTOLINE(cur_line);
 							break;
 						}
 					}
 					if(*srcpos!=TOKEN_STEP)return ERR_SYNTAX_ERROR;
-					srcpos=jumpspace(srcpos+1);
-					srcpos=readformula(srcpos,&errtmp);
+					srcpos=JumpSpace(srcpos+1);
+					srcpos=ReadFormula(srcpos,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=jumpspace(srcpos);
+					srcpos=JumpSpace(srcpos);
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					if(!pop_calcstack_int(&tmpint))return ERR_SYNTAX_ERROR;
+					if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
 					if(tmpint>0){
 						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint2){
 							srcpos=tmppos+1;
@@ -1216,28 +1297,28 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 				case TOKEN_LINPUT:
 					memset(tmpstr,0x00,sizeof(tmpstr));
 					tmpstr_p=0;
-					srcpos=jumpspace(srcpos+1);
+					srcpos=JumpSpace(srcpos+1);
 					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
 					if(!Variable[tmpint].isStr)return ERR_TYPE_MISMATCH;
-					errtmp=push_calcstack(TYPE_FUNC,Char2Code('='),NULL,2);
+					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),NULL,2);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=jumpspace(srcpos);
+					srcpos=JumpSpace(srcpos);
 					memset(tmpstr,0x00,sizeof(tmpstr));
 					InputLine(tmpstr);
-					errtmp=push_calcstack(TYPE_STR_LIT,0,tmpstr,0);
+					errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					state=ST_NEW_STATEMENT;
 					break;
 				case TOKEN_LOAD:
-					srcpos=jumpspace(srcpos+1);
-					srcpos=readformula(srcpos,&errtmp);
+					srcpos=JumpSpace(srcpos+1);
+					srcpos=ReadFormula(srcpos,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=jumpspace(srcpos);
-					errtmp=pop_calcstack_str(tmpstr);
+					srcpos=JumpSpace(srcpos);
+					errtmp=PopCalcStack_str(tmpstr);
 					if(!errtmp)return ERR_SYNTAX_ERROR;
 					c2=strchr(tmpstr,':');
 					if(c2==NULL){
@@ -1279,24 +1360,16 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					return ERR_NO_ERROR;
 					break;
 				case TOKEN_GOTO:
-					srcpos=jumpspace(srcpos+1);
+					srcpos=JumpSpace(srcpos+1);
 					if(*srcpos!=TOKEN_LABEL && *srcpos!=TOKEN_LABEL2)return ERR_SYNTAX_ERROR;
-					srcpos=jumpspace(srcpos+1);
-					memset(tmpstr,0x00,sizeof(tmpstr));
-					for(i=0;i<8;i++){
-						c=Code2Char(*srcpos);
-						if((c==' ')||(*srcpos==0x000D)||(*srcpos==0x0000)||(c==':')||(c=='\''))break;
-						if((c!='_')&&(!isalpha(c))&&(!isdigit(c))){
-							return ERR_SYNTAX_ERROR;
-						}
-						tmpstr[i]=toupper(c);
-						srcpos++;
-					}
+					srcpos=JumpSpace(srcpos+1);
+					srcpos=GetLabelName(srcpos,tmpstr,&errtmp);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					tmpint=0;
 					for(i=0;i<labelcount;i++){
 						if(strcmp(labellist_name[i],tmpstr)==0){
 							cur_line=labellist_line[i];
-							gotoline(cur_line);
+							GOTOLINE(cur_line);
 							tmpint=1;
 							break;
 						}
@@ -1304,9 +1377,9 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					if(tmpint==0)return ERR_UNDEFINED_LABEL;
 					break;
 				case TOKEN_GOSUB:
-					srcpos=jumpspace(srcpos+1);
+					srcpos=JumpSpace(srcpos+1);
 					if(*srcpos!=TOKEN_LABEL && *srcpos!=TOKEN_LABEL2)return ERR_SYNTAX_ERROR;
-					srcpos=jumpspace(srcpos+1);
+					srcpos=JumpSpace(srcpos+1);
 					memset(tmpstr,0x00,sizeof(tmpstr));
 					for(i=0;i<8;i++){
 						c=Code2Char(*srcpos);
@@ -1323,7 +1396,7 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 							ForGosub_s[ForGosub_sl].col=srcpos-input;
 							ForGosub_s[ForGosub_sl].line=cur_line;
 							cur_line=labellist_line[i];
-							gotoline(cur_line);
+							GOTOLINE(cur_line);
 							ForGosub_sl++;
 							tmpint=1;
 							break;
@@ -1332,10 +1405,10 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					if(tmpint==0)return ERR_UNDEFINED_LABEL;
 					break;
 				case TOKEN_ON:
-					srcpos=jumpspace(srcpos+1);
-					srcpos=readformula(srcpos,&errtmp);
+					srcpos=JumpSpace(srcpos+1);
+					srcpos=ReadFormula(srcpos,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					if(!pop_calcstack_int(&tmpint))return ERR_SYNTAX_ERROR;
+					if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
 					tmpint=FloorInt(tmpint);
 					if(tmpint<0){
 						while((*srcpos!=0x0000)&&(*srcpos!=0x000D)&&(c!=':')&&(c!='\'')){
@@ -1344,7 +1417,7 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						}
 						break;
 					}
-					srcpos=jumpspace(srcpos);
+					srcpos=JumpSpace(srcpos);
 					tmpint2=0;
 					if(*srcpos==TOKEN_GOTO)tmpint2=1;
 					if(*srcpos==TOKEN_GOSUB)tmpint2=2;
@@ -1362,9 +1435,9 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						}
 					}
 					if(tmpint2==0)break;
-					srcpos=jumpspace(srcpos+1);
+					srcpos=JumpSpace(srcpos+1);
 					if(*srcpos!=TOKEN_LABEL && *srcpos!=TOKEN_LABEL2)return ERR_SYNTAX_ERROR;
-					srcpos=jumpspace(srcpos+1);
+					srcpos=JumpSpace(srcpos+1);
 					memset(tmpstr,0x00,sizeof(tmpstr));
 					for(i=0;i<8;i++){
 						c=Code2Char(*srcpos);
@@ -1380,14 +1453,14 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						if(strcmp(labellist_name[i],tmpstr)==0){
 							if(tmpint2==1){//GOTO
 								cur_line=labellist_line[i];
-								gotoline(cur_line);
+								GOTOLINE(cur_line);
 								tmpint=1;
 								break;
 							}else if(tmpint2==2){//GOSUB
 								ForGosub_s[ForGosub_sl].col=srcpos-input;
 								ForGosub_s[ForGosub_sl].line=cur_line;
 								cur_line=labellist_line[i];
-								gotoline(cur_line);
+								GOTOLINE(cur_line);
 								ForGosub_sl++;
 								tmpint=1;
 								break;
@@ -1401,12 +1474,12 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					ForGosub_sl--;
 					srcpos=input+ForGosub_s[ForGosub_sl].col;
 					cur_line=ForGosub_s[ForGosub_sl].line;
-					srcpos=jumpspace(srcpos);
+					srcpos=JumpSpace(srcpos);
 					break;
 				case TOKEN_LABEL:case TOKEN_LABEL2:
 					cur_line++;
 					if(cur_line>=srclinecount)return ERR_NO_ERROR;
-					gotoline(cur_line);
+					GOTOLINE(cur_line);
 					break;
 				case TOKEN_END:
 					return ERR_NO_ERROR;
@@ -1416,40 +1489,40 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 				default:
 					if(isInstruction(t)){
 						if(isNoArgInstruction(t)){
-							errtmp=push_calcstack(TYPE_FUNC,t,NULL,0);
+							errtmp=PushCalcStack(TYPE_FUNC,t,NULL,0);
 							if(errtmp!=ERR_NO_ERROR)return errtmp;
-							errtmp=push_calcstack(TYPE_VOID,0,NULL,0);
+							errtmp=PushCalcStack(TYPE_VOID,0,NULL,0);
 							if(errtmp!=ERR_NO_ERROR)return errtmp;
 							ProcessRemainingOperator();
 							srcpos++;
 							state=ST_NEW_STATEMENT;
 							break;
 						}else{
-							errtmp=push_calcstack(TYPE_FUNC,t,NULL,0);
+							errtmp=PushCalcStack(TYPE_FUNC,t,NULL,0);
 							if(!errtmp)return ERR_UNDEFINED;
-							errtmp=push_calcstack(TYPE_FUNC,Char2Code('('),NULL,0);
+							errtmp=PushCalcStack(TYPE_FUNC,Char2Code('('),NULL,0);
 							if(!errtmp)return ERR_UNDEFINED;
-							srcpos=jumpspace(srcpos+1);
+							srcpos=JumpSpace(srcpos+1);
 							if((*srcpos==0x0000)||(Code2Char(*srcpos)==':')){
-								errtmp=push_calcstack(TYPE_VOID,0,NULL,0);
+								errtmp=PushCalcStack(TYPE_VOID,0,NULL,0);
 								if(!errtmp)return ERR_UNDEFINED;
-								errtmp=push_calcstack(TYPE_FUNC,Char2Code(')'),NULL,0);
+								errtmp=PushCalcStack(TYPE_FUNC,Char2Code(')'),NULL,0);
 								if(!errtmp)return ERR_UNDEFINED;
 								state=ST_NEW_STATEMENT;
 								break;
 							}
-							srcpos=readformula(srcpos,&errtmp);
+							srcpos=ReadFormula(srcpos,&errtmp);
 							if(errtmp!=ERR_NO_ERROR)return errtmp;
 							argcount=1;
 							while(Code2Char(*srcpos)==','){
-								errtmp=push_calcstack(TYPE_SPECIAL,Char2Code(','),NULL,0);
+								errtmp=PushCalcStack(TYPE_SPECIAL,Char2Code(','),NULL,0);
 								if(errtmp!=ERR_NO_ERROR)return errtmp;
-								srcpos=jumpspace(srcpos+1);
-								srcpos=readformula(srcpos,&errtmp);
+								srcpos=JumpSpace(srcpos+1);
+								srcpos=ReadFormula(srcpos,&errtmp);
 								if(errtmp!=ERR_NO_ERROR)return errtmp;
 								argcount++;
 							}
-							errtmp=push_calcstack(TYPE_FUNC,Char2Code(')'),NULL,argcount);
+							errtmp=PushCalcStack(TYPE_FUNC,Char2Code(')'),NULL,argcount);
 							if(!errtmp)return ERR_UNDEFINED;
 							errtmp=ProcessRemainingOperator();
 							if(errtmp!=ERR_NO_ERROR)return errtmp;
@@ -1458,18 +1531,18 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						}
 					}else if((GetSystemVariableType(*srcpos)==2)||(GetSystemVariableType(*srcpos)==4)){
 						if(GetSystemVariableType(*srcpos)==2){
-							errtmp=push_calcstack(TYPE_INT_SYSVAR,*srcpos,NULL,0);
+							errtmp=PushCalcStack(TYPE_INT_SYSVAR,*srcpos,NULL,0);
 						}else{
 							//MEM$
-							errtmp=push_calcstack(TYPE_STR_SYSVAR,*srcpos,NULL,0);
+							errtmp=PushCalcStack(TYPE_STR_SYSVAR,*srcpos,NULL,0);
 						}
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						srcpos=jumpspace(srcpos+1);
+						srcpos=JumpSpace(srcpos+1);
 						if(Code2Char(*srcpos)!='=')return ERR_SYNTAX_ERROR;
-						errtmp=push_calcstack(TYPE_FUNC,Char2Code('='),NULL,2);
+						errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),NULL,2);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						srcpos=jumpspace(srcpos+1);
-						srcpos=readformula(srcpos,&errtmp);
+						srcpos=JumpSpace(srcpos+1);
+						srcpos=ReadFormula(srcpos,&errtmp);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 						errtmp=ProcessRemainingOperator();
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
@@ -1492,12 +1565,12 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					if(c=='\''){
 						cur_line++;
 						if(cur_line>=srclinecount)return ERR_NO_ERROR;
-						gotoline(cur_line);
+						GOTOLINE(cur_line);
 						srcpos--;
 					}else if(c=='@'){
 						cur_line++;
 						if(cur_line>=srclinecount)return ERR_NO_ERROR;
-						gotoline(cur_line);
+						GOTOLINE(cur_line);
 						srcpos--;
 					}else if(c=='?'){
 						state=ST_PRINT;
@@ -1516,7 +1589,7 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						if(*srcpos==0x0D){
 							cur_line++;
 							if(cur_line>=srclinecount)return ERR_NO_ERROR;
-							gotoline(cur_line);
+							GOTOLINE(cur_line);
 							break;
 						}
 						printf("srcpos=%X='%c'\n",t,c);
@@ -1528,12 +1601,12 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					if(c=='\''){
 						cur_line++;
 						if(cur_line>=srclinecount)return ERR_NO_ERROR;
-						gotoline(cur_line);
+						GOTOLINE(cur_line);
 						srcpos--;
 					}else if(c=='@'){
 						cur_line++;
 						if(cur_line>=srclinecount)return ERR_NO_ERROR;
-						gotoline(cur_line);
+						GOTOLINE(cur_line);
 						srcpos--;
 					}else if(c=='?'){
 						state=ST_PRINT;
@@ -1553,7 +1626,7 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						if(*srcpos==0x0D){
 							cur_line++;
 							if(cur_line>=srclinecount)return ERR_NO_ERROR;
-							gotoline(cur_line);
+							GOTOLINE(cur_line);
 							break;
 						}
 						printf("srcpos=%X='%c'\n",t,c);
@@ -1565,12 +1638,12 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					srcpos--;
 					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=jumpspace(srcpos);
+					srcpos=JumpSpace(srcpos);
 					if(Code2Char(*srcpos)!='=')return ERR_SYNTAX_ERROR;
-					errtmp=push_calcstack(TYPE_FUNC,Char2Code('='),NULL,2);
+					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),NULL,2);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=jumpspace(srcpos+1);
-					srcpos=readformula(srcpos,&errtmp);
+					srcpos=JumpSpace(srcpos+1);
+					srcpos=ReadFormula(srcpos,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
@@ -1580,14 +1653,14 @@ int interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					if(*srcpos==0x0D){
 						cur_line++;
 						if(cur_line>=srclinecount)return ERR_NO_ERROR;
-						gotoline(cur_line);
+						GOTOLINE(cur_line);
 						break;
 					}
 					srcpos++;
 					break;
 			}
 		}
-		tmpint=draw_console();
+		tmpint=Draw2Console();
 		if(log_en2)printf("%s/",TokenCode2Str(*srcpos));
 		if(!tmpint)return ERR_UNDEFINED;
 		if(breakflag)return ERR_NO_ERROR;
@@ -1602,7 +1675,7 @@ int NewVar(char* name){
 	memset(Variable[VAR_MAX-Psys_FREEVAR].name,0x00,sizeof(Variable[VAR_MAX-Psys_FREEVAR].name));
 	strcpy(Variable[VAR_MAX-Psys_FREEVAR].name,name);
 	if(calc_sl>=CALC_S_MAX)return -1;
-	if(name[strlen(name)-1]=='$'){
+	if(name[strlen(name)-1]=='$' || name[strlen(name)-2]=='$'){
 		Variable[VAR_MAX-Psys_FREEVAR].isStr=true;
 		Variable[VAR_MAX-Psys_FREEVAR].isDim=0;
 		type=TYPE_STR_VAR;

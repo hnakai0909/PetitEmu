@@ -23,19 +23,19 @@ extern unsigned char KeyMap_K[256];
 extern unsigned char KeyMap_K_S[256];
 //濁点・半濁点フラグ
 extern unsigned char KeyMap_K_S_DAKU[256];
-bool draw_console(void);
-void lineinput(char* arg);
+bool Draw2Console(void);
+void LineInput(char* arg);
 void DrawKeyboard(void);
 void DrawFuncKey(void);
 void DrawUnderPanel(void);
 void ProcessBG(void);
 void DrawBG(void);
 void DrawBGChip(int page,int layer,int ofsx_1,int ofsx_2,int ofsy_1,int ofsy_2);
-void console_clearline(void);
-int putchar2console(uint16_t arg,int indent_option);
-void display_console(void);
-int print2console(char *string,int indent_option);
-void scroll_console(void);
+void ConsoleClearLine(void);
+int PutChar2Console(uint16_t arg,int indent_option);
+void DisplayConsole(void);
+int Print2Console(char *string,int indent_option);
+void ScrollConsole(void);
 void PutStartMessage(void);
 #ifdef __cplusplus
 }

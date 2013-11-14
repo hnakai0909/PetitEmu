@@ -32,8 +32,8 @@ extern int keybuffer_qtail;//èëÇ≠à íu
 bool InitWindow(void);
 void InitPicture(void);
 void InitSound(void);
-void Psysinit(void);
-int system_init(void);
+void PSysInit(void);
+int SystemInit(void);
 
 }
 

@@ -30,7 +30,7 @@ void InitSound(void){
 	return;
 }
 
-void Psysinit(void){
+void PSysInit(void){
 	InitPicture();
 	InitSound();
 
@@ -86,15 +86,15 @@ void Psysinit(void){
 	memset(source_ptr,0x00,sizeof(source_ptr));
 	memset(labellist_name,0x00,sizeof(labellist_name));
 	memset(labellist_line,0x00,sizeof(labellist_line));
-	data_read_ptr=0;
+	read_srcpos=0;
 	labelcount=0;
 	keyboard_special=0;
 	ClearDim();
 	return;
 }
 
-int system_init(void){
-	Psysinit();
+int SystemInit(void){
+	PSysInit();
 	memset(consolecharbuf,0x00,sizeof(consolecharbuf));
 	memset(consolecolorbuf,0x00,sizeof(consolecolorbuf));
     srand((unsigned) time(NULL));

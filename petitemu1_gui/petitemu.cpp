@@ -18,11 +18,11 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	AllocConsole();
 	freopen("CONOUT$","w",stdout);
 	freopen("CONIN$","r",stdin);
-	system_init();
+	SystemInit();
 	PutStartMessage();
 
 	puts("READY");
-	print2console("READY",0);
+	Print2Console("READY",0);
 	ShowWindow(GetMainWindowHandle(),SW_SHOW);
 	SetAlwaysRunFlag(FALSE);
 	ShowWindow(GetMainWindowHandle(),SW_SHOW);
@@ -32,7 +32,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		printf("%s\n",inputline);
 		if(strcmp(inputline,"")!=0){
 			RunInteractive(inputline);
-			draw_console();
+			Draw2Console();
 		}
 		if(ProcessMessage()==-1)break;
 	}

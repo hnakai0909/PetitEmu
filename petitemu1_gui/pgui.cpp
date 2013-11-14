@@ -2,7 +2,7 @@
 
 int GrHandle[10];
 
-extern "C" bool draw_console(void){
+extern "C" bool Draw2Console(void){
 	char tmpstr[STR_LEN_MAX];
 	int Cr,i=0,tmp;
 	time_t nowtime;
@@ -74,14 +74,14 @@ extern "C" bool draw_console(void){
 	return true;
 }
 
-extern "C" void lineinput(char* arg){
+extern "C" void LineInput(char* arg){
 	ChangeFont("ＭＳ ゴシック");
 	SetFontSize(16);
 	DrawString(0,192,"?",GetColor(255,255,255));
 	KeyInputSingleCharString(8,192,64,arg,FALSE);
 	ChangeFont( "プチコン" );
 	SetFontSize(8);
-	print2console(arg,0);
+	Print2Console(arg,0);
 	return;
 }
 
@@ -225,7 +225,7 @@ void DrawBGChip(int page,int layer,int ofsx_1,int ofsx_2,int ofsy_1,int ofsy_2){
 	return;
 }
 
-void console_clearline(void){
+void ConsoleClearLine(void){
 	int i=0;
 	for(i=0;i<32;i++){
 		consolecharbuf[i][Psys_CSRY]=0;
@@ -234,10 +234,10 @@ void console_clearline(void){
 	return;
 }
 
-int putchar2console(uint16_t arg,int indent_option){
+int PutChar2Console(uint16_t arg,int indent_option){
 	int x=0,y=0;
 	if(Psys_CSRY>=24){
-		scroll_console();
+		ScrollConsole();
 		Psys_CSRY=23;
 	}
 	consolecharbuf[Psys_CSRX][Psys_CSRY]=arg;
@@ -249,14 +249,14 @@ int putchar2console(uint16_t arg,int indent_option){
 	}
 	if(indent_option!=-1){
 		if(Psys_CSRY>=24){
-			scroll_console();
+			ScrollConsole();
 			Psys_CSRY=23;
 		}
 	}
 	return 0;
 }
 
-void scroll_console(void){
+void ScrollConsole(void){
 	int x=0,y=0;
 	for(y=0;y<23;y++){
 		for(x=0;x<32;x++){
@@ -269,22 +269,22 @@ void scroll_console(void){
 	return;
 }
 
-int print2console(char *string,int indent_option){
+int Print2Console(char *string,int indent_option){
 	int i=0;
 	while((string[i]!=0)&&(i<=255)){
-		putchar2console(string[i],indent_option);
+		PutChar2Console(string[i],indent_option);
 		i++;
 	}
 	switch(indent_option){
 		case 0://改行
 			if(Psys_CSRY>=23){
-				scroll_console();
+				ScrollConsole();
 				Psys_CSRY--;
 			}
 			Psys_CSRX=0;
 			Psys_CSRY++;
 			if(Psys_CSRY>=24){
-				scroll_console();
+				ScrollConsole();
 				Psys_CSRY=23;
 				for(i=0;i<32;i++){
 					consolecharbuf[i][23]=0;
@@ -298,7 +298,7 @@ int print2console(char *string,int indent_option){
 			while(Psys_CSRX%4!=0)Psys_CSRX++;
 			if(Psys_CSRX>=32){Psys_CSRY++;Psys_CSRX=0;}
 			if(Psys_CSRY>=24){
-				scroll_console();
+				ScrollConsole();
 				Psys_CSRY=23;
 			}
 			break;
@@ -309,12 +309,11 @@ int print2console(char *string,int indent_option){
 }
 
 void PutStartMessage(void){
-	print2console("Petitemulator PETITEMU ver0.20",0);
-	print2console("SMILEBASIC ver1.20",0);
-	print2console("1048576 byte free",0);
-	print2console("hnakai 2013",0);
-	print2console("composed by volunteer",0);
-	print2console("",0);
-	print2console("developed by hnakai",0);
-	print2console("",0);
+	Print2Console("PetitcomEmulator=PetitEmu",0);
+	Print2Console("Win-Edition ver0.20",0); 
+	Print2Console("supports SMILEBASIC ver1.20",0);
+	Print2Console("Please read Readme.txt .",0);
+	Print2Console("1048576 byte free",0);
+	Print2Console("developed by hnakai",0);
+	Print2Console("",0);
 }
