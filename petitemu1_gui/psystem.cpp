@@ -99,7 +99,7 @@ int SystemInit(void){
 	memset(consolecolorbuf,0x00,sizeof(consolecolorbuf));
     srand((unsigned) time(NULL));
 	// 描画する文字列の文字セットを変更します
-	ChangeFont("プチコン");
+	ChangeFont(FONT_PETITCOM);
 	SetFontSize(8);
 	SetFontThickness(5);
 	return 0;

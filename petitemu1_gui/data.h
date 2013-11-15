@@ -23,6 +23,7 @@ extern "C" {
 #ifndef NULL
 #define NULL 0
 #endif
+#define FONT_PETITCOM "ƒvƒ`ƒRƒ“"
 #define BGM_ID_MIN 0
 #define BGM_ID_MAX 29
 #define BEEP_ID_MAX 0

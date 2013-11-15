@@ -468,7 +468,6 @@ int EvalFormula(const int arg,const int argcount){
 		case OP_MINUS:
 			if(argcount>2)return ERR_SYNTAX_ERROR;
 			if(argcount<2)return ERR_MISSING_OPERAND;
-			if(tmpints[0]==0)return ERR_DIVISION_BY_ZERO;
 			if((argtypes[1]==ATYPE_INT)&&(argtypes[0]==ATYPE_INT)){
 				tmpint64=tmpints[1]-tmpints[0];
 				if((tmpint64>2147483647 || tmpint64<-2147483647)){
@@ -720,7 +719,7 @@ int EvalFormula(const int arg,const int argcount){
 		case TOKEN_LEN:
 			if(argcount==1){
 				if(argtypes[0]!=ATYPE_STR)return ERR_TYPE_MISMATCH;
-				errtmp=PushCalcStack(TYPE_INT_LIT,strlen(tmpstrs[0]),NULL,0);
+				errtmp=PushCalcStack(TYPE_INT_LIT,strlen(tmpstrs[0])*4096,NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else if(argcount==0){
 				return ERR_MISSING_OPERAND;
@@ -912,9 +911,12 @@ int EvalFormula(const int arg,const int argcount){
 		case TOKEN_MID:
 			if(argcount<3)return ERR_MISSING_OPERAND;
 			if(argcount>3)return ERR_SYNTAX_ERROR;
-			if(argtypes[0]!=ATYPE_STR || argtypes[1]!=ATYPE_INT || argtypes[2]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
+			if(argtypes[2]!=ATYPE_STR || argtypes[1]!=ATYPE_INT || argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
+			tmpints[1]=FloorInt(tmpints[1]);
+			tmpints[0]=FloorInt(tmpints[0]);
 			//failsafeÇµÇƒÇ‹ÇπÇÒÅ@#ÇµÇÎ
-			memcpy(tmpstr,&tmpstr[tmpints[1]],tmpints[0]);
+			memset(tmpstr,0x00,sizeof(tmpstr));
+			memcpy(tmpstr,&(tmpstrs[2][tmpints[1]]),tmpints[0]);
 			errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
 			break;

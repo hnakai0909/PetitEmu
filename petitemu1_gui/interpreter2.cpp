@@ -803,7 +803,7 @@ int ResistLabel(uint16_t* input){
 uint16_t* GetLabelName(uint16_t* p,char* tmpstr,int* errtmp){
 	int i=0;
 	uint16_t c;
-	memset(tmpstr,0x00,sizeof(tmpstr));
+	memset(tmpstr,0x00,256);
 	for(i=0;i<8;i++){
 		c=Code2Char(*p);
 		if((c==' ')||(*p==0x000D)||(*p==0x0000)||(c==':')||(c=='\''))break;

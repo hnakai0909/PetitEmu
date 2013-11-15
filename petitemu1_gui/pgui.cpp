@@ -79,7 +79,7 @@ extern "C" void LineInput(char* arg){
 	SetFontSize(16);
 	DrawString(0,192,"?",GetColor(255,255,255));
 	KeyInputSingleCharString(8,192,64,arg,FALSE);
-	ChangeFont( "ƒvƒ`ƒRƒ“" );
+	ChangeFont( FONT_PETITCOM );
 	SetFontSize(8);
 	Print2Console(arg,0);
 	return;
