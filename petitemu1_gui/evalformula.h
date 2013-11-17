@@ -153,6 +153,7 @@ extern uint16_t translated_source[10000];
 
 extern unsigned char* source_ptr;
 extern uint32_t cur_line;
+extern uint16_t *srcpos;
 extern uint16_t *read_srcpos;
 extern bool read_initialized;
 

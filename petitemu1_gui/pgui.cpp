@@ -70,6 +70,7 @@ extern "C" bool Draw2Console(void){
 		Cr=GetColor(consolecharcolor[tmp][0],consolecharcolor[tmp][1],consolecharcolor[tmp][2]);
 		DrawString(i%32*8,(i/32)*8,tmpstr,Cr);
 	}
+	DrawDebugScreen();
 	//ScreenFlip();
 	return true;
 }
@@ -316,4 +317,45 @@ void PutStartMessage(void){
 	Print2Console("1048576 byte free",0);
 	Print2Console("developed by hnakai",0);
 	Print2Console("",0);
+}
+
+void DrawDebugScreen(void){
+	int Cr=0,tmp=0,i=0,j=0,k=0,x=0,y=0;
+	char tmpstr[256],tmpstr2[256];
+	static int initialized=0,conslogbufp=0;
+	static char conslogbuf[768];
+	if(runmode==RMD_STOP)return;
+	if(initialized==0){
+		memset(conslogbuf,0x00,sizeof(conslogbuf));
+		initialized=1;
+	}
+	memset(tmpstr,0x00,sizeof(tmpstr));
+	memset(tmpstr2,0x00,sizeof(tmpstr2));
+	tmp=Code2Char(*(srcpos+1));
+	if(tmp!=0){
+		tmpstr2[0]=tmp;
+	}else{
+		strcpy(tmpstr2,TokenCode2Str(*(srcpos+1)));
+		if(strlen(tmpstr2)==0)strcpy(tmpstr2,"!UNK!");
+	}
+	for(i=0;i<=strlen(tmpstr2);i++){
+		conslogbuf[conslogbufp]=tmpstr2[i];
+		conslogbufp=(conslogbufp+1)%768;
+	}
+	conslogbuf[conslogbufp-1]='/';
+	for(i=0;i<768;i++){
+		FontTable(conslogbuf[i],tmpstr);
+		tmp=0;
+		Cr=GetColor(consolecharcolor[tmp][0],consolecharcolor[tmp][1],consolecharcolor[tmp][2]);
+		DrawString(i%32*8+256,(i/32)*8,tmpstr,Cr);
+	}
+	/*
+	for(i=0;i<strlen(tmpstr2);i++){
+		tmp=0;
+		FontTable(tmpstr2[i],tmpstr);
+		Cr=GetColor(consolecharcolor[tmp][0],consolecharcolor[tmp][1],consolecharcolor[tmp][2]);
+		DrawString(i*8+256,y*8,tmpstr,Cr);
+	}
+	*/
+	return;
 }

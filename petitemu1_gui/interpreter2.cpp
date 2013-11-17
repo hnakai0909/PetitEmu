@@ -128,16 +128,11 @@ uint16_t* JumpSpace(uint16_t* p){
 
 uint16_t* ForJump(uint16_t* p,int* errtmp){
 	int nest=0;
-	uint16_t* srcpos;
-	uint16_t* input=p;
 	int i=0,f=0;
 	*errtmp=ERR_NO_ERROR;
 	for(i=cur_line+1;i<(srclinecount-cur_line-1);i++){
-		srcpos=p;
-		GOTOLINE(i);
-		p=srcpos;
+		p=translated_source+srcline_begin_token_pos[i];
 		while(*p!=0x000D && *p!=TOKEN_REM && *p!=TOKEN_REM2){
-			srcpos=p;
 			if(*p==TOKEN_FOR)nest++;
 			if(*p==TOKEN_NEXT){
 				if(nest==0){
@@ -153,9 +148,9 @@ uint16_t* ForJump(uint16_t* p,int* errtmp){
 	}
 	if(f==0){
 		*errtmp=ERR_FOR_WITHOUT_NEXT;
-		return srcpos+1;
+		return p+1;
 	}
-	return srcpos+1;
+	return p+1;
 }
 
 uint16_t* ReadFormula(uint16_t* p,int *errtmp){
@@ -770,27 +765,27 @@ int RunProgram(void){
 }
 
 int ResistLabel(uint16_t* input){
-	uint16_t *srcpos=input;
+	uint16_t *p=input;
 	int i=0,j=0,k=0;
 	char tmpstr[16],c;
 	labelcount=0;
 	cur_line=0;
 	memset(labellist_name,0x00,sizeof(labellist_name));
 	for(i=0;i<srclinecount;i++){
-		GOTOLINE(i);
-		srcpos=JumpSpace(srcpos);
-		if(*srcpos==TOKEN_LABEL || *srcpos==TOKEN_LABEL2){
-			srcpos++;
+		p=input+srcline_begin_token_pos[i];
+		p=JumpSpace(p);
+		if(*p==TOKEN_LABEL || *p==TOKEN_LABEL2){
+			p++;
 			memset(tmpstr,0x00,sizeof(tmpstr));
 			for(k=0;k<8;k++){
-				c=Code2Char(*srcpos);
-				if((c==' ')||(*srcpos==0x000D)||(*srcpos==0x0000))break;
+				c=Code2Char(*p);
+				if((c==' ')||(*p==0x000D)||(*p==0x0000))break;
 				if((c!='_')&&(!isalpha(c))&&(!isdigit(c))){
 					Psys_ERL=i+1;
 					return ERR_SYNTAX_ERROR;
 				}
 				tmpstr[k]=toupper(c);
-				srcpos++;
+				p++;
 			}
 			strcpy(labellist_name[labelcount],tmpstr);
 			labellist_line[labelcount]=i;
@@ -846,7 +841,7 @@ int ReadSeekNext(void){
 }
 
 int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
-	uint16_t *srcpos=input,*tmppos;
+	uint16_t *tmppos;
 	const uint16_t *srcend=input+srclen;
 	uint32_t tmpline=0;
 	uint16_t t=0;
@@ -864,6 +859,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 	memset(tmpstr2, 0x00,sizeof(tmpstr2));
 	memset(op_s,0x00,sizeof(op_s));
 	memset(calc_s,0x00,sizeof(calc_s));
+	srcpos=input;
 	calc_sl=0;
 	op_sl=0;
 	*runflag=0;
@@ -1358,6 +1354,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					memset(srcline_token_count,0x0000,sizeof(srcline_token_count));
 					srclinecount=0;
 					memset(source_ptr,0x0000,sizeof(source_ptr));
+					memset(translated_source,0x0000,sizeof(translated_source));
 					return ERR_NO_ERROR;
 					break;
 				case TOKEN_GOTO:

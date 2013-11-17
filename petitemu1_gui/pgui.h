@@ -37,6 +37,7 @@ void DisplayConsole(void);
 int Print2Console(char *string,int indent_option);
 void ScrollConsole(void);
 void PutStartMessage(void);
+void DrawDebugScreen(void);
 #ifdef __cplusplus
 }
 #endif

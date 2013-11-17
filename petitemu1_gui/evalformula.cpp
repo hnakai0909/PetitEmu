@@ -85,6 +85,7 @@ int keybuffer_qtail;//書く位置(キュー末尾)
 
 uint16_t translated_source[10000];
 unsigned char* source_ptr;
+uint16_t *srcpos;
 uint32_t cur_line=0;
 uint16_t *read_srcpos=NULL;
 bool read_initialized=false;
@@ -915,6 +916,8 @@ int EvalFormula(const int arg,const int argcount){
 			tmpints[1]=FloorInt(tmpints[1]);
 			tmpints[0]=FloorInt(tmpints[0]);
 			//failsafeしてません　#しろ
+			if(tmpints[1]<0)return ERR_OUT_OF_RANGE;
+			if(tmpints[0]<0)return ERR_OUT_OF_RANGE;
 			memset(tmpstr,0x00,sizeof(tmpstr));
 			memcpy(tmpstr,&(tmpstrs[2][tmpints[1]]),tmpints[0]);
 			errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
