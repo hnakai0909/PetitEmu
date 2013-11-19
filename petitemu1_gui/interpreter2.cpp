@@ -238,7 +238,7 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 					}
 					tmpint=NewVar(tmpstr);
 					if(Variable[tmpint].isStr){
-						*errtmp=PushCalcStack(TYPE_STR_LIT,0,NULL,0);
+						*errtmp=PushCalcStack(TYPE_STR_LIT,0,"",0);
 						if(*errtmp!=ERR_NO_ERROR)return p;
 						beforetokentype=TYPE_STR_LIT;
 					}else{
@@ -831,6 +831,7 @@ int ReadSeekNext(void){
 		if(*read_srcpos==TOKEN_REM ||*read_srcpos==TOKEN_REM2){
 			while(*read_srcpos!=0x000D && *read_srcpos!=0x0000)read_srcpos++;
 		}
+		read_srcpos++;
 	}
 	if(*read_srcpos==0x0000){
 		return ERR_OUT_OF_DATA;
@@ -848,6 +849,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 	char c=0,*c2,p_char;
 	char tmpstr[STR_LEN_MAX],tmpstr2[STR_LEN_MAX*2],tmpstr3[STR_LEN_MAX];
 	unsigned char tmpstr_p=0;
+	double tmpw=0.0;
 	int cnt=0,i=0,argcount=0;
 	int32_t tmpint=0,tmpint3=0;
 	int64_t tmpint2=0;
@@ -860,6 +862,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 	memset(op_s,0x00,sizeof(op_s));
 	memset(calc_s,0x00,sizeof(calc_s));
 	srcpos=input;
+	read_srcpos=input;
 	calc_sl=0;
 	op_sl=0;
 	*runflag=0;
@@ -1006,10 +1009,109 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 						errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),NULL,2);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						//ここで右辺値をcalcstackに突っ込む
-						
-						//read_srcpos
-
+						read_srcpos=JumpSpace(read_srcpos);
+						p_char=Code2Char(*read_srcpos);
+						if(isdigit(p_char)){
+							cnt=0;
+							tmpint=0;
+							tmpint3=0;
+							while(isdigit(p_char)){
+								if(cnt>=7){
+									return ERR_OVERFLOW;
+								}
+								tmpint=(tmpint*10)+(p_char-'0');
+								read_srcpos++;p_char=Code2Char(*read_srcpos);cnt++;
+							}
+							if(tmpint>=524288){
+								return ERR_OVERFLOW;
+							}
+							tmpint*=4096;
+							if(p_char=='.'){
+								read_srcpos++;
+								p_char=Code2Char(*read_srcpos);
+								tmpw=0;
+								for(cnt=0;isdigit(Code2Char(*(read_srcpos+cnt)))&&(cnt<=6);cnt++);
+								cnt--;
+								tmpint3=cnt;
+								while(cnt>=0){
+									tmpw=((tmpw+(double)(Code2Char(*(read_srcpos+cnt))-'0'))/10.0);
+									cnt--;
+								}
+								read_srcpos+=tmpint3;
+								p_char=Code2Char(*read_srcpos);
+								//切り捨てられるものに最小分解能の1/4096の1/2を足すことで
+								//四捨五入する
+								tmpw+=(1.0/8192.0);
+								tmpw*=4096.0;
+								tmpint+=(int)tmpw;
+								for(;isdigit(Code2Char(*read_srcpos));read_srcpos++);
+								p_char=Code2Char(*read_srcpos);
+							}
+							errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,NULL,0);
+							if(errtmp!=ERR_NO_ERROR)return errtmp;
+							read_srcpos=JumpSpace(read_srcpos);
+							p_char=Code2Char(*read_srcpos);
+						}else if(p_char=='&'){
+							read_srcpos++;
+							p_char=Code2Char(*read_srcpos);
+							if(toupper(p_char)=='H'){
+								read_srcpos++;
+								p_char=Code2Char(*read_srcpos);
+								tmpint=0;
+								cnt=0;
+								while(isxdigit(p_char)){
+									if(cnt>=5){
+										return ERR_SYNTAX_ERROR;
+									}
+									tmpint=(tmpint<<4)|((p_char<='9')?(p_char-'0'):(toupper(p_char)-'A'+10));
+									read_srcpos++;p_char=Code2Char(*read_srcpos);cnt++;
+								}
+								tmpint*=4096;
+							}else if(toupper(p_char)=='B'){
+								read_srcpos++;
+								p_char=Code2Char(*read_srcpos);
+								tmpint=0;
+								cnt=0;
+								while(isBin(p_char)){
+									if(cnt>=20){
+										return ERR_SYNTAX_ERROR;
+									}
+									tmpint=(tmpint<<1)|(p_char-'0');
+									read_srcpos++;p_char=Code2Char(*read_srcpos);cnt++;
+								}
+								tmpint*=4096;
+							}else{
+								return ERR_SYNTAX_ERROR;
+							}
+							errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,NULL,0);
+							if(errtmp!=ERR_NO_ERROR)return errtmp;
+							read_srcpos=JumpSpace(read_srcpos);
+							p_char=Code2Char(*read_srcpos);
+						}else if(p_char=='"'){
+							read_srcpos++;
+							p_char=Code2Char(*read_srcpos);
+							memset(tmpstr,0x00,sizeof(tmpstr));
+							tmpstr_p=0;
+							while((p_char!='"')&&(*read_srcpos!=0x0000)&&(*read_srcpos!=0x0D)){
+				
+								//ソースは最大でも一行100文字のため、
+								//ここでSTR_LEN_MAX文字を超えることはない
+								tmpstr[tmpstr_p]=Code2Char(*read_srcpos);
+								tmpstr_p++;
+								read_srcpos++;	
+								p_char=Code2Char(*read_srcpos);
+							}
+							if(p_char=='"'){read_srcpos++;p_char=Code2Char(*read_srcpos);}
+							errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
+							if(errtmp!=ERR_NO_ERROR)return errtmp;
+						}
+						ProcessRemainingOperator();
+						read_srcpos=JumpSpace(read_srcpos);
+						if(Code2Char(*read_srcpos)==','){
+							read_srcpos++;
+						}else{
+							read_initialized=false;
+						}
 						srcpos=JumpSpace(srcpos);
 					}while(Code2Char(*srcpos)==',');
 					state=ST_NEW_STATEMENT;
@@ -1035,6 +1137,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					cur_line++;
 					if(cur_line>=srclinecount)return ERR_NO_ERROR;
 					GOTOLINE(cur_line);
+					break;
 				case TOKEN_IF:
 					srcpos=JumpSpace(srcpos+1);
 					srcpos=ReadFormula(srcpos,&errtmp);
