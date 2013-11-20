@@ -145,7 +145,7 @@ void CheckPanel(void){
 							||(code==PKEY_CAPS)||(code==PKEY_MODE_A)||(code==PKEY_MODE_G)||(code==PKEY_MODE_K)
 							||(code==PKEY_INS)||(code==PKEY_DEL)||(code==PKEY_SEARCH)
 						))){
-							if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+							if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
 						}
 					}
 				}
@@ -357,7 +357,7 @@ void CheckKey(void){
 				}else{
 					WriteKeyBuffer(Table2[i]);
 				}
-				if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+				if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
 			}
 			KeyCheckTimeBuf[Table1_1[i]]++;
 			if(KeyCheckTimeBuf[Table1_1[i]]>=(KEY_TIME_TO_RENSYA+KEY_RENSYA_INTERVAL))KeyCheckTimeBuf[Table1_1[i]]=KEY_TIME_TO_RENSYA;
@@ -393,27 +393,27 @@ void CheckKey(void){
 						break;
 					case KEY_INPUT_F1:
 						for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[0][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[0][j]);
-						if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
 						break;
 					case KEY_INPUT_F2:
 						for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[1][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[1][j]);
-						if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
 						break;
 					case KEY_INPUT_F3:
 						for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[2][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[2][j]);
-						if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
 						break;
 					case KEY_INPUT_F4:
 						for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[3][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[3][j]);
-						if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
 						break;
 					case KEY_INPUT_F5:
 						for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[4][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[4][j]);
-						if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
 						break;
 					case KEY_INPUT_RETURN:
 						WriteKeyBuffer(0);
-						if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
 						break;
 					default:
 						break;

@@ -13,29 +13,29 @@ unsigned char Psys_MEM_D[STR_LEN_MAX];	//MEM$
 
 char consolecharbuf[32][24];
 char consolecolorbuf[32][24];
-int Psys_VERSION=0x1020;//ver 1.2
-int Psys_TRUE=1;
-int Psys_FALSE=0;
-int Psys_CANCEL=-1;
-int Psys_CSRX;
-int Psys_CSRY;
-int Psys_FREEMEM;
-int Psys_ERR;
-int Psys_ERL;
-int Psys_RESULT;
-int Psys_TCHX;
-int Psys_TCHY;
-int Psys_TCHST;
-int Psys_TCHTIME;
-int Psys_MAINCNTL;
-int Psys_MAINCNTH;
-int Psys_TABSTEP;
-int Psys_ICONPUSE;
-int Psys_ICONPAGE;
-int Psys_ICONPMAX;
-int Psys_FUNCNO;
-int Psys_FREEVAR;
-bool Psys_SYSBEEP;
+int32_t Psys_VERSION=0x1020000;//ver 1.2
+int32_t Psys_TRUE=0x00001000;
+int32_t Psys_FALSE=0x00000000;
+int32_t Psys_CANCEL=0xFFFFF000;
+int32_t Psys_CSRX;
+int32_t Psys_CSRY;
+int32_t Psys_FREEMEM;
+int32_t Psys_ERR;
+int32_t Psys_ERL;
+int32_t Psys_RESULT;
+int32_t Psys_TCHX;
+int32_t Psys_TCHY;
+int32_t Psys_TCHST;
+int32_t Psys_TCHTIME;
+int32_t Psys_MAINCNTL;
+int32_t Psys_MAINCNTH;
+int32_t Psys_TABSTEP;
+int32_t Psys_ICONPUSE;
+int32_t Psys_ICONPAGE;
+int32_t Psys_ICONPMAX;
+int32_t Psys_FUNCNO;
+int32_t Psys_FREEVAR;
+int32_t Psys_SYSBEEP=0x00001000;
 char Psys_TIME[STR_LEN_MAX];
 char Psys_DATE[STR_LEN_MAX];
 char Psys_MEM[STR_LEN_MAX];
@@ -1021,7 +1021,7 @@ int EvalFormula(const int arg,const int argcount){
 		case TOKEN_CLEAR:
 			if(argcount>0)return ERR_SYNTAX_ERROR;
 			ClearDim();
-			Psys_FREEVAR=VAR_MAX;
+			Psys_FREEVAR=VAR_MAX*4096;
 			memset(Variable,0x00,sizeof(Variable));
 			break;
 		case TOKEN_CLS:

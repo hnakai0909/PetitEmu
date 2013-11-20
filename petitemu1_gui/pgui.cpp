@@ -335,14 +335,19 @@ void DrawDebugScreen(void){
 	if(tmp!=0){
 		tmpstr2[0]=tmp;
 	}else{
-		strcpy(tmpstr2,TokenCode2Str(*(srcpos+1)));
-		if(strlen(tmpstr2)==0)strcpy(tmpstr2,"!UNK!");
+		sprintf(tmpstr2,"%s/",TokenCode2Str(*srcpos));
+		if(strlen(tmpstr2)==0){
+			if(*srcpos==0x000D){
+				strcpy(tmpstr2,"CRLF/");
+			}else{
+				sprintf(tmpstr2,"#%04X/",*srcpos);
+			}
+		}
 	}
 	for(i=0;i<=strlen(tmpstr2);i++){
 		conslogbuf[conslogbufp]=tmpstr2[i];
 		conslogbufp=(conslogbufp+1)%768;
 	}
-	conslogbuf[conslogbufp-1]='/';
 	for(i=0;i<768;i++){
 		FontTable(conslogbuf[i],tmpstr);
 		tmp=0;

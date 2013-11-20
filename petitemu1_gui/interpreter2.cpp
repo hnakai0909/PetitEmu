@@ -27,7 +27,7 @@ char dec2int(const char arg){
 
 int Str2VarID(const char* arg){
 	int cnt=0;
-	for(cnt=0;cnt<(VAR_MAX-Psys_FREEVAR);cnt++){
+	for(cnt=0;cnt<(VAR_MAX-Psys_FREEVAR/4096);cnt++){
 		if(strcmp(Variable[cnt].name,arg)==0){
 			return cnt;
 		}
@@ -846,7 +846,8 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 	const uint16_t *srcend=input+srclen;
 	uint32_t tmpline=0;
 	uint16_t t=0;
-	char c=0,*c2,p_char;
+	char *c2,p_char;
+	unsigned char c=0;
 	char tmpstr[STR_LEN_MAX],tmpstr2[STR_LEN_MAX*2],tmpstr3[STR_LEN_MAX];
 	unsigned char tmpstr_p=0;
 	double tmpw=0.0;
@@ -1273,9 +1274,98 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					ForGosub_sl++;
 					state=ST_NEW_STATEMENT;
 					break;
+				case TOKEN_NEXT:
+					if(ForGosub_sl<=0)return ERR_NEXT_WITHOUT_FOR;
+					ForGosub_sl--;
+					memset(tmpstr,0x00,sizeof(tmpstr));
+					tmpstr_p=0;
+					srcpos=JumpSpace(srcpos+1);
+					while(isalpha(Code2Char(*srcpos))||(Code2Char(*srcpos)=='_')||(isdigit(Code2Char(*srcpos)))){
+						if(tmpstr_p>=8)return ERR_STRING_TOO_LONG;
+						tmpstr[tmpstr_p]=toupper(Code2Char(*srcpos));
+						tmpstr_p++;
+						srcpos++;
+					}
+					if(tmpstr_p!=0){
+						tmpint=Str2VarID(tmpstr);
+						if(tmpint==-1)return ERR_NEXT_WITHOUT_FOR;
+						if(ForGosub_s[ForGosub_sl].VarID!=tmpint)return ERR_NEXT_WITHOUT_FOR;
+					}
+					tmpint=Variable[ForGosub_s[ForGosub_sl].VarID].value;
+					tmpint+=ForGosub_s[ForGosub_sl].step;
+					Variable[ForGosub_s[ForGosub_sl].VarID].value=tmpint;
+					tmppos=srcpos;
+					tmpline=cur_line;
+					srcpos=input+ForGosub_s[ForGosub_sl].col;
+					cur_line=ForGosub_s[ForGosub_sl].line;
+					srcpos=ReadFormula(srcpos,&errtmp);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					srcpos=JumpSpace(srcpos);
+					errtmp=ProcessRemainingOperator();
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
+					tmpint2=tmpint;
+					if(*srcpos!=TOKEN_STEP){
+						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint){
+							cur_line=tmpline;
+							GOTOLINE(cur_line);
+							srcpos=tmppos+1;	
+						}else{
+							ForGosub_s[ForGosub_sl].step=4096;
+							ForGosub_sl++;
+						}
+						state=ST_NEW_STATEMENT;
+						break;
+					}
+					srcpos=JumpSpace(srcpos+1);
+					srcpos=ReadFormula(srcpos,&errtmp);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					srcpos=JumpSpace(srcpos);
+					errtmp=ProcessRemainingOperator();
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
+					if(tmpint>0){
+						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint2){
+							srcpos=tmppos+1;
+							cur_line=tmpline;
+							state=ST_NEW_STATEMENT;
+							break;
+						}
+					}
+					if(tmpint<0){
+						if(Variable[ForGosub_s[ForGosub_sl].VarID].value<tmpint2){
+							srcpos=tmppos+1;
+							cur_line=tmpline;
+							state=ST_NEW_STATEMENT;
+							break;
+						}
+					}
+					ForGosub_s[ForGosub_sl].step=tmpint;
+					ForGosub_sl++;
+					state=ST_NEW_STATEMENT;
+					break;
 				case TOKEN_INPUT:
 					srcpos=JumpSpace(srcpos+1);
 					memset(tmpstr,0x00,sizeof(tmpstr));
+					if(*srcpos==Char2Code('"')){
+						//-----‚±‚±
+						srcpos++;
+						p_char=Code2Char(*srcpos);
+						memset(tmpstr, 0x00,sizeof(tmpstr));
+						tmpstr_p=0;
+						while((p_char!='"')&&(p_char!=0)){
+							tmpstr[tmpstr_p]=Code2Char(*srcpos);
+							tmpstr_p++;
+							srcpos++;	
+							p_char=Code2Char(*srcpos);
+						}
+						if(p_char=='"'){srcpos++;p_char=Code2Char(*srcpos);}
+						errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						//-----‚±‚±
+						srcpos=JumpSpace(srcpos);
+						if(*srcpos!=Char2Code(';'))return ERR_SYNTAX_ERROR;
+					}
 					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),NULL,2);
@@ -1305,93 +1395,6 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					}
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					state=ST_NEW_STATEMENT;
-					break;
-				case TOKEN_NEXT:
-					if(ForGosub_sl<=0)return ERR_NEXT_WITHOUT_FOR;
-					ForGosub_sl--;
-					memset(tmpstr,0x00,sizeof(tmpstr));
-					tmpstr_p=0;
-					srcpos=JumpSpace(srcpos);
-					while(isalpha(Code2Char(*srcpos))||(Code2Char(*srcpos)=='_')||(isdigit(Code2Char(*srcpos)))){
-						if(tmpstr_p>=8)return ERR_STRING_TOO_LONG;
-						tmpstr[tmpstr_p]=toupper(Code2Char(*srcpos));
-						tmpstr_p++;
-						srcpos++;
-					}
-					if(tmpstr_p!=0){
-						tmpint=Str2VarID(tmpstr);
-						if(tmpint==-1)return ERR_NEXT_WITHOUT_FOR;
-						if(ForGosub_s[ForGosub_sl].VarID!=tmpint)return ERR_NEXT_WITHOUT_FOR;
-					}
-					tmpint=Variable[ForGosub_s[ForGosub_sl].VarID].value;
-					tmpint+=ForGosub_s[ForGosub_sl].step;
-					Variable[ForGosub_s[ForGosub_sl].VarID].value=tmpint;
-					tmppos=srcpos;
-					tmpline=cur_line;
-					srcpos=input+ForGosub_s[ForGosub_sl].col;
-					cur_line=ForGosub_s[ForGosub_sl].line;
-					srcpos=ReadFormula(srcpos,&errtmp);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=JumpSpace(srcpos);
-					errtmp=ProcessRemainingOperator();
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
-					tmpint2=tmpint;
-					if(Code2Char(*srcpos)==':'){
-						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint){
-							cur_line=tmpline;
-							GOTOLINE(cur_line);
-							srcpos=tmppos+1;
-						}else{
-							ForGosub_s[ForGosub_sl].step=4096;
-							ForGosub_sl++;
-						}
-						state=ST_NEW_STATEMENT;
-						break;
-					}else if(Code2Char(*srcpos)=='\'' || *srcpos==0x0000 || *srcpos==0x000D){
-						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint){
-							cur_line=tmpline+1;
-							GOTOLINE(cur_line);
-							srcpos=tmppos;
-							if(*srcpos==TOKEN_NEXT)srcpos++;
-							state=ST_NEW_STATEMENT;
-							break;
-						}else{
-							ForGosub_s[ForGosub_sl].step=4096;
-							ForGosub_sl++;
-							cur_line++;
-							if(cur_line>=srclinecount)return ERR_NO_ERROR;
-							GOTOLINE(cur_line);
-							break;
-						}
-					}
-					if(*srcpos!=TOKEN_STEP)return ERR_SYNTAX_ERROR;
-					srcpos=JumpSpace(srcpos+1);
-					srcpos=ReadFormula(srcpos,&errtmp);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=JumpSpace(srcpos);
-					errtmp=ProcessRemainingOperator();
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
-					if(tmpint>0){
-						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint2){
-							srcpos=tmppos+1;
-							cur_line=tmpline;
-							state=ST_NEW_STATEMENT;
-							break;
-						}
-					}
-					if(tmpint<0){
-						if(Variable[ForGosub_s[ForGosub_sl].VarID].value<tmpint2){
-							srcpos=tmppos+1;
-							cur_line=tmpline;
-							state=ST_NEW_STATEMENT;
-							break;
-						}
-					}
-					ForGosub_s[ForGosub_sl].step=tmpint;
-					ForGosub_sl++;
 					state=ST_NEW_STATEMENT;
 					break;
 				case TOKEN_LINPUT:
@@ -1772,21 +1775,21 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 
 int NewVar(char* name){
 	int type=0;
-	if(Psys_FREEVAR<=0)return -1;
-	memset(Variable[VAR_MAX-Psys_FREEVAR].name,0x00,sizeof(Variable[VAR_MAX-Psys_FREEVAR].name));
-	strcpy(Variable[VAR_MAX-Psys_FREEVAR].name,name);
+	if((Psys_FREEVAR/4096)<=0)return -1;
+	memset(Variable[VAR_MAX-Psys_FREEVAR/4096].name,0x00,sizeof(Variable[VAR_MAX-Psys_FREEVAR/4096].name));
+	strcpy(Variable[VAR_MAX-Psys_FREEVAR/4096].name,name);
 	if(calc_sl>=CALC_S_MAX)return -1;
 	if(name[strlen(name)-1]=='$' || name[strlen(name)-2]=='$'){
-		Variable[VAR_MAX-Psys_FREEVAR].isStr=true;
-		Variable[VAR_MAX-Psys_FREEVAR].isDim=0;
+		Variable[VAR_MAX-Psys_FREEVAR/4096].isStr=true;
+		Variable[VAR_MAX-Psys_FREEVAR/4096].isDim=0;
 		type=TYPE_STR_VAR;
 	}else{
-		Variable[VAR_MAX-Psys_FREEVAR].isStr=false;
-		Variable[VAR_MAX-Psys_FREEVAR].isDim=0;
+		Variable[VAR_MAX-Psys_FREEVAR/4096].isStr=false;
+		Variable[VAR_MAX-Psys_FREEVAR/4096].isDim=0;
 		type=TYPE_INT_VAR;
 	}
-	Psys_FREEVAR--;
-	return VAR_MAX-Psys_FREEVAR-1;
+	Psys_FREEVAR-=4096;;
+	return VAR_MAX-Psys_FREEVAR/4096-1;
 }
 
 
