@@ -712,8 +712,10 @@ void RunInteractive(char* input){
 			if(error_occured_token!=0){
 				sprintf(tmpstr,"%s (%d,%s)",GetErrorMessage(errtmp),Psys_ERL,TokenCode2Str(error_occured_token));
 				printf("%s\n",tmpstr);
+				printf("*srcpos=%04X=%c\n",*srcpos,Code2Char(*srcpos));
 				Print2Console(tmpstr,0);
 			}else{
+				printf("*srcpos=%04X=%c\n",*srcpos,Code2Char(*srcpos));
 				printf("%s\n",GetErrorMessage(errtmp));
 				Print2Console(GetErrorMessage(errtmp),0);
 			}
@@ -729,6 +731,7 @@ void RunInteractive(char* input){
 			if((op_sl!=0)||(calc_sl!=0)){
 				printf("op_sl:%d calc_sl:%d",op_sl,calc_sl);
 				strcpy(tmpstr,GetErrorMessage(ERR_UNDEFINED));
+				printf("*srcpos=%04X=%c\n",*srcpos,Code2Char(*srcpos));
 				printf("%s\n",tmpstr);
 				Print2Console(tmpstr,0);
 			}
@@ -742,10 +745,12 @@ void RunInteractive(char* input){
 					sprintf(tmpstr,"%s (%s)",GetErrorMessage(errtmp),TokenCode2Str(error_occured_token));	
 				}
 				printf("%s\n",tmpstr);
+				printf("*srcpos=%04X=%c\n",*srcpos,Code2Char(*srcpos));
 				Print2Console(tmpstr,0);
 			}else{
 				strcpy(tmpstr,GetErrorMessage(errtmp));
 				printf("%s\n",tmpstr);
+				printf("*srcpos=%04X=%c\n",*srcpos,Code2Char(*srcpos));
 				Print2Console(tmpstr,0);
 			}
 			if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[2],DX_PLAYTYPE_BACKBIT);
@@ -1348,7 +1353,6 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					break;
 				case TOKEN_INPUT:
 					srcpos=JumpSpace(srcpos+1);
-					memset(tmpstr,0x00,sizeof(tmpstr));
 					if(*srcpos==Char2Code('"')){
 						errtmp=PushCalcStack(TYPE_FUNC,Char2Code('('),"",0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
@@ -1368,35 +1372,42 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						errtmp=PushCalcStack(TYPE_STR_LIT,0,"?",0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}
+					memset(tmpstr,0x00,sizeof(tmpstr));
+					if(!PopCalcStack_str(tmpstr))return ERR_UNDEFINED;
+					//プロンプト文表示
+					Print2Console(tmpstr,0);
+					tmpint=0;
+					//複雑なので保留
 					do{
 						if(tmpint==1)Print2Console("?REDO FROM START",0);
-						InputLine(tmpstr);
+						memset(tmpstr3,0x00,sizeof(tmpstr3));
+						InputLine(tmpstr3);
 						tmpint=1;
-					
-					}while(!isdigits(tmpstr));
+						break;
+					}while(1);
 					tmpint=(int32_t)(atof(tmpstr)*4096.0);
 					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					srcpos=JumpSpace(srcpos);
-					memset(tmpstr,0x00,sizeof(tmpstr));
-					tmpstr_p=0;
-					if(c=='$'){
-						errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-					}else{
-						errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,"",0);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-					}
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					state=ST_NEW_STATEMENT;
 					break;
 				case TOKEN_LINPUT:
+					//未完
 					memset(tmpstr,0x00,sizeof(tmpstr));
 					tmpstr_p=0;
 					srcpos=JumpSpace(srcpos+1);
+					if(*srcpos==Char2Code('"')){
+						srcpos=ReadFormula(srcpos,&errtmp);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						errtmp=ProcessRemainingOperator();
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						if(*srcpos!=Char2Code(';'))return ERR_SYNTAX_ERROR;
+						srcpos=JumpSpace(srcpos+1);
+					}
 					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
 					if(!Variable[tmpint].isStr)return ERR_TYPE_MISMATCH;
 					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
@@ -1599,15 +1610,15 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 							break;
 						}else{
 							errtmp=PushCalcStack(TYPE_FUNC,t,"",0);
-							if(!errtmp)return ERR_UNDEFINED;
+							if(errtmp!=ERR_NO_ERROR)return errtmp;
 							errtmp=PushCalcStack(TYPE_FUNC,Char2Code('('),"",0);
-							if(!errtmp)return ERR_UNDEFINED;
+							if(errtmp!=ERR_NO_ERROR)return errtmp;
 							srcpos=JumpSpace(srcpos+1);
 							if((*srcpos==0x0000)||(Code2Char(*srcpos)==':')){
 								errtmp=PushCalcStack(TYPE_VOID,0,"",0);
-								if(!errtmp)return ERR_UNDEFINED;
+								if(errtmp!=ERR_NO_ERROR)return errtmp;
 								errtmp=PushCalcStack(TYPE_FUNC,Char2Code(')'),"",0);
-								if(!errtmp)return ERR_UNDEFINED;
+								if(errtmp!=ERR_NO_ERROR)return errtmp;
 								state=ST_NEW_STATEMENT;
 								break;
 							}
@@ -1623,7 +1634,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 								argcount++;
 							}
 							errtmp=PushCalcStack(TYPE_FUNC,Char2Code(')'),"",argcount);
-							if(!errtmp)return ERR_UNDEFINED;
+							if(errtmp!=ERR_NO_ERROR)return ERR_UNDEFINED;
 							errtmp=ProcessRemainingOperator();
 							if(errtmp!=ERR_NO_ERROR)return errtmp;
 							state=ST_NEW_STATEMENT;

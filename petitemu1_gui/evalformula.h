@@ -62,7 +62,7 @@ extern char consolecolorbuf[32][24];
 //プチコンシステム変数
 extern int32_t Psys_VERSION;
 extern int32_t Psys_TRUE;
-extern int32_t Psys_FALSE0;
+extern int32_t Psys_FALSE;
 extern int32_t Psys_CANCEL;
 extern int32_t Psys_CSRX;
 extern int32_t Psys_CSRY;
@@ -199,6 +199,10 @@ int EvalFormula(const int arg,const int argcount);
 
 int* GetSystemVariableIntPtr(uint16_t arg);
 char* GetSystemVariableStrPtr(uint16_t arg);
+
+void SystemVariableLimitValue(void);
+
+void UpdateSystemVariable(void);
 
 #ifdef __cplusplus
 }

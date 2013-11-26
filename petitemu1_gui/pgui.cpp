@@ -5,11 +5,10 @@ int GrHandle[10];
 extern "C" bool Draw2Console(void){
 	char tmpstr[STR_LEN_MAX];
 	int Cr,i=0,tmp;
-	time_t nowtime;
-	struct tm *nowtime2;
 	static int count=GetNowCount();
 	if((GetNowCount()-count)<16)return true;
 	count=GetNowCount();
+	UpdateSystemVariable();
 	tmp=ProcessMessage();
 	if(tmp)return false;
 	//ˆ—
@@ -31,15 +30,7 @@ extern "C" bool Draw2Console(void){
 		default:
 			break;
 	}
-	nowtime=time(NULL);
-	nowtime2=localtime(&nowtime);
-	memset(tmpstr,0x00,sizeof(tmpstr));
-	sprintf(tmpstr,"%02d:%02d:%02d",nowtime2->tm_hour,nowtime2->tm_min,nowtime2->tm_sec);
-	strcpy(Psys_TIME,tmpstr);
-	memset(tmpstr,0x00,sizeof(tmpstr));
-	sprintf(tmpstr,"%02d/%02d/%02d",nowtime2->tm_year%100,nowtime2->tm_mon+1,nowtime2->tm_mday);
-	strcpy(Psys_DATE,tmpstr);
-
+	
 	//•`‰æ
 	ClearDrawScreen();
 	//SetDrawScreen(DX_SCREEN_BACK);

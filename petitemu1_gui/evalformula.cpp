@@ -189,6 +189,7 @@ int PushCalcStack(int type,int32_t value,char* str,int argc){
 			tmp=0;
 			while(op_sl>0){
 				op=op_s[op_sl-1].op;
+				argcount=op_s[op_sl-1].argcount;
 				if(op==Char2Code('(')){
 					tmp=1;
 					break;
@@ -891,6 +892,7 @@ int EvalFormula(const int arg,const int argcount){
 			if(argcount==0)return ERR_MISSING_OPERAND;
 			if(argcount>1)return ERR_SYNTAX_ERROR;
 			if(argtypes[0]!=ATYPE_STR)return ERR_TYPE_MISMATCH;
+			memset(tmpstr,0x00,sizeof(tmpstr));
 			sprintf(tmpstr,"%05X",FloorInt(tmpints[0]));
 			errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
@@ -1185,7 +1187,8 @@ int EvalFormula(const int arg,const int argcount){
 							break;
 						case 1: case 3: default:
 							return ERR_SYNTAX_ERROR;
-						}
+					}
+					SystemVariableLimitValue();
 				}else if(argtypes[0]==ATYPE_INT){
 					if(Variable[tmpints[1]].isStr)return ERR_TYPE_MISMATCH;
 					Variable[tmpints[1]].value=tmpints[0];
@@ -1325,4 +1328,35 @@ char* GetSystemVariableStrPtr(uint16_t arg){
 		if(Table1[i]==arg)return Table2[i];
 	}
 	return NULL;
+}
+
+void SystemVariableLimitValue(void){
+	Psys_TABSTEP=limitrange(FloorInt(Psys_TABSTEP)*4096,0,16);
+	Psys_ICONPUSE=limitrange(FloorInt(Psys_ICONPUSE)*4096,0,1);
+	Psys_ICONPAGE=limitrange(FloorInt(Psys_ICONPAGE)*4096,0,FloorInt(Psys_ICONPAGE)*4096);
+	Psys_ICONPMAX=limitrange(FloorInt(Psys_ICONPMAX)*4096,0,FloorInt(Psys_ICONPMAX)*4096);
+	Psys_SYSBEEP=limitrange(FloorInt(Psys_SYSBEEP)*4096,0,1);
+	return;
+}
+
+void UpdateSystemVariable(void){
+	char tmpstr[STR_LEN_MAX];
+	time_t nowtime;
+	struct tm *nowtime2;
+	static int maincount_start=GetNowCount();
+	int maincount;
+	nowtime=time(NULL);
+	nowtime2=localtime(&nowtime);
+	maincount=(GetNowCount()-maincount_start)*3/50;
+	memset(tmpstr,0x00,sizeof(tmpstr));
+	sprintf(tmpstr,"%02d:%02d:%02d",nowtime2->tm_hour,nowtime2->tm_min,nowtime2->tm_sec);
+	strcpy(Psys_TIME,tmpstr);
+	memset(tmpstr,0x00,sizeof(tmpstr));
+	sprintf(tmpstr,"%02d/%02d/%02d",nowtime2->tm_year%100,nowtime2->tm_mon+1,nowtime2->tm_mday);
+	strcpy(Psys_DATE,tmpstr);
+	//Psys_FREEMEM;
+	Psys_MAINCNTL=(maincount%524288)*4096;
+	Psys_MAINCNTH=(maincount/524288)*4096;
+	if(runmode!=RMD_PRG)Psys_ICONPAGE=0x00000000;
+	return;
 }

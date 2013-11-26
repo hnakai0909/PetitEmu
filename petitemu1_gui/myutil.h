@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 int inrange(int arg,int min,int max);
-
+int limitrange(int arg,int min,int max);
 int isdigits(char* arg);
 
 #ifdef __cplusplus
