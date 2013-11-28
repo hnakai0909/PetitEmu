@@ -93,7 +93,7 @@ bool read_initialized=false;
 uint32_t srcline_begin_token_pos[10000];
 uint32_t srcline_token_count[10000];
 uint32_t srclinecount;
-char labellist_name[10000][8];
+char labellist_name[10000][9];
 int labellist_line[10000];
 int labelcount;
 bool breakflag=0;
@@ -610,7 +610,7 @@ int EvalFormula(const int arg,const int argcount){
 		case TOKEN_ASC:
 			if(argcount!=1)return ERR_SYNTAX_ERROR;
 			if(argtypes[0]==ATYPE_STR){
-				errtmp=PushCalcStack(TYPE_INT_LIT,tmpstrs[0][0]*4096,"",0);
+				errtmp=PushCalcStack(TYPE_INT_LIT,((tmpstrs[0][0]+256)%256)*4096,"",0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else{
 				return ERR_TYPE_MISMATCH;
@@ -633,8 +633,9 @@ int EvalFormula(const int arg,const int argcount){
 			break;
 		case TOKEN_BGMCHK:
 			if(argcount!=0)return ERR_SYNTAX_ERROR;
-			if(argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
-			errtmp=PushCalcStack(TYPE_INT_LIT,CheckSoundFile()*4096,"",0);
+			if(argtypes[0]!=ATYPE_VOID)return ERR_TYPE_MISMATCH;
+			tmpint=CheckSoundMem(SHandleBGM);
+			errtmp=PushCalcStack(TYPE_INT_LIT,tmpint*4096,"",0);
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
 			break;
 		case TOKEN_BUTTON:
@@ -660,6 +661,7 @@ int EvalFormula(const int arg,const int argcount){
 			tmpints[1]=FloorInt(tmpints[1]);tmpints[0]=FloorInt(tmpints[0]);
 			if(tmpints[1]>=0 && tmpints[1]<=31 && tmpints[0]>=0 && tmpints[0]<=23){
 				tmpint=consolecharbuf[tmpints[1]][tmpints[0]];
+				if(tmpint<0)tmpint+=256;
 				errtmp=PushCalcStack(TYPE_INT_LIT,tmpint*4096,"",0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else{
@@ -891,7 +893,7 @@ int EvalFormula(const int arg,const int argcount){
 		case TOKEN_HEX:
 			if(argcount==0)return ERR_MISSING_OPERAND;
 			if(argcount>1)return ERR_SYNTAX_ERROR;
-			if(argtypes[0]!=ATYPE_STR)return ERR_TYPE_MISMATCH;
+			if(argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
 			memset(tmpstr,0x00,sizeof(tmpstr));
 			sprintf(tmpstr,"%05X",FloorInt(tmpints[0]));
 			errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
@@ -961,7 +963,7 @@ int EvalFormula(const int arg,const int argcount){
 					tmpints[1]=FloorInt(tmpints[1]);tmpints[0]=FloorInt(tmpints[0]);
 					if(tmpints[1]<0 || tmpints[1]>69)return ERR_OUT_OF_RANGE;
 					if(tmpints[0]<-8192 || tmpints[0]>8192)return ERR_OUT_OF_RANGE;
-					SetFrequencySoundMem((int)(powf(2,(double)tmpints[0]/4096.0)*44100.0),SHandleBEEP[tmpints[1]]);
+					SetFrequencySoundMem((int)(powf(2.0,(double)tmpints[0]/4096.0)*44100.0),SHandleBEEP[tmpints[1]]);
 					ChangeVolumeSoundMem(127,SHandleBEEP[tmpints[1]]);
 					SetPanSoundMem(0,SHandleBEEP[tmpints[1]]);
 					PlaySoundMem(SHandleBEEP[tmpints[1]],DX_PLAYTYPE_BACK);
@@ -972,7 +974,7 @@ int EvalFormula(const int arg,const int argcount){
 					if(tmpints[2]<0 || tmpints[2]>69)return ERR_OUT_OF_RANGE;
 					if(tmpints[1]<-8192 || tmpints[1]>8192)return ERR_OUT_OF_RANGE;
 					if(tmpints[0]<0 || tmpints[0]>127)return ERR_OUT_OF_RANGE;
-					SetFrequencySoundMem((int)(powf(2.0,tmpints[1]/4096)*44100.0),SHandleBEEP[tmpints[2]]);
+					SetFrequencySoundMem((int)(powf(2.0,(double)tmpints[1]/4096.0)*44100.0),SHandleBEEP[tmpints[2]]);
 					ChangeVolumeSoundMem(255*tmpints[0]/128,SHandleBEEP[tmpints[2]]);
 					SetPanSoundMem(0,SHandleBEEP[tmpints[2]]);
 					PlaySoundMem(SHandleBEEP[tmpints[2]],DX_PLAYTYPE_BACK);
@@ -984,7 +986,7 @@ int EvalFormula(const int arg,const int argcount){
 					if(tmpints[2]<-8192 || tmpints[2]>8192)return ERR_OUT_OF_RANGE;
 					if(tmpints[1]<0 || tmpints[1]>127)return ERR_OUT_OF_RANGE;
 					if(tmpints[0]<0 || tmpints[0]>127)return ERR_OUT_OF_RANGE;
-					SetFrequencySoundMem((int)(powf(2.0,tmpints[2]/4096)*44100.0),SHandleBEEP[tmpints[3]]);
+					SetFrequencySoundMem((int)(powf(2.0,(double)tmpints[2]/4096.0)*44100.0),SHandleBEEP[tmpints[3]]);
 					ChangeVolumeSoundMem(255*tmpints[1]/128,SHandleBEEP[tmpints[3]]);
 					SetPanSoundMem((tmpints[0]-64)*10000/64,SHandleBEEP[tmpints[3]]);
 					PlaySoundMem(SHandleBEEP[tmpints[3]],DX_PLAYTYPE_BACK);
@@ -1240,7 +1242,7 @@ int EvalFormula(const int arg,const int argcount){
 						errtmp=PushCalcStack(TYPE_STR_LIT,0,(char*)(dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*256),0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}else{
-						errtmp=PushCalcStack(TYPE_INT_LIT,(int32_t)*(dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*4),"",0);
+						errtmp=PushCalcStack(TYPE_INT_LIT,(int32_t)(*((int32_t*)(dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*4))),"",0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}
 				}else{

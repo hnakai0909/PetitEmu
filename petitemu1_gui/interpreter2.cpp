@@ -105,6 +105,19 @@ uint16_t* GetVarID(uint16_t* p,int* tmpint,int* errtmp){
 	return p;
 }
 
+void IncrementSrcPos(void){
+	if(*srcpos==0x000D){
+		cur_line++;
+		GOTOLINE(cur_line);
+		return;
+	}
+	if(*srcpos==0x0000){
+		return;
+	}
+	srcpos++;
+	return;
+}
+
 //演算子スタックの残留を処理
 int ProcessRemainingOperator(void){
 	int argcount=0,errtmp;	
@@ -453,7 +466,7 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 			beforetokentype=TYPE_SPECIAL2;
 		}else if(p_char=='['){
 			brackettype[nest_depth]=1;
-			*errtmp=PushCalcStack(TYPE_FUNC,Char2Code('['),"",0);
+			*errtmp=PushCalcStack(TYPE_FUNC,Char2Code('('),"",0);
 			if(*errtmp!=ERR_NO_ERROR)return p;
 			p=JumpSpace(p+1);
 			p_char=Code2Char(*p);
@@ -466,7 +479,7 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 				return p;
 			}
 			argcount[nest_depth]++;
-			*errtmp=PushCalcStack(TYPE_FUNC,Char2Code(']'),"",argcount[nest_depth]);
+			*errtmp=PushCalcStack(TYPE_FUNC,Char2Code(')'),"",argcount[nest_depth]);
 			if(*errtmp!=ERR_NO_ERROR)return p;
 			p=JumpSpace(p+1);
 			p_char=Code2Char(*p);
@@ -948,13 +961,15 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 									lastprintmode=0;
 									Print2Console(tmpstr,0);
 									tmpint=1;
+									if(isalpha(Code2Char(*srcpos)))tmpint=0;
 									break;
 							}
 						}else{
 							Print2Console("",lastprintmode);
 							lastprintmode=0;
 							srcpos++;
-							if(isInstruction(*srcpos))return ERR_SYNTAX_ERROR;
+							tmpint=1;
+							//if(isInstruction(*srcpos))return ERR_SYNTAX_ERROR;
 							break;
 						}
 						if(tmpint==1)break;
@@ -989,6 +1004,9 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						if(Code2Char(*srcpos)=='('){
 							tmpstr[tmpstr_p]='(';
 							tmpstr_p++;
+						}else if(Code2Char(*srcpos)=='['){
+							tmpstr[tmpstr_p]='(';
+							tmpstr_p++;
 						}else{
 							return ERR_SYNTAX_ERROR;
 						}
@@ -1019,7 +1037,13 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 						read_srcpos=JumpSpace(read_srcpos);
 						p_char=Code2Char(*read_srcpos);
-						if(isdigit(p_char)){
+						tmpint2=1;//符号フラグとして使用
+						if((inrange(p_char,0,127)&&isdigit(p_char))||(p_char=='-')){
+							if(p_char=='-'){
+								tmpint2=-1;
+								read_srcpos++;
+								p_char=Code2Char(*read_srcpos);
+							}
 							cnt=0;
 							tmpint=0;
 							tmpint3=0;
@@ -1033,7 +1057,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 							if(tmpint>=524288){
 								return ERR_OVERFLOW;
 							}
-							tmpint*=4096;
+							tmpint*=4096*tmpint2;
 							if(p_char=='.'){
 								read_srcpos++;
 								p_char=Code2Char(*read_srcpos);
@@ -1100,8 +1124,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 							p_char=Code2Char(*read_srcpos);
 							memset(tmpstr,0x00,sizeof(tmpstr));
 							tmpstr_p=0;
-							while((p_char!='"')&&(*read_srcpos!=0x0000)&&(*read_srcpos!=0x0D)){
-				
+							while((p_char!='"')&&(*read_srcpos!=0x0000)&&(*read_srcpos!=0x000D)){
 								//ソースは最大でも一行100文字のため、
 								//ここでSTR_LEN_MAX文字を超えることはない
 								tmpstr[tmpstr_p]=Code2Char(*read_srcpos);
@@ -1134,7 +1157,6 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					for(i=0;i<labelcount;i++){
 						if(strcmp(labellist_name[i],tmpstr)==0){
 							ReadGotoLine(input,i);
-							read_initialized=false;
 							tmpint=1;
 							break;
 						}
@@ -1310,13 +1332,15 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					srcpos=JumpSpace(srcpos);
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
+					if(!PopCalcStack_int(&tmpint)){
+						return ERR_SYNTAX_ERROR;
+					}
 					tmpint2=tmpint;
 					if(*srcpos!=TOKEN_STEP){
 						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint){
 							cur_line=tmpline;
 							GOTOLINE(cur_line);
-							srcpos=tmppos+1;	
+							srcpos=tmppos;	
 						}else{
 							ForGosub_s[ForGosub_sl].step=4096;
 							ForGosub_sl++;
@@ -1531,18 +1555,22 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					srcpos=JumpSpace(srcpos);
 					tmpint2=0;
 					if(*srcpos==TOKEN_GOTO)tmpint2=1;
-					if(*srcpos==TOKEN_GOSUB)tmpint2=2;
+					if(*srcpos==TOKEN_GOSUB){
+						tmpint2=2;
+					}
 					if(tmpint2==0)return ERR_SYNTAX_ERROR;
-					for(i=0;i<tmpint;i++){
-						if(i!=0)srcpos++;
-						while(1){
-							c=Code2Char(*srcpos);
-							if(c==',')break;
-							if((*srcpos==0x0000)||(*srcpos==0x000D)||(c==':')||(c=='\'')){
-								tmpint2=0;
-								break;
+					if(tmpint>0){
+						for(i=0;i<tmpint;i++){
+							if(i!=0)srcpos++;
+							while(1){
+								c=Code2Char(*srcpos);
+								if(c==',')break;
+								if((*srcpos==0x0000)||(*srcpos==0x000D)||(c==':')||(c=='\'')){
+									tmpint2=0;
+									break;
+								}
+								srcpos++;
 							}
-							srcpos++;
 						}
 					}
 					if(tmpint2==0)break;
@@ -1568,12 +1596,18 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 								tmpint=1;
 								break;
 							}else if(tmpint2==2){//GOSUB
+								while(1){
+									if(*srcpos==0x000D || *srcpos==0x0000 || *srcpos==Char2Code(':'))break;
+									if(Code2Char(*srcpos)==0 && (*srcpos!=TOKEN_LABEL && *srcpos!=TOKEN_LABEL2))break;
+									srcpos++;
+								}
 								ForGosub_s[ForGosub_sl].col=srcpos-input;
 								ForGosub_s[ForGosub_sl].line=cur_line;
 								cur_line=labellist_line[i];
 								GOTOLINE(cur_line);
 								ForGosub_sl++;
 								tmpint=1;
+								state=ST_NEW_STATEMENT;
 								break;
 							}
 						}
@@ -1586,6 +1620,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					srcpos=input+ForGosub_s[ForGosub_sl].col;
 					cur_line=ForGosub_s[ForGosub_sl].line;
 					srcpos=JumpSpace(srcpos);
+					state=ST_NEW_STATEMENT;
 					break;
 				case TOKEN_LABEL:case TOKEN_LABEL2:
 					cur_line++;

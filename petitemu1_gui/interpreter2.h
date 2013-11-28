@@ -22,7 +22,7 @@
 #include "pgui.h"
 #include "pfile.h"
 
-#define GOTOLINE(line) srcpos=input+srcline_begin_token_pos[line];Psys_ERL=line;
+#define GOTOLINE(line) srcpos=translated_source+srcline_begin_token_pos[line];Psys_ERL=line;
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,6 +47,7 @@ char hex2int(const char arg);
 char dec2int(const char arg);
 int Str2VarID(const char* arg);
 uint16_t* GetVarID(uint16_t* p,int* tmpint,int* errtmp);
+void IncrementSrcPos(void);
 int ProcessRemainingOperator(void);
 uint16_t* JumpSpace(uint16_t* p);
 uint16_t* ForJump(uint16_t* p,int* errtmp);

@@ -160,7 +160,7 @@ extern bool read_initialized;
 extern uint32_t srcline_begin_token_pos[10000];
 extern uint32_t srcline_token_count[10000];
 extern uint32_t srclinecount;
-extern char labellist_name[10000][8];
+extern char labellist_name[10000][9];
 extern int labellist_line[10000];
 extern int labelcount;
 extern bool breakflag;
