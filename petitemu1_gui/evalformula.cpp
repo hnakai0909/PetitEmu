@@ -1088,7 +1088,7 @@ int EvalFormula(const int arg,const int argcount){
 			tmpint=FloorInt(tmpints[0]);
 			if(tmpint<0)return ERR_OUT_OF_RANGE;
 			for(i=0;i<tmpint;i++){
-				Draw2Console();
+				ProcessFrame();
 				WaitVSync(1);
 			}
 			break;
@@ -1333,11 +1333,11 @@ char* GetSystemVariableStrPtr(uint16_t arg){
 }
 
 void SystemVariableLimitValue(void){
-	Psys_TABSTEP=limitrange(FloorInt(Psys_TABSTEP)*4096,0,16);
-	Psys_ICONPUSE=limitrange(FloorInt(Psys_ICONPUSE)*4096,0,1);
+	Psys_TABSTEP=limitrange(FloorInt(Psys_TABSTEP)*4096,0,16*4096);
+	Psys_ICONPUSE=limitrange(FloorInt(Psys_ICONPUSE)*4096,0,4096);
 	Psys_ICONPAGE=limitrange(FloorInt(Psys_ICONPAGE)*4096,0,FloorInt(Psys_ICONPAGE)*4096);
 	Psys_ICONPMAX=limitrange(FloorInt(Psys_ICONPMAX)*4096,0,FloorInt(Psys_ICONPMAX)*4096);
-	Psys_SYSBEEP=limitrange(FloorInt(Psys_SYSBEEP)*4096,0,1);
+	Psys_SYSBEEP=limitrange(FloorInt(Psys_SYSBEEP)*4096,0,4096);
 	return;
 }
 

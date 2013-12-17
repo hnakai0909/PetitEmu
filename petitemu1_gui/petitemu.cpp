@@ -32,7 +32,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		printf("%s\n",inputline);
 		if(strcmp(inputline,"")!=0){
 			RunInteractive(inputline);
-			Draw2Console();
+			ProcessFrame();
 		}
 		if(ProcessMessage()==-1)break;
 	}

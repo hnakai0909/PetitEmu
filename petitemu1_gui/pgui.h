@@ -23,8 +23,9 @@ extern unsigned char KeyMap_K[256];
 extern unsigned char KeyMap_K_S[256];
 //濁点・半濁点フラグ
 extern unsigned char KeyMap_K_S_DAKU[256];
-bool Draw2Console(void);
+bool ProcessFrame(void);
 void LineInput(char* arg);
+void DrawConsole(void);
 void DrawKeyboard(void);
 void DrawFuncKey(void);
 void DrawUnderPanel(void);

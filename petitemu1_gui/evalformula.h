@@ -174,7 +174,7 @@ extern struct Dimention dim_index[VAR_MAX];
 struct Dimention {
 	BYTE *address;
 	int VarID;
-	int indexmax1;
+	int indexmax1; 
 	int	indexmax2;
 	bool isStr;
 };

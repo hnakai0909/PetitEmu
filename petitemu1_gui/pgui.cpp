@@ -2,9 +2,8 @@
 
 int GrHandle[10];
 
-extern "C" bool Draw2Console(void){
-	char tmpstr[STR_LEN_MAX];
-	int Cr,i=0,tmp;
+extern "C" bool ProcessFrame(void){
+	int tmp=0;
 	static int count=GetNowCount();
 	if((GetNowCount()-count)<16)return true;
 	count=GetNowCount();
@@ -55,12 +54,7 @@ extern "C" bool Draw2Console(void){
 		default:
 			break;
 	}
-	for(i=0;i<768;i++){
-		FontTable(consolecharbuf[i%32][i/32],tmpstr);
-		tmp=consolecolorbuf[i%32][i/32];
-		Cr=GetColor(consolecharcolor[tmp][0],consolecharcolor[tmp][1],consolecharcolor[tmp][2]);
-		DrawString(i%32*8,(i/32)*8,tmpstr,Cr);
-	}
+	DrawConsole();
 	DrawDebugScreen();
 	//ScreenFlip();
 	return true;
@@ -74,6 +68,18 @@ extern "C" void LineInput(char* arg){
 	ChangeFont( FONT_PETITCOM );
 	SetFontSize(8);
 	Print2Console(arg,0);
+	return;
+}
+
+void DrawConsole(void){
+	int i=0,Cr=0,tmp=0;
+	char tmpstr[4];
+	for(i=0;i<768;i++){
+		FontTable(consolecharbuf[i%32][i/32],tmpstr);
+		tmp=consolecolorbuf[i%32][i/32];
+		Cr=GetColor(consolecharcolor[tmp][0],consolecharcolor[tmp][1],consolecharcolor[tmp][2]);
+		DrawString(i%32*8,(i/32)*8,tmpstr,Cr);
+	}
 	return;
 }
 
@@ -317,7 +323,7 @@ void DrawDebugScreen(void){
 	static char conslogbuf[768];
 	if(runmode==RMD_STOP)return;
 	if(initialized==0){
-		memset(conslogbuf,0x00,sizeof(conslogbuf));
+		 memset(conslogbuf,0x00,sizeof(conslogbuf));
 		initialized=1;
 	}
 	memset(tmpstr,0x00,sizeof(tmpstr));

@@ -1806,7 +1806,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					break;
 			}
 		}
-		tmpint=Draw2Console();
+		tmpint=ProcessFrame();
 		if(log_en2)printf("%s/",TokenCode2Str(*srcpos));
 		if(!tmpint)return ERR_UNDEFINED;
 		if(breakflag)return ERR_NO_ERROR;

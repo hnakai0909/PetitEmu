@@ -485,7 +485,7 @@ void InputLine(char* arg){
 	}
 	ConsoleClearLine();
 	// キー入力終了待ちループ
-	while(Draw2Console()){
+	while(ProcessFrame()){
 		tmpc=0;
 		if(!ReadKeyBuffer(&tmpc)){
 			//キー入力なし、なにもしない
@@ -500,7 +500,7 @@ void InputLine(char* arg){
 		Psys_CSRX=0;
 		if(i==32)Psys_CSRY--;
 		Print2Console(arg,1);
-		Draw2Console();
+		ProcessFrame();
 		for(i=0;i<32;i++){
 			if(arg[i]==0){
 				if(cursol_blink_timer<30){
