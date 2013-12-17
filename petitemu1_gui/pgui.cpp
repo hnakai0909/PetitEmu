@@ -10,7 +10,7 @@ extern "C" bool ProcessFrame(void){
 	UpdateSystemVariable();
 	tmp=ProcessMessage();
 	if(tmp)return false;
-	//ˆ— 
+	//ˆ—
 	keyboard_special=0;
 	CheckJoypad();
 	switch(panelmode){
