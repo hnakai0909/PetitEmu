@@ -1,16 +1,21 @@
-//data.h
+/*===============================================*/
+/* data.h                                        */
+/*===============================================*/
 
 #ifndef DATA_H_INCLUDED
 #define DATA_H_INCLUDED
 
-#include "stdint.h"
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdint.h>
 #include "myutil.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-//各種データ
+/*===定数宣言===*/
 #ifndef true
 #define true 1
 #endif
@@ -41,7 +46,6 @@ extern "C" {
 #define TYPE_STR_VAR 4
 #define TYPE_INT_SYSVAR 5
 #define TYPE_STR_SYSVAR 6
-//関数、演算子含む
 #define TYPE_FUNC 7
 #define TYPE_SPECIAL 8
 #define TYPE_SPECIAL2 9
@@ -61,6 +65,7 @@ extern "C" {
 #define KEY_TIME_TO_RENSYA 40
 #define KEY_RENSYA_INTERVAL 4
 
+//命令
 #define TOKEN_NEW 0xE000
 #define TOKEN_LIST 0xE001
 #define TOKEN_RUN 0xE002
@@ -79,7 +84,6 @@ extern "C" {
 #define TOKEN_REM2 0xE00F
 #define TOKEN_LABEL 0xE010
 #define TOKEN_LABEL2 0xE011
-
 #define TOKEN_GOTO 0xE012
 #define TOKEN_GOSUB 0xE013
 #define TOKEN_RETURN 0xE014
@@ -88,6 +92,7 @@ extern "C" {
 #define TOKEN_TMREAD 0xE017
 #define TOKEN_DTREAD 0xE018
 #define TOKEN_DATA 0xE019
+//他のライブラリに存在した同名の重複定義を回避
 #ifdef TOKEN_READ
 #undef TOKEN_READ
 #endif
@@ -146,7 +151,7 @@ extern "C" {
 #define TOKEN_SPCHR 0xE052
 #define TOKEN_EXEC 0xE053
 #define TOKEN_GFILL 0xE054
-
+//関数
 #define TOKEN_ASC 0xE400
 #define TOKEN_CHR 0xE401
 #define TOKEN_VAL 0xE402
@@ -175,7 +180,7 @@ extern "C" {
 #define TOKEN_BGMCHK 0xE419
 #define TOKEN_DEG 0xE41A
 #define TOKEN_SPCHK 0xE41B
-
+//システム変数
 #define TOKEN_TRUE 0xE800
 #define TOKEN_FALSE 0xE801
 #define TOKEN_CANCEL 0xE802
@@ -202,17 +207,18 @@ extern "C" {
 #define TOKEN_MEM 0xE817
 #define TOKEN_TABSTEP 0xE818
 #define TOKEN_SYSBEEP 0xE819
-
+//文字演算子
 #define TOKEN_NOT 0xEC00
 #define TOKEN_AND 0xEC01
 #define TOKEN_OR 0xEC02
 #define TOKEN_XOR 0xEC03
+//記号演算子1(他と記号が重複しているものなど)
 #define OP_MINUSSIGN 0xED00
 #define OP_SHONARI_EQUAL 0xED01
 #define OP_DAINARI_EQUAL 0xED02
 #define OP_EQUAL 0xED03
 #define OP_NOTEQUAL 0xED04
-
+//記号演算子2(1以外)
 #define OP_MOD 0xFF05
 #define OP_MULTIPLY 0xFF0A
 #define OP_PLUS	0xFF0B
@@ -222,64 +228,7 @@ extern "C" {
 #define OP_SUBSTITUTE 0xFF1D
 #define OP_DAINARI 0xFF1E
 
-static uint16_t TokenConvTable_Code[150]={
-	TOKEN_NEW,TOKEN_LIST,TOKEN_RUN,TOKEN_CONT,TOKEN_FILES,TOKEN_IF,TOKEN_THEN,TOKEN_FOR,
-	TOKEN_TO,TOKEN_STEP,TOKEN_NEXT,TOKEN_STOP,TOKEN_END,TOKEN_CLEAR,TOKEN_REM,TOKEN_REM2,
-	TOKEN_LABEL2,TOKEN_LABEL,TOKEN_GOTO,TOKEN_GOSUB,TOKEN_RETURN,TOKEN_ON,TOKEN_DIM,TOKEN_TMREAD,
-	TOKEN_DTREAD,TOKEN_DATA,TOKEN_READ,TOKEN_RESTORE,TOKEN_KEY,TOKEN_VSYNC,TOKEN_CLS,TOKEN_PRINT,
-	TOKEN_PRINT2,TOKEN_LOCATE,TOKEN_INPUT,TOKEN_LINPUT,TOKEN_COLOR,TOKEN_LOAD,TOKEN_SAVE,TOKEN_SENDFILE,
-	TOKEN_RECVFILE,TOKEN_DELETE,TOKEN_RENAME,TOKEN_VISIBLE,TOKEN_COLINIT,TOKEN_COLSET,TOKEN_COLREAD,TOKEN_CHRINIT,
-	TOKEN_CHRSET,TOKEN_CHRREAD,TOKEN_BGPAGE,TOKEN_BGCLIP,TOKEN_BGPUT,TOKEN_SPPAGE,TOKEN_SPSET,TOKEN_SPCLR,
-	TOKEN_SPOFS,TOKEN_SPSCALE,TOKEN_SPANGLE,TOKEN_GPAGE,TOKEN_GCOLOR,TOKEN_GPSET,TOKEN_GPAINT,TOKEN_GLINE,
-	TOKEN_GBOX,TOKEN_GCIRCLE,TOKEN_GPUTCHR,TOKEN_GCLS,TOKEN_PNLTYPE,TOKEN_ICONSET,TOKEN_ICONCLR,TOKEN_PNLSTR,
-	TOKEN_BEEP,TOKEN_BGMPLAY,TOKEN_BGMSTOP,TOKEN_SPANIM,TOKEN_BGOFS,TOKEN_BGREAD,TOKEN_SPCHR,TOKEN_EXEC,
-	TOKEN_GFILL,TOKEN_ASC,TOKEN_CHR,TOKEN_VAL,TOKEN_STR,TOKEN_HEX,TOKEN_MID,TOKEN_LEN,
-	TOKEN_RND,TOKEN_ABS,TOKEN_SGN,TOKEN_PI,TOKEN_RAD,TOKEN_SIN,TOKEN_COS,TOKEN_TAN,
-	TOKEN_ATAN,TOKEN_SQR,TOKEN_EXP,TOKEN_LOG,TOKEN_FLOOR,TOKEN_BUTTON,TOKEN_INKEY,TOKEN_CHKCHR,
-	TOKEN_GSPOIT,TOKEN_ICONCHK,TOKEN_BGMCHK,TOKEN_DEG,TOKEN_SPCHK,TOKEN_TRUE,TOKEN_FALSE,TOKEN_CANCEL,
-	TOKEN_VERSION,TOKEN_TCHX,TOKEN_TCHY,TOKEN_TCHST,TOKEN_TCHTIME,TOKEN_FUNCNO,TOKEN_CSRX,TOKEN_CSRY,
-	TOKEN_ERR,TOKEN_ERL,TOKEN_RESULT,TOKEN_TIME,TOKEN_DATE,TOKEN_MAINCNTL,TOKEN_MAINCNTH,TOKEN_ICONPUSE,
-	TOKEN_ICONPAGE,TOKEN_ICONPMAX,TOKEN_FREEMEM,TOKEN_FREEVAR,TOKEN_MEM,TOKEN_TABSTEP,TOKEN_SYSBEEP,TOKEN_NOT,
-	TOKEN_AND,TOKEN_OR,TOKEN_XOR,NULL
-};
-
-static char TokenConvTable_Str[150][10]={
-	"NEW","LIST","RUN","CONT","FILES","IF","THEN","FOR",
-	"TO","STEP","NEXT","STOP","END","CLEAR","REM","'",
-	"LABEL","@","GOTO","GOSUB","RETURN","ON","DIM","TMREAD",
-	"DTREAD","DATA","READ","RESTORE","KEY","VSYNC","CLS","PRINT",
-	"?","LOCATE","INPUT","LINPUT","COLOR","LOAD","SAVE","SENDFILE",
-	"RECVFILE","DELETE","RENAME","VISIBLE","COLINIT","COLSET","COLREAD","CHRINIT",
-	"CHRSET","CHRREAD","BGPAGE","BGCLIP","BGPUT","SPPAGE","SPSET","SPCLR",
-	"SPOFS","SPSCALE","SPANGLE","GPAGE","GCOLOR","GPSET","GPAINT","GLINE",
-	"GBOX","GCIRCLE","GPUTCHR","GCLS","PNLTYPE","ICONSET","ICONCLR","PNLSTR",
-	"BEEP","BGMPLAY","BGMSTOP","SPANIM","BGOFS","BGREAD","SPCHR","EXEC",
-	"GFILL","ASC","CHR$","VAL","STR$","HEX$","MID$","LEN",
-	"RND","ABS","SGN","PI","RAD","SIN","COS","TAN",
-	"ATAN","SQR","EXP","LOG","FLOOR","BUTTON","INKEY$","CHKCHR",
-	"GSPOIT","ICONCHK","BGMCHK","DEG","SPCHK","TRUE","FALSE","CANCEL",
-	"VERSION","TCHX","TCHY","TCHST","TCHTIME","FUNCNO","CSRX","CSRY",
-	"ERR","ERL","RESULT","TIME$","DATE$","MAINCNTL","MAINCNTH","ICONPUSE",
-	"ICONPAGE","ICONPMAX","FREEMEM","FREEVAR","MEM$","TABSTEP","SYSBEEP","NOT",
-	"AND","OR","XOR",NULL
-};
-
-extern unsigned char KeyMap_A[256];
-extern unsigned char KeyMap_A_S[256];
-extern unsigned char KeyMap_G[256];
-extern unsigned char KeyMap_G_S[256];
-extern unsigned char KeyMap_K[256];
-extern unsigned char KeyMap_K_S[256];
-//濁点・半濁点フラグ
-extern unsigned char KeyMap_K_S_DAKU[256];
-
-uint16_t Char2Code(unsigned char arg);
-bool Str2TokenCode(char* arg,uint16_t* arg2);
-unsigned char Code2Char(uint16_t arg);
-char* TokenCode2Str(uint16_t arg);
-int FontTable(const unsigned char arg,char* arg2);
-bool isBin(const char arg);
-unsigned int GetOperatorArgCount(const uint16_t arg);
+//エラー種別列挙型(システム変数ERRに準拠)
 enum errorid{
 	ERR_UNDEFINED=0,
 	ERR_SYNTAX_ERROR,
@@ -306,23 +255,7 @@ enum errorid{
 	ERR_NO_ERROR=100
 };
 
-char* GetErrorMessage(const char arg);
-int isOperator(const uint16_t arg);
-int Token2SystemVariable(const char* arg);
-int GetSystemVariableType(const int arg);
-int GetFunctionType(const int arg);
-bool isSystemVariable(const int arg);
-bool isWritableSystemVariable(const int arg);
-bool isStringSystemVariable(const int arg);
-bool isFunction(const int arg);
-bool isInstruction(const int arg);
-bool isNoArgInstruction(const int arg);
-bool isArgInstruction(const int arg);
-bool TypeIsInt(const char arg);
-bool TypeIsStr(const char arg);
-bool isKeyword(const char* arg);
-int GetLoopPos(const char arg);
-bool isLoop(const char arg);
+//インタプリタ遷移状態用列挙型
 enum State {
 	ST_LINE_BEGIN,
 	ST_NEW_STATEMENT,
@@ -348,8 +281,9 @@ enum State {
 	ST_LINPUT
 };
 
+//下画面パネルのキーボード用列挙型(プチコンmkIIのシステム変数KEYBOARDに準拠)
 enum CharKeyCode {
-	PKEY_NO,
+	PKEY_NO=0,
 	PKEY_ESC,PKEY_1,PKEY_2,PKEY_3,PKEY_4,PKEY_5,PKEY_6,PKEY_7,PKEY_8,PKEY_9,PKEY_0,PKEY_MINUS,PKEY_PLUS,PKEY_EQUAL,PKEY_BS,
 	PKEY_DOLLAR,PKEY_WQUOTE,PKEY_Q,PKEY_W,PKEY_E,PKEY_R,PKEY_T,PKEY_Y,PKEY_U,PKEY_I,PKEY_O,PKEY_P,PKEY_AT,PKEY_ASTER,PKEY_LPAREN,PKEY_RPAREN,
 	PKEY_TAB,PKEY_EXCLA,PKEY_A,PKEY_S,PKEY_D,PKEY_F,PKEY_G,PKEY_H,PKEY_J,PKEY_K,PKEY_L,PKEY_SCOLON,PKEY_COLON,PKEY_LT,LEY_GT,
@@ -359,28 +293,166 @@ enum CharKeyCode {
 	PKEY_HELP,PKEY_RUN,PKEY_EDIT,PKEY_ICON_UP,PKEY_ICON_DOWN
 };
 
+//下画面パネルのボタン種別識別用列挙型
 enum KeyType {
 	KT_NO,KT_FUNCKEY,KT_CHAR,KT_SYSTEM,KT_ICON	
 };
 
-//濁点、半濁点
+// 濁点/半濁点フラグ用列挙型
 enum Dakuten {
 	DAKU_NO,DAKU_HAN,DAKU_DAKU
 };
 
-int GetOperatorPriority(const int arg);
+/*===グローバル変数宣言・定義===*/
 
-//左結合性か?
-bool isOperatorLeftAssoc(const int arg);
-
-int GetStrOperatorArgCount(const int arg);
-
+//コンソール文字色(RGB)
 static int consolecharcolor[16][3]={
 	{255,255,255}	,{0,0,0}	,{191,191,191}	,{255,224,0}	,
 	{0,240,31}		,{0,127,0}	,{255,203,167}	,{255,160,0}	,
 	{151,94,46}		,{0,191,255},{127,63,255}	,{0,63,240}		,
 	{255,95,192}	,{255,31,0}	,{63,63,63}		,{255,255,255}	
 };
+
+//トークン<-->ソース文字列テーブル
+static uint16_t TokenConvTable_Code[150]={
+	TOKEN_NEW,TOKEN_LIST,TOKEN_RUN,TOKEN_CONT,TOKEN_FILES,TOKEN_IF,TOKEN_THEN,TOKEN_FOR,
+	TOKEN_TO,TOKEN_STEP,TOKEN_NEXT,TOKEN_STOP,TOKEN_END,TOKEN_CLEAR,TOKEN_REM,TOKEN_REM2,
+	TOKEN_LABEL2,TOKEN_LABEL,TOKEN_GOTO,TOKEN_GOSUB,TOKEN_RETURN,TOKEN_ON,TOKEN_DIM,TOKEN_TMREAD,
+	TOKEN_DTREAD,TOKEN_DATA,TOKEN_READ,TOKEN_RESTORE,TOKEN_KEY,TOKEN_VSYNC,TOKEN_CLS,TOKEN_PRINT,
+	TOKEN_PRINT2,TOKEN_LOCATE,TOKEN_INPUT,TOKEN_LINPUT,TOKEN_COLOR,TOKEN_LOAD,TOKEN_SAVE,TOKEN_SENDFILE,
+	TOKEN_RECVFILE,TOKEN_DELETE,TOKEN_RENAME,TOKEN_VISIBLE,TOKEN_COLINIT,TOKEN_COLSET,TOKEN_COLREAD,TOKEN_CHRINIT,
+	TOKEN_CHRSET,TOKEN_CHRREAD,TOKEN_BGPAGE,TOKEN_BGCLIP,TOKEN_BGPUT,TOKEN_SPPAGE,TOKEN_SPSET,TOKEN_SPCLR,
+	TOKEN_SPOFS,TOKEN_SPSCALE,TOKEN_SPANGLE,TOKEN_GPAGE,TOKEN_GCOLOR,TOKEN_GPSET,TOKEN_GPAINT,TOKEN_GLINE,
+	TOKEN_GBOX,TOKEN_GCIRCLE,TOKEN_GPUTCHR,TOKEN_GCLS,TOKEN_PNLTYPE,TOKEN_ICONSET,TOKEN_ICONCLR,TOKEN_PNLSTR,
+	TOKEN_BEEP,TOKEN_BGMPLAY,TOKEN_BGMSTOP,TOKEN_SPANIM,TOKEN_BGOFS,TOKEN_BGREAD,TOKEN_SPCHR,TOKEN_EXEC,
+	TOKEN_GFILL,TOKEN_ASC,TOKEN_CHR,TOKEN_VAL,TOKEN_STR,TOKEN_HEX,TOKEN_MID,TOKEN_LEN,
+	TOKEN_RND,TOKEN_ABS,TOKEN_SGN,TOKEN_PI,TOKEN_RAD,TOKEN_SIN,TOKEN_COS,TOKEN_TAN,
+	TOKEN_ATAN,TOKEN_SQR,TOKEN_EXP,TOKEN_LOG,TOKEN_FLOOR,TOKEN_BUTTON,TOKEN_INKEY,TOKEN_CHKCHR,
+	TOKEN_GSPOIT,TOKEN_ICONCHK,TOKEN_BGMCHK,TOKEN_DEG,TOKEN_SPCHK,TOKEN_TRUE,TOKEN_FALSE,TOKEN_CANCEL,
+	TOKEN_VERSION,TOKEN_TCHX,TOKEN_TCHY,TOKEN_TCHST,TOKEN_TCHTIME,TOKEN_FUNCNO,TOKEN_CSRX,TOKEN_CSRY,
+	TOKEN_ERR,TOKEN_ERL,TOKEN_RESULT,TOKEN_TIME,TOKEN_DATE,TOKEN_MAINCNTL,TOKEN_MAINCNTH,TOKEN_ICONPUSE,
+	TOKEN_ICONPAGE,TOKEN_ICONPMAX,TOKEN_FREEMEM,TOKEN_FREEVAR,TOKEN_MEM,TOKEN_TABSTEP,TOKEN_SYSBEEP,TOKEN_NOT,
+	TOKEN_AND,TOKEN_OR,TOKEN_XOR,NULL
+};
+static char TokenConvTable_Str[150][10]={
+	"NEW","LIST","RUN","CONT","FILES","IF","THEN","FOR",
+	"TO","STEP","NEXT","STOP","END","CLEAR","REM","'",
+	"LABEL","@","GOTO","GOSUB","RETURN","ON","DIM","TMREAD",
+	"DTREAD","DATA","READ","RESTORE","KEY","VSYNC","CLS","PRINT",
+	"?","LOCATE","INPUT","LINPUT","COLOR","LOAD","SAVE","SENDFILE",
+	"RECVFILE","DELETE","RENAME","VISIBLE","COLINIT","COLSET","COLREAD","CHRINIT",
+	"CHRSET","CHRREAD","BGPAGE","BGCLIP","BGPUT","SPPAGE","SPSET","SPCLR",
+	"SPOFS","SPSCALE","SPANGLE","GPAGE","GCOLOR","GPSET","GPAINT","GLINE",
+	"GBOX","GCIRCLE","GPUTCHR","GCLS","PNLTYPE","ICONSET","ICONCLR","PNLSTR",
+	"BEEP","BGMPLAY","BGMSTOP","SPANIM","BGOFS","BGREAD","SPCHR","EXEC",
+	"GFILL","ASC","CHR$","VAL","STR$","HEX$","MID$","LEN",
+	"RND","ABS","SGN","PI","RAD","SIN","COS","TAN",
+	"ATAN","SQR","EXP","LOG","FLOOR","BUTTON","INKEY$","CHKCHR",
+	"GSPOIT","ICONCHK","BGMCHK","DEG","SPCHK","TRUE","FALSE","CANCEL",
+	"VERSION","TCHX","TCHY","TCHST","TCHTIME","FUNCNO","CSRX","CSRY",
+	"ERR","ERL","RESULT","TIME$","DATE$","MAINCNTL","MAINCNTH","ICONPUSE",
+	"ICONPAGE","ICONPMAX","FREEMEM","FREEVAR","MEM$","TABSTEP","SYSBEEP","NOT",
+	"AND","OR","XOR",NULL
+};
+
+//キーボードマッピングデータ
+//Alphabet
+static const unsigned char KeyMap_A[256]={
+	'1','2','3','4','5','6','7','8','9','0',
+	'-','+','=',
+	'$','"','Q','W','E','R','T','Y','U','I',
+	'O','P','@','*','(',')',
+	'!','A','S','D','F','G','H','J','K','L',';',':','<','>',
+	'\'','Z','X','C','V','B','N','M',',','.','/','%',
+	' '
+};
+//Alphabet + Shift
+static const unsigned char KeyMap_A_S[256]={
+	0,0,'#',0,0,'&',0,'^','\\','~',
+	0,0x7F,'|',
+	0,0,'q','w','e','r','t','y','u','i',
+	'o','p','`',0,'[',']',
+	0,'a','s','d','f','g','h','j','k','l',0,0,'{','}',
+	0,'z','x','c','v','b','n','m',0,0,'?','_',
+	' '
+};
+//Graph
+static const unsigned char KeyMap_G[256]={
+	0xF1,0xF2,0xF0,0xF4,0x0A,0xE5,0x1A,0xE4,0xE6,0xE7,
+	0x10,0x07,0x14,
+	0x03,0x96,0x98,0x91,0x99,0xEC,0xEE,0xEF,0xED,0x0E,
+	0x0F,0x05,0x06,0x04,0x0B,0x1B,
+	0x95,0x92,0x93,0x94,0x15,0x07,0x06,0xF4,0xF6,0xF7,0xF5,0xEB,0xEA,0xE8,
+	0xFF,0x9A,0x90,0x9B,0xFC,0xFD,0xFE,0x97,0x9C,0x9D,0x9E,0x9F,
+	' '
+};
+//Graph + Shift
+static const unsigned char KeyMap_G_S[256]={
+	0,0x80,0,0,0,0xE1,0,0xE0,0xE2,0xE3,
+	0x11,0x08,0,
+	0,0,0xF8,0x1E,0xFA,0x01,0x02,0x18,0x19,0x0C,
+	0x12,0x13,0,0,0xE9,0,
+	0,0x1D,0,0x1C,0,0x81,0x82,0x83,0x84,0x85,0x86,0x87,0,0,
+	0,0xF9,0x1F,0xFB,0x88,0x89,0x8A,0x8B,0x8C,0x8D,0x8E,0x8F,
+	' '
+};
+//Kana
+static const unsigned char KeyMap_K[256]={
+	0xB1,0xB2,0xB3,0xB4,0xB5,0xC5,0xC6,0xC7,0xC8,0xC9,
+	'-','+','=',
+	0xA0,0xA5,0xB6,0xB7,0xB8,0xB9,0xBA,0xCA,0xCB,0xCC,
+	0xCD,0xCE,0xA2,0xA3,0xDD,0xA1,
+	0xBB,0xBC,0xBD,0xBE,0xBF,0xCF,0xD0,0xD1,0xD2,0xD3,0xD4,0xD5,0xD6,0xA4,
+	0xC0,0xC1,0xC2,0xC3,0xC4,0xD7,0xD8,0xD9,0xDA,0xDB,0xDC,0xA6,
+	' '
+};
+//Kana + Shift
+static const unsigned char KeyMap_K_S[256]={
+	0xA7,0xA8,0xA9,0xAA,0xAB,0,0,0,0,0,
+	0xCA,0xCB,0xCC,
+	0xAF,0xB3,0xB6,0xB7,0xB8,0xB9,0xBA,0xCA,0xCB,0xCC,
+	0xCD,0xCE,0xCD,0xCE,0,0,
+	0xBB,0xBC,0xBD,0xBE,0xBF,'1','2','3','4','5',0xAC,0xAD,0xAE,0,
+	0xC0,0xC1,0xC2,0xC3,0xC4,'6','7','8','9','0',0,0,
+	' '
+};
+//Kana + Shift時の濁点・半濁点フラグ
+static const unsigned char KeyMap_K_S_DAKU[256]={
+	DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,
+	DAKU_HAN,DAKU_HAN,DAKU_HAN,
+	DAKU_NO,DAKU_DAKU,DAKU_DAKU,DAKU_DAKU,DAKU_DAKU,DAKU_DAKU,DAKU_DAKU,DAKU_DAKU,DAKU_DAKU,DAKU_DAKU,
+	DAKU_DAKU,DAKU_DAKU,DAKU_HAN,DAKU_HAN,DAKU_NO,DAKU_NO,
+	DAKU_DAKU,DAKU_DAKU,DAKU_DAKU,DAKU_DAKU,DAKU_DAKU,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,
+	DAKU_DAKU,DAKU_DAKU,DAKU_DAKU,DAKU_DAKU,DAKU_DAKU,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,
+	DAKU_NO
+};
+
+/*===関数プロトタイプ宣言===*/
+uint16_t Char2Code(unsigned char arg);
+bool Str2TokenCode(char* arg,uint16_t* arg2);
+unsigned char Code2Char(uint16_t arg);
+char* TokenCode2Str(uint16_t arg);
+int FontTable(const unsigned char arg,char* arg2);
+bool isBin(const char arg);
+unsigned int GetOperatorArgCount(const uint16_t arg);
+char* GetErrorMessage(const char arg);
+int isOperator(const uint16_t arg);
+int Token2SystemVariable(const char* arg);
+int GetSystemVariableType(const int arg);
+int GetFunctionType(const int arg);
+bool isSystemVariable(const int arg);
+bool isWritableSystemVariable(const int arg);
+bool isStringSystemVariable(const int arg);
+bool isFunction(const int arg);
+bool isInstruction(const int arg);
+bool isNoArgInstruction(const int arg);
+bool isArgInstruction(const int arg);
+bool isKeyword(const char* arg);
+int GetLoopPos(const char arg);
+bool isLoop(const char arg);
+int GetOperatorPriority(const int arg);
+bool isOperatorLeftAssoc(const int arg);
+int GetStrOperatorArgCount(const int arg);
 
 #ifdef __cplusplus
 }
