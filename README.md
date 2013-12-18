@@ -1,4 +1,6 @@
-PetitEmu
+![PetitEmu0.30](https://raw.github.com/hnakai0909/PetitEmu/master/petitemu1_gui/petitemu.png "PetitEmu0.30")PetitEmu
 ========
 
-develop Petit-Computer(ver 1.2) emulator from full scratch
+Project of Petit-Computer(ver 1.2 Japan) emulator from full scratch by hnakai
+
+プチコン1.2日本版のフルスクラッチ再現プロジェクト by hnakai
