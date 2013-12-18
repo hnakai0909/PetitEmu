@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <time.h>
 
-
 extern "C"{
 
 #include "evalformula.h"
@@ -22,7 +21,6 @@ enum SystemMode{
 	MANUAL,
 	INTERPRETATION
 };
-
 
 extern enum KeyBoardMode keyboardmode;
 extern unsigned char keybuffer[KEYBUFFER_MAX];

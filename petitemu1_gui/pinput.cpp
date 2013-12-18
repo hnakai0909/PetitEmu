@@ -1,5 +1,7 @@
 ﻿#include "pinput.h"
 
+/*===関数定義===*/
+
 void ClearKeyBuffer(void){
 	memset(keybuffer,0x00,sizeof(keybuffer));
 	keybuffer_qhead=0;
@@ -10,8 +12,11 @@ void WriteKeyBuffer(const unsigned char arg){
 	keybuffer[keybuffer_qtail]=arg;
 	keybuffer_qtail++;
 	if(keybuffer_qtail==KEYBUFFER_MAX)keybuffer_qtail=0;
-	//バッファが埋まると読み書き共にインクリメントしFirstInを捨てる
-	if(keybuffer_qhead==keybuffer_qtail)keybuffer_qhead++;	
+	//リングバッファが埋まると読み書き共にインクリメントしFirstInを捨てる
+	if(keybuffer_qhead==keybuffer_qtail){
+		keybuffer[keybuffer_qhead]=0;
+		keybuffer_qhead++;
+	}
 	return;
 }
 

@@ -1,3 +1,3 @@
 #include "resource.h"
 MAINICON ICON "petitemu.ico"
-IDI_ICON1 ICON "petitemu_s.ico"
+IDI_ICON1 ICON "petitemu.ico"

@@ -60,17 +60,6 @@ extern "C" bool ProcessFrame(void){
 	return true;
 }
 
-extern "C" void LineInput(char* arg){
-	ChangeFont("ＭＳ ゴシック");
-	SetFontSize(16);
-	DrawString(0,192,"?",GetColor(255,255,255));
-	KeyInputSingleCharString(8,192,64,arg,FALSE);
-	ChangeFont( FONT_PETITCOM );
-	SetFontSize(8);
-	Print2Console(arg,0);
-	return;
-}
-
 void DrawConsole(void){
 	int i=0,Cr=0,tmp=0;
 	char tmpstr[4];
@@ -308,7 +297,7 @@ int Print2Console(char *string,int indent_option){
 
 void PutStartMessage(void){
 	Print2Console("PetitcomEmulator=PetitEmu",0);
-	Print2Console("Win-Edition ver0.20",0); 
+	Print2Console("Win-Edition ver0.30",0); 
 	Print2Console("supports SMILEBASIC ver1.20",0);
 	Print2Console("Please read Readme.txt .",0);
 	Print2Console("1048576 byte free",0);

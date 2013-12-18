@@ -428,31 +428,65 @@ static const unsigned char KeyMap_K_S_DAKU[256]={
 };
 
 /*===関数プロトタイプ宣言===*/
+//テキストデータ(1文字)を内部コードに変換
 uint16_t Char2Code(unsigned char arg);
+
+//テキストデータ(1トークン)を内部コードに変換
 bool Str2TokenCode(char* arg,uint16_t* arg2);
+
+//内部コードからテキストデータ(1文字)に変換
 unsigned char Code2Char(uint16_t arg);
+
+//内部コードからテキストデータ(1トークン)に変換
 char* TokenCode2Str(uint16_t arg);
+
+//1バイト文字からプチコンフォント用文字へ
 int FontTable(const unsigned char arg,char* arg2);
+
+//2進法数値リテラルの文字か
 bool isBin(const char arg);
+
+//演算子でとる引数の数
 unsigned int GetOperatorArgCount(const uint16_t arg);
+
+//エラーメッセージ一覧
 char* GetErrorMessage(const char arg);
+
+//演算子トークンか
 int isOperator(const uint16_t arg);
-int Token2SystemVariable(const char* arg);
+
+//そのシステム変数は数値型か/文字列型か/代入可能か
 int GetSystemVariableType(const int arg);
+
+//その関数は数値を返すか/文字列を返すか
 int GetFunctionType(const int arg);
+
+//システム変数か
 bool isSystemVariable(const int arg);
-bool isWritableSystemVariable(const int arg);
-bool isStringSystemVariable(const int arg);
+
+//関数か
 bool isFunction(const int arg);
+
+//命令か
 bool isInstruction(const int arg);
+
+//その命令は引数なしか
 bool isNoArgInstruction(const int arg);
+
+//その命令は引数ありか
 bool isArgInstruction(const int arg);
-bool isKeyword(const char* arg);
+
+//BGMのABループ位置(サンプル数)
 int GetLoopPos(const char arg);
+
+//そのBGMは単発かループか
 bool isLoop(const char arg);
+
+//演算子の優先順位
 int GetOperatorPriority(const int arg);
+
+//左結合性か
 bool isOperatorLeftAssoc(const int arg);
-int GetStrOperatorArgCount(const int arg);
 
 #ifdef __cplusplus
 }

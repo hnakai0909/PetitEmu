@@ -6,7 +6,6 @@
 
 //*===関数定義===*/
 
-//テキストデータ(1文字)を内部コードに変換
 uint16_t Char2Code(unsigned char arg){
 	int i;
 	static uint16_t dictAry[256];
@@ -35,7 +34,6 @@ uint16_t Char2Code(unsigned char arg){
 	return dictAry[arg];
 }
 
-//テキストデータ(1トークン)を内部コードに変換
 bool Str2TokenCode(char* arg,uint16_t* arg2){
 	int i;
 	for(i=0;TokenConvTable_Code[i]!=0x00;i++){
@@ -48,7 +46,6 @@ bool Str2TokenCode(char* arg,uint16_t* arg2){
 	return false;
 }
 
-//内部コードからテキストデータ(1文字)に変換
 unsigned char Code2Char(uint16_t arg){
 	int i;
 	static uint16_t dictAry[256];
@@ -80,7 +77,6 @@ unsigned char Code2Char(uint16_t arg){
 	return 0x00;
 }
 
-//内部コードからテキストデータ(1トークン)に変換
 char* TokenCode2Str(uint16_t arg){
 	int i;
 	char arg2[256];
@@ -94,7 +90,6 @@ char* TokenCode2Str(uint16_t arg){
 	return "";
 };
 
-//1バイト文字からプチコンフォントにおいて該当する文字に変換
 int FontTable(const unsigned char arg,char* arg2){
 	const char* table1[]={ "　","А","Б","В","Г","Д","Е","Ё","Ж","З","И","Й","К","Л","М","Н",
 							"♪","О","н","П","Р","С","Т","У","Ф","Х","◎","Ц","→","←","↑","↓",
@@ -117,18 +112,15 @@ int FontTable(const unsigned char arg,char* arg2){
 	return 0;
 }
 
-//２進法数値リテラルの文字か
 bool isBin(const char arg){
 	return (arg=='0')||(arg=='1');
 }
 
-//演算子でとる引数の数
 unsigned int GetOperatorArgCount(const uint16_t arg){
 	if(arg==TOKEN_NOT || arg==OP_MINUSSIGN)return 1;
 	return 2;
 }
 
-//エラーメッセージ一覧
 char* GetErrorMessage(const char arg){
 	static char *errmesstr[]={
 		"Undefined Error",
@@ -158,7 +150,6 @@ char* GetErrorMessage(const char arg){
 	return errmesstr[arg];
 }
 
-//演算子トークンか
 int isOperator(const uint16_t arg){
 	char tmp=Code2Char(arg);
 	if(
@@ -171,7 +162,6 @@ int isOperator(const uint16_t arg){
 	return false;
 }
 
-//そのシステム変数は数値型か/文字列型か/代入可能か
 int GetSystemVariableType(const int arg){
 	if(
 		inrange(arg,TOKEN_TRUE,TOKEN_RESULT)||(arg==TOKEN_MAINCNTL)||(arg==TOKEN_MAINCNTH)||
@@ -187,7 +177,6 @@ int GetSystemVariableType(const int arg){
 	return 0;
 }
 
-//その関数は数値を返すか/文字列を返すか
 int GetFunctionType(const int arg){
 	if(!isFunction(arg))return 0;
 	if(
@@ -201,25 +190,21 @@ int GetFunctionType(const int arg){
 	return 0;
 }
 
-//システム変数か
 bool isSystemVariable(const int arg){
 	if((arg&0xFF00)==0xE800)return true;
 	return false;
 }
 
-//関数か
 bool isFunction(const int arg){
 	if((arg&0xFF00)==0xE400)return true;
 	return false;
 }
 
-//命令か
 bool isInstruction(const int arg){
 	if(inrange(arg,TOKEN_GOTO,TOKEN_GFILL)||(arg==TOKEN_CLEAR))return true;
 	return false;
 }
 
-//その命令は引数なしか
 bool isNoArgInstruction(const int arg){
 	if(
 		(arg==TOKEN_CLEAR)||(arg==TOKEN_CLS)||(arg==TOKEN_BGMSTOP)
@@ -227,13 +212,11 @@ bool isNoArgInstruction(const int arg){
 	return false;
 }
 
-//その命令は引数ありか
 bool isArgInstruction(const int arg){
 	if(isInstruction(arg)&&(!(isNoArgInstruction(arg))))return true;
 	return false;
 } 
 
-//BGMのABループ位置(サンプル数)
 int GetLoopPos(const char arg){
 	static int data[]={
 		72140,0,28152,577536,0,0,0,0,0,0,
@@ -243,13 +226,11 @@ int GetLoopPos(const char arg){
 	return data[arg];
 }
 
-//そのBGMは単発かループか
 bool isLoop(const char arg){
 	if((arg>=4)&&(arg<=6))return false;
 	return true;
 }
 
-//演算子の優先順位
 int GetOperatorPriority(const int arg){
 	switch(Code2Char(arg)){
 		case '(':case ')':case '[':case ']':
@@ -280,7 +261,6 @@ int GetOperatorPriority(const int arg){
 	return -1;
 }
 
-//左結合性か
 bool isOperatorLeftAssoc(const int arg){
 	if((Code2Char(arg)=='=')||(arg==OP_MINUSSIGN)||(arg==TOKEN_NOT))return false;
 	return true;

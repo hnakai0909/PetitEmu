@@ -22,6 +22,8 @@
 #include "pgui.h"
 #include "pfile.h"
 
+
+/*===定数・マクロ宣言===*/
 #define GOTOLINE(line) srcpos=translated_source+srcline_begin_token_pos[line];Psys_ERL=line;
 
 #ifdef __cplusplus
@@ -34,15 +36,16 @@ struct ForGosubStack{
 	int VarID;
 	int32_t step;
 };
-
-extern struct ForGosubStack ForGosub_s[FORGOSUB_S_MAX];
-extern unsigned int ForGosub_sl;
-
 struct Label {
 	char name[8];
 	int line;
 };
 
+/*===グローバル変数宣言===*/
+extern struct ForGosubStack ForGosub_s[FORGOSUB_S_MAX];
+extern unsigned int ForGosub_sl;
+
+/*===関数プロトタイプ宣言===*/
 char hex2int(const char arg);
 char dec2int(const char arg);
 int Str2VarID(const char* arg);
@@ -61,7 +64,6 @@ uint16_t* GetLabelName(uint16_t* p,char* tmpstr,int* errtmp);
 int ReadGotoLine(uint16_t *input,unsigned int line);
 int ReadSeekNext(void);
 int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag);
-
 int NewVar(char* name);
 
 #ifdef __cplusplus

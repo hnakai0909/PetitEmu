@@ -1,1 +1,2 @@
-﻿#define IDI_ICON1 102
+﻿#define MAINICON 100
+#define IDI_ICON1 101
