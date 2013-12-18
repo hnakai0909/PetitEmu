@@ -1,4 +1,4 @@
-#include "interpreter2.h"
+ï»¿#include "interpreter2.h"
 
 struct ForGosubStack ForGosub_s[FORGOSUB_S_MAX];
 unsigned int ForGosub_sl=0;
@@ -82,7 +82,7 @@ uint16_t* GetVarID(uint16_t* p,int* tmpint,int* errtmp){
 		p=JumpSpace(p);
 		*tmpint=Str2VarID(tmpstr);
 		if(*tmpint!=-1){
-			//Šù‘¶
+			//æ—¢å­˜
 			if(tmpstr[tmpstr_p-1]=='$'){
 				*errtmp=PushCalcStack(TYPE_STR_VAR,*tmpint,"",0);
 				if(*errtmp!=ERR_NO_ERROR)return p;
@@ -91,7 +91,7 @@ uint16_t* GetVarID(uint16_t* p,int* tmpint,int* errtmp){
 				if(*errtmp!=ERR_NO_ERROR)return p;
 			}
 		}else{
-			//V‹K“o˜^
+			//æ–°è¦ç™»éŒ²
 			*tmpint=NewVar(tmpstr);
 			if(Variable[*tmpint].isStr){
 				*errtmp=PushCalcStack(TYPE_STR_VAR,*tmpint,"",0);
@@ -118,14 +118,14 @@ void IncrementSrcPos(void){
 	return;
 }
 
-//‰‰ZqƒXƒ^ƒbƒN‚Ìc—¯‚ğˆ—
+//æ¼”ç®—å­ã‚¹ã‚¿ãƒƒã‚¯ã®æ®‹ç•™ã‚’å‡¦ç†
 int ProcessRemainingOperator(void){
 	int argcount=0,errtmp;	
 	uint16_t op=0;
 	while(op_sl>0)  {
 		PopOpStack(&op,&argcount);
 		if((op==Char2Code('('))||(op==Char2Code(')'))) {
-			//Š‡ŒÊ‚ª‘Î‰‚µ‚Ä‚¢‚È‚¢
+			//æ‹¬å¼§ãŒå¯¾å¿œã—ã¦ã„ãªã„
 			return ERR_SYNTAX_ERROR;
 		}
 		errtmp=EvalFormula(op,argcount);
@@ -213,7 +213,7 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 				tmpint=Str2VarID(tmpstr);
 				if((beforetokentype==TYPE_INT_LIT)||(beforetokentype==TYPE_STR_LIT)){
 					//Next statement
-					//s‚«‰ß‚¬‚½‚Ì‚ğ–ß‚·
+					//è¡ŒãéããŸã®ã‚’æˆ»ã™
 					p-=cnt;
 					return p;
 				}
@@ -223,13 +223,13 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 				}
 				*errtmp=PushCalcStack(TYPE_DIM,tmpint,"",0);
 				if(*errtmp!=ERR_NO_ERROR)return p;
-				beforetokentype=TYPE_FUNC;//–{—ˆ‚ÍTYPE_DIM‚¾‚ª•Ö‹X“I‚ÉB
+				beforetokentype=TYPE_FUNC;//æœ¬æ¥ã¯TYPE_DIMã ãŒä¾¿å®œçš„ã«ã€‚
 			}else{
 				tmp=Str2VarID(tmpstr);
 				if(tmp!=-1){
 					if((beforetokentype==TYPE_INT_LIT)||(beforetokentype==TYPE_STR_LIT)){
 						//Next statement
-						//s‚«‰ß‚¬‚½‚Ì‚ğ–ß‚·
+						//è¡ŒãéããŸã®ã‚’æˆ»ã™
 						p-=cnt;
 						return p;
 					}
@@ -245,7 +245,7 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 				}else{
 					if((beforetokentype==TYPE_INT_LIT)||(beforetokentype==TYPE_STR_LIT)){
 						//Next statement
-						//s‚«‰ß‚¬‚½‚Ì‚ğ–ß‚·
+						//è¡ŒãéããŸã®ã‚’æˆ»ã™
 						p-=cnt;
 						return p;
 					}
@@ -295,8 +295,8 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 				}
 				p+=tmp;
 				p_char=Code2Char(*p);
-				//Ø‚èÌ‚Ä‚ç‚ê‚é‚à‚Ì‚ÉÅ¬•ª‰ğ”\‚Ì1/4096‚Ì1/2‚ğ‘«‚·‚±‚Æ‚Å
-				//lÌŒÜ“ü‚·‚é
+				//åˆ‡ã‚Šæ¨ã¦ã‚‰ã‚Œã‚‹ã‚‚ã®ã«æœ€å°åˆ†è§£èƒ½ã®1/4096ã®1/2ã‚’è¶³ã™ã“ã¨ã§
+				//å››æ¨äº”å…¥ã™ã‚‹
 				tmpw+=(1.0/8192.0);
 				tmpw*=4096.0;
 				tmpint+=(int)tmpw;
@@ -355,8 +355,8 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 			tmpstr_p=0;
 			while((p_char!='"')&&(p_char!=0)){
 				
-				//ƒ\[ƒX‚ÍÅ‘å‚Å‚àˆês100•¶š‚Ì‚½‚ßA
-				//‚±‚±‚ÅSTR_LEN_MAX•¶š‚ğ’´‚¦‚é‚±‚Æ‚Í‚È‚¢
+				//ã‚½ãƒ¼ã‚¹ã¯æœ€å¤§ã§ã‚‚ä¸€è¡Œ100æ–‡å­—ã®ãŸã‚ã€
+				//ã“ã“ã§STR_LEN_MAXæ–‡å­—ã‚’è¶…ãˆã‚‹ã“ã¨ã¯ãªã„
 				tmpstr[tmpstr_p]=Code2Char(*p);
 				tmpstr_p++;
 				p++;	
@@ -430,7 +430,7 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 			}
 		}else if((p_char==':')||(p_char==';')||(p_char=='\'')||(p_char=='?')){
 			if(pbegin==p){
-				//®‚È‚µ
+				//å¼ãªã—
 				*errtmp=PushCalcStack(TYPE_VOID,0,"",0);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 				return p;
@@ -575,7 +575,7 @@ void TranslateRaw2Code(unsigned char* input,uint16_t* output,int *outlen){
 				tmpstr[i]=c;
 				i++;
 			}
-			//ID‚É•ÏŠ·
+			//IDã«å¤‰æ›
 			if(Str2TokenCode(tmpstr,&codetmp)){
 				*outpos=codetmp;
 				outpos++;
@@ -847,7 +847,7 @@ int ReadGotoLine(uint16_t* input,unsigned int line){
 
 int ReadSeekNext(void){
 	while(*read_srcpos!=TOKEN_DATA && *read_srcpos!=0x0000){
-		//ƒRƒƒ“ƒg‚ÍŸs‚Ü‚Å“Ç‚İ”ò‚Î‚µ
+		//ã‚³ãƒ¡ãƒ³ãƒˆã¯æ¬¡è¡Œã¾ã§èª­ã¿é£›ã°ã—
 		if(*read_srcpos==TOKEN_REM ||*read_srcpos==TOKEN_REM2){
 			while(*read_srcpos!=0x000D && *read_srcpos!=0x0000)read_srcpos++;
 		}
@@ -876,7 +876,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 	int64_t tmpint2=0;
 	int lastprintmode=0,errtmp=ERR_NO_ERROR;
 	
-	int state = ST_LINE_BEGIN;//ó‘Ô•Ï”
+	int state = ST_LINE_BEGIN;//çŠ¶æ…‹å¤‰æ•°
 
 	memset(tmpstr, 0x00,sizeof(tmpstr));
 	memset(tmpstr2, 0x00,sizeof(tmpstr2));
@@ -1037,7 +1037,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 						read_srcpos=JumpSpace(read_srcpos);
 						p_char=Code2Char(*read_srcpos);
-						tmpint2=1;//•„†ƒtƒ‰ƒO‚Æ‚µ‚Äg—p
+						tmpint2=1;//ç¬¦å·ãƒ•ãƒ©ã‚°ã¨ã—ã¦ä½¿ç”¨
 						if((inrange(p_char,0,127)&&isdigit(p_char))||(p_char=='-')){
 							if(p_char=='-'){
 								tmpint2=-1;
@@ -1071,8 +1071,8 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 								}
 								read_srcpos+=tmpint3;
 								p_char=Code2Char(*read_srcpos);
-								//Ø‚èÌ‚Ä‚ç‚ê‚é‚à‚Ì‚ÉÅ¬•ª‰ğ”\‚Ì1/4096‚Ì1/2‚ğ‘«‚·‚±‚Æ‚Å
-								//lÌŒÜ“ü‚·‚é
+								//åˆ‡ã‚Šæ¨ã¦ã‚‰ã‚Œã‚‹ã‚‚ã®ã«æœ€å°åˆ†è§£èƒ½ã®1/4096ã®1/2ã‚’è¶³ã™ã“ã¨ã§
+								//å››æ¨äº”å…¥ã™ã‚‹
 								tmpw+=(1.0/8192.0);
 								tmpw*=4096.0;
 								tmpint+=(int)tmpw;
@@ -1125,8 +1125,8 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 							memset(tmpstr,0x00,sizeof(tmpstr));
 							tmpstr_p=0;
 							while((p_char!='"')&&(*read_srcpos!=0x0000)&&(*read_srcpos!=0x000D)){
-								//ƒ\[ƒX‚ÍÅ‘å‚Å‚àˆês100•¶š‚Ì‚½‚ßA
-								//‚±‚±‚ÅSTR_LEN_MAX•¶š‚ğ’´‚¦‚é‚±‚Æ‚Í‚È‚¢
+								//ã‚½ãƒ¼ã‚¹ã¯æœ€å¤§ã§ã‚‚ä¸€è¡Œ100æ–‡å­—ã®ãŸã‚ã€
+								//ã“ã“ã§STR_LEN_MAXæ–‡å­—ã‚’è¶…ãˆã‚‹ã“ã¨ã¯ãªã„
 								tmpstr[tmpstr_p]=Code2Char(*read_srcpos);
 								tmpstr_p++;
 								read_srcpos++;	
@@ -1223,7 +1223,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 							if(cur_line>=srclinecount)return ERR_NO_ERROR;
 							GOTOLINE(cur_line);
 						}
-						//®‚ª¬‚è—§‚Á‚Ä‚¢‚éê‡‚ÍA‚»‚Ì‚Ü‚Ü‚Ìó‘Ô‚ÅŸ‚Ì‰ğÍ‚ğ‚³‚¹‚é
+						//å¼ãŒæˆã‚Šç«‹ã£ã¦ã„ã‚‹å ´åˆã¯ã€ãã®ã¾ã¾ã®çŠ¶æ…‹ã§æ¬¡ã®è§£æã‚’ã•ã›ã‚‹
 					}else{
 						return ERR_SYNTAX_ERROR;
 					}
@@ -1243,7 +1243,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					srcpos=JumpSpace(srcpos);
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					//‘ã“üˆ—‚±‚±‚Ü‚Å
+					//ä»£å…¥å‡¦ç†ã“ã“ã¾ã§
 					if(*srcpos!=TOKEN_TO)return ERR_SYNTAX_ERROR;
 					srcpos=JumpSpace(srcpos+1);
 					ForGosub_s[ForGosub_sl].line=cur_line;
@@ -1398,10 +1398,10 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					}
 					memset(tmpstr,0x00,sizeof(tmpstr));
 					if(!PopCalcStack_str(tmpstr))return ERR_UNDEFINED;
-					//ƒvƒƒ“ƒvƒg•¶•\¦
+					//ãƒ—ãƒ­ãƒ³ãƒ—ãƒˆæ–‡è¡¨ç¤º
 					Print2Console(tmpstr,0);
 					tmpint=0;
-					//•¡G‚È‚Ì‚Å•Û—¯
+					//è¤‡é›‘ãªã®ã§ä¿ç•™
 					do{
 						if(tmpint==1)Print2Console("?REDO FROM START",0);
 						memset(tmpstr3,0x00,sizeof(tmpstr3));
@@ -1420,7 +1420,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					state=ST_NEW_STATEMENT;
 					break;
 				case TOKEN_LINPUT:
-					//–¢Š®
+					//æœªå®Œ
 					memset(tmpstr,0x00,sizeof(tmpstr));
 					tmpstr_p=0;
 					srcpos=JumpSpace(srcpos+1);
@@ -1475,7 +1475,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						memcpy(tmpstr2,tmpstr,tmpint);
 						memcpy(tmpstr3,&tmpstr[tmpint+1],i-tmpint-1);
 						errtmp=LoadPResource(tmpstr2,tmpstr3);
-						//ƒ_ƒCƒAƒƒOo‚·H
+						//ãƒ€ã‚¤ã‚¢ãƒ­ã‚°å‡ºã™ï¼Ÿ
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 						if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[46],DX_PLAYTYPE_BACK);
 					}
@@ -1720,11 +1720,11 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						srcpos--;
 					}else if(c=='?'){
 						state=ST_PRINT;
-					//‘ã“ü
+					//ä»£å…¥
 					}else if(isalpha(c)||(c=='_')){
 						memset(tmpstr,0x00,sizeof(tmpstr));
 						tmpstr_p=0;
-						tmpstr[0]=toupper(c);//ˆê•¶š–Ú‹L˜^
+						tmpstr[0]=toupper(c);//ä¸€æ–‡å­—ç›®è¨˜éŒ²
 						tmpstr_p++;
 						state=ST_SUBSTITUTION_NAME;
 					}else if((c==' ')||(c==':')){
@@ -1756,17 +1756,17 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						srcpos--;
 					}else if(c=='?'){
 						state=ST_PRINT;
-					//‘ã“ü
+					//ä»£å…¥
 					}else if(isalpha(c)||(c=='_')){
 						memset(tmpstr,0x00,sizeof(tmpstr));
 						tmpstr_p=0;
-						tmpstr[0]=toupper(c);//ˆê•¶š–Ú‹L˜^
+						tmpstr[0]=toupper(c);//ä¸€æ–‡å­—ç›®è¨˜éŒ²
 						tmpstr_p++;
 						state=ST_SUBSTITUTION_NAME;
 					}else if((c==' ')||(c==':')){
 						//NOP
 					}else if(c==0){
-						//³íI—¹
+						//æ­£å¸¸çµ‚äº†
 						return ERR_NO_ERROR;
 					}else{
 						if(*srcpos==0x0D){

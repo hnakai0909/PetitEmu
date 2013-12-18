@@ -1,4 +1,4 @@
-#include "pinput.h"
+ï»¿#include "pinput.h"
 
 void ClearKeyBuffer(void){
 	memset(keybuffer,0x00,sizeof(keybuffer));
@@ -10,7 +10,7 @@ void WriteKeyBuffer(const unsigned char arg){
 	keybuffer[keybuffer_qtail]=arg;
 	keybuffer_qtail++;
 	if(keybuffer_qtail==KEYBUFFER_MAX)keybuffer_qtail=0;
-	//ƒoƒbƒtƒ@‚ª–„‚Ü‚é‚Æ“Ç‚İ‘‚«‹¤‚ÉƒCƒ“ƒNƒŠƒƒ“ƒg‚µFirstIn‚ğÌ‚Ä‚é
+	//ãƒãƒƒãƒ•ã‚¡ãŒåŸ‹ã¾ã‚‹ã¨èª­ã¿æ›¸ãå…±ã«ã‚¤ãƒ³ã‚¯ãƒªãƒ¡ãƒ³ãƒˆã—FirstInã‚’æ¨ã¦ã‚‹
 	if(keybuffer_qhead==keybuffer_qtail)keybuffer_qhead++;	
 	return;
 }
@@ -51,7 +51,7 @@ void CheckPanel(void){
 				if(MouseY>=484){
 					tmp2=keyboard_whichkey(MouseX,MouseY-192,&type,&code);
 				}
-				//–¢À‘•
+				//æœªå®Ÿè£…
 				break;
 			case PNLMD_KYA:case PNLMD_KYM:case PNLMD_KYK:
 				tmp2=keyboard_whichkey(MouseX,MouseY-192,&type,&code);
@@ -74,8 +74,8 @@ void CheckPanel(void){
 								tmpc=keychar2char(code,&tmp);
 								if(tmpc==0)break;
 								WriteKeyBuffer(tmpc);
-								if(tmp==DAKU_DAKU)WriteKeyBuffer(0xDE);//‘÷“_ƒvƒbƒVƒ…
-								if(tmp==DAKU_HAN)WriteKeyBuffer(0xDF);//”¼‘÷“_ƒvƒbƒVƒ…
+								if(tmp==DAKU_DAKU)WriteKeyBuffer(0xDE);//æ¿ç‚¹ãƒ—ãƒƒã‚·ãƒ¥
+								if(tmp==DAKU_HAN)WriteKeyBuffer(0xDF);//åŠæ¿ç‚¹ãƒ—ãƒƒã‚·ãƒ¥
 								break;
 							case KT_SYSTEM:
 								keyboard_special=code;
@@ -85,7 +85,7 @@ void CheckPanel(void){
 									case PKEY_BS:
 										break;
 									case PKEY_TAB:
-										//TABSTEPEŒ»İ‚Ì•¶šˆÊ’u‚ÉˆË‘¶‚·‚é
+										//TABSTEPãƒ»ç¾åœ¨ã®æ–‡å­—ä½ç½®ã«ä¾å­˜ã™ã‚‹
 										WriteKeyBuffer(' ');
 										break;
 									case PKEY_SHIFT:
@@ -99,24 +99,24 @@ void CheckPanel(void){
 									case PKEY_MODE_A:
 										panelmode=PNLMD_KYA;
 										kbd_shift_flag=0;
-										//CAPS LOCK ‚Í‚¸‚·
+										//CAPS LOCK ã¯ãšã™
 										break;
 									case PKEY_MODE_G:
 										panelmode=PNLMD_KYM;
 										kbd_shift_flag=0;
-										//CAPS LOCK ‚Í‚¸‚·
+										//CAPS LOCK ã¯ãšã™
 										break;
 									case PKEY_MODE_K:
 										panelmode=PNLMD_KYK;
 										kbd_shift_flag=0;
-										//CAPS LOCK ‚Í‚¸‚·
+										//CAPS LOCK ã¯ãšã™
 										break;
 									case PKEY_INS:
 										break;
 									case PKEY_DEL:
 										break;
 									case PKEY_SEARCH:
-										//–³ˆó(‰‘ã)‘ã‚Å‚Í–¢À‘•‚È‚Ì‚Å‚È‚É‚à‚µ‚È‚¢
+										//ç„¡å°(åˆä»£)æ™‚ä»£ã§ã¯æœªå®Ÿè£…ãªã®ã§ãªã«ã‚‚ã—ãªã„
 										break;
 									case PKEY_EXIT:
 										break;
@@ -484,13 +484,13 @@ void InputLine(char* arg){
 		Print2Console("",0);
 	}
 	ConsoleClearLine();
-	// ƒL[“ü—ÍI—¹‘Ò‚¿ƒ‹[ƒv
+	// ã‚­ãƒ¼å…¥åŠ›çµ‚äº†å¾…ã¡ãƒ«ãƒ¼ãƒ—
 	while(ProcessFrame()){
 		tmpc=0;
 		if(!ReadKeyBuffer(&tmpc)){
-			//ƒL[“ü—Í‚È‚µA‚È‚É‚à‚µ‚È‚¢
+			//ã‚­ãƒ¼å…¥åŠ›ãªã—ã€ãªã«ã‚‚ã—ãªã„
 		}else{
-			// “ü—Í‚ªI—¹‚µ‚Ä‚¢‚éê‡‚ÍI—¹
+			// å…¥åŠ›ãŒçµ‚äº†ã—ã¦ã„ã‚‹å ´åˆã¯çµ‚äº†
 			if(tmpc==0)break;
 			if(inrange(arg_p-arg_start,0,31)){
 				*arg_p=tmpc;

@@ -1,4 +1,4 @@
-//#ifndef PFILE_H_INCLUDED
+﻿//#ifndef PFILE_H_INCLUDED
 //#define PFILE_H_INCLUDED
 
 #define _CRT_SECURE_NO_WARNINGS

@@ -1,16 +1,16 @@
-/*===============================================*/
+ï»¿/*===============================================*/
 /* data.c                                        */
 /*===============================================*/
 
 #include "data.h"
 
-//*===ŠÖ”’è‹`===*/
+//*===é–¢æ•°å®šç¾©===*/
 
-//ƒeƒLƒXƒgƒf[ƒ^(1•¶Žš)‚ð“à•”ƒR[ƒh‚É•ÏŠ·
+//ãƒ†ã‚­ã‚¹ãƒˆãƒ‡ãƒ¼ã‚¿(1æ–‡å­—)ã‚’å†…éƒ¨ã‚³ãƒ¼ãƒ‰ã«å¤‰æ›
 uint16_t Char2Code(unsigned char arg){
 	int i;
 	static uint16_t dictAry[256];
-	//"PTC->TXT•ÏŠ·"@‚æ‚èˆø—pE•ÒW
+	//"PTC->TXTå¤‰æ›"ã€€ã‚ˆã‚Šå¼•ç”¨ãƒ»ç·¨é›†
 	for(i=0x01;i<=0x20;i++)dictAry[i]=i;
 	for(i=0x21;i<=0x7F;i++)dictAry[i]=0xFF00+i-0x20;
 	for(i=0x80;i<=0xA0;i++)dictAry[i]=i;
@@ -35,7 +35,7 @@ uint16_t Char2Code(unsigned char arg){
 	return dictAry[arg];
 }
 
-//ƒeƒLƒXƒgƒf[ƒ^(1ƒg[ƒNƒ“)‚ð“à•”ƒR[ƒh‚É•ÏŠ·
+//ãƒ†ã‚­ã‚¹ãƒˆãƒ‡ãƒ¼ã‚¿(1ãƒˆãƒ¼ã‚¯ãƒ³)ã‚’å†…éƒ¨ã‚³ãƒ¼ãƒ‰ã«å¤‰æ›
 bool Str2TokenCode(char* arg,uint16_t* arg2){
 	int i;
 	for(i=0;TokenConvTable_Code[i]!=0x00;i++){
@@ -48,11 +48,11 @@ bool Str2TokenCode(char* arg,uint16_t* arg2){
 	return false;
 }
 
-//“à•”ƒR[ƒh‚©‚çƒeƒLƒXƒgƒf[ƒ^(1•¶Žš)‚É•ÏŠ·
+//å†…éƒ¨ã‚³ãƒ¼ãƒ‰ã‹ã‚‰ãƒ†ã‚­ã‚¹ãƒˆãƒ‡ãƒ¼ã‚¿(1æ–‡å­—)ã«å¤‰æ›
 unsigned char Code2Char(uint16_t arg){
 	int i;
 	static uint16_t dictAry[256];
-	//"PTC->TXT•ÏŠ·"@‚æ‚èˆø—pE•ÒW
+	//"PTC->TXTå¤‰æ›"ã€€ã‚ˆã‚Šå¼•ç”¨ãƒ»ç·¨é›†
 	for(i=0x01;i<=0x20;i++)dictAry[i]=i;
 	for(i=0x21;i<=0x7F;i++)dictAry[i]=0xFF00+i-0x20;
 	for(i=0x80;i<=0xA0;i++)dictAry[i]=i;
@@ -80,7 +80,7 @@ unsigned char Code2Char(uint16_t arg){
 	return 0x00;
 }
 
-//“à•”ƒR[ƒh‚©‚çƒeƒLƒXƒgƒf[ƒ^(1ƒg[ƒNƒ“)‚É•ÏŠ·
+//å†…éƒ¨ã‚³ãƒ¼ãƒ‰ã‹ã‚‰ãƒ†ã‚­ã‚¹ãƒˆãƒ‡ãƒ¼ã‚¿(1ãƒˆãƒ¼ã‚¯ãƒ³)ã«å¤‰æ›
 char* TokenCode2Str(uint16_t arg){
 	int i;
 	char arg2[256];
@@ -94,41 +94,41 @@ char* TokenCode2Str(uint16_t arg){
 	return "";
 };
 
-//1ƒoƒCƒg•¶Žš‚©‚çƒvƒ`ƒRƒ“ƒtƒHƒ“ƒg‚É‚¨‚¢‚ÄŠY“–‚·‚é•¶Žš‚É•ÏŠ·
+//1ãƒã‚¤ãƒˆæ–‡å­—ã‹ã‚‰ãƒ—ãƒã‚³ãƒ³ãƒ•ã‚©ãƒ³ãƒˆã«ãŠã„ã¦è©²å½“ã™ã‚‹æ–‡å­—ã«å¤‰æ›
 int FontTable(const unsigned char arg,char* arg2){
-	const char* table1[]={ "@","„@","„A","„B","„C","„D","„E","„F","„G","„H","„I","„J","„K","„L","„M","„N",
-							"ô","„O","„~","„P","„Q","„R","„S","„T","„U","„V","","„W","¨","©","ª","«",
-							"@","I","h","”","","“","•","Œ","i","j","–","{","C","|","D","^",
-							"‚O","‚P","‚Q","‚R","‚S","‚T","‚U","‚V","‚W","‚X","F","G","ƒ","","„","H",
-							"—","‚`","‚a","‚b","‚c","‚d","‚e","‚f","‚g","‚h","‚i","‚j","‚k","‚l","‚m","‚n",
-							"‚o","‚p","‚q","‚r","‚s","‚t","‚u","‚v","‚w","‚x","‚y","m","","n","O","Q",
-							"M","‚","‚‚","‚ƒ","‚„","‚…","‚†","‚‡","‚ˆ","‚‰","‚Š","‚‹","‚Œ","‚","‚Ž","‚",
-							"‚","‚‘","‚’","‚“","‚”","‚•","‚–","‚—","‚˜","‚™","‚š","o","úU","p","`","_",
-							"ž","„ª","„«","„¬","„­","„®","„¯","„°","„±","„²","„³","„´","„µ","„¶","„·","„¸",
-							"„¨","„¦","„¥","„©","„§","„Ÿ","„ ","„¹","„¡","„¢","„¤","„£","„º","„»","„¼","„½",
-							"\","B","u","v","A","E","ƒ’","ƒ@","ƒB","ƒD","ƒF","ƒH","ƒƒ","ƒ…","ƒ‡","ƒb",
-							"[","ƒA","ƒC","ƒE","ƒG","ƒI","ƒJ","ƒL","ƒN","ƒP","ƒR","ƒT","ƒV","ƒX","ƒZ","ƒ\",
-							"ƒ^","ƒ`","ƒc","ƒe","ƒg","ƒi","ƒj","ƒk","ƒl","ƒm","ƒn","ƒq","ƒt","ƒw","ƒz","ƒ}",
-							"ƒ~","ƒ€","ƒ","ƒ‚","ƒ„","ƒ†","ƒˆ","ƒ‰","ƒŠ","ƒ‹","ƒŒ","ƒ","ƒ","ƒ“","J","K",
-							"¡","œ","£","¥"," ","›","¢","¤","„X","„Y","„Z","„[","„\","„]","„^","„_",
-							"„`","„p","„q","„r","„s","„t","„u","„v","„w","„x","„y","„z","„{","„|","„}","„¾"};
+	const char* table1[]={ "ã€€","Ð","Ð‘","Ð’","Ð“","Ð”","Ð•","Ð","Ð–","Ð—","Ð˜","Ð™","Ðš","Ð›","Ðœ","Ð",
+							"â™ª","Ðž","Ð½","ÐŸ","Ð ","Ð¡","Ð¢","Ð£","Ð¤","Ð¥","â—Ž","Ð¦","â†’","â†","â†‘","â†“",
+							"ã€€","ï¼","â€","ï¼ƒ","ï¼„","ï¼…","ï¼†","â€²","ï¼ˆ","ï¼‰","ï¼Š","ï¼‹","ï¼Œ","ï¼","ï¼Ž","ï¼",
+							"ï¼","ï¼‘","ï¼’","ï¼“","ï¼”","ï¼•","ï¼–","ï¼—","ï¼˜","ï¼™","ï¼š","ï¼›","ï¼œ","ï¼","ï¼ž","ï¼Ÿ",
+							"ï¼ ","ï¼¡","ï¼¢","ï¼£","ï¼¤","ï¼¥","ï¼¦","ï¼§","ï¼¨","ï¼©","ï¼ª","ï¼«","ï¼¬","ï¼­","ï¼®","ï¼¯",
+							"ï¼°","ï¼±","ï¼²","ï¼³","ï¼´","ï¼µ","ï¼¶","ï¼·","ï¼¸","ï¼¹","ï¼º","ï¼»","ï¿¥","ï¼½","ï¼¾","ï¼¿",
+							"ï½€","ï½","ï½‚","ï½ƒ","ï½„","ï½…","ï½†","ï½‡","ï½ˆ","ï½‰","ï½Š","ï½‹","ï½Œ","ï½","ï½Ž","ï½",
+							"ï½","ï½‘","ï½’","ï½“","ï½”","ï½•","ï½–","ï½—","ï½˜","ï½™","ï½š","ï½›","ï¿¤","ï½","ï½ž","ï¼¼",
+							"â—‡","â”","â”ƒ","â”","â”“","â”›","â”—","â”£","â”³","â”«","â”»","â•‹","â” ","â”¯","â”¨","â”·",
+							"â”´","â”¬","â”œ","â”¼","â”¤","â”€","â”‚","â”¿","â”Œ","â”","â””","â”˜","â”","â”°","â”¥","â”¸",
+							"â€•","ã€‚","ã€Œ","ã€","ã€","ãƒ»","ãƒ²","ã‚¡","ã‚£","ã‚¥","ã‚§","ã‚©","ãƒ£","ãƒ¥","ãƒ§","ãƒƒ",
+							"ãƒ¼","ã‚¢","ã‚¤","ã‚¦","ã‚¨","ã‚ª","ã‚«","ã‚­","ã‚¯","ã‚±","ã‚³","ã‚µ","ã‚·","ã‚¹","ã‚»","ã‚½",
+							"ã‚¿","ãƒ","ãƒ„","ãƒ†","ãƒˆ","ãƒŠ","ãƒ‹","ãƒŒ","ãƒ","ãƒŽ","ãƒ","ãƒ’","ãƒ•","ãƒ˜","ãƒ›","ãƒž",
+							"ãƒŸ","ãƒ ","ãƒ¡","ãƒ¢","ãƒ¤","ãƒ¦","ãƒ¨","ãƒ©","ãƒª","ãƒ«","ãƒ¬","ãƒ­","ãƒ¯","ãƒ³","ã‚›","ã‚œ",
+							"â– ","â—","â–²","â–¼","â–¡","â—‹","â–³","â–½","Ð§","Ð¨","Ð©","Ðª","Ð«","Ð¬","Ð­","Ð®",
+							"Ð¯","Ð°","Ð±","Ð²","Ð³","Ð´","Ðµ","Ñ‘","Ð¶","Ð·","Ð¸","Ð¹","Ðº","Ð»","Ð¼","â•‚"};
 	memset(arg2,0x00,sizeof(arg2));
 	strcpy(arg2,table1[arg]);
 	return 0;
 }
 
-//‚Qi–@”’lƒŠƒeƒ‰ƒ‹‚Ì•¶Žš‚©
+//ï¼’é€²æ³•æ•°å€¤ãƒªãƒ†ãƒ©ãƒ«ã®æ–‡å­—ã‹
 bool isBin(const char arg){
 	return (arg=='0')||(arg=='1');
 }
 
-//‰‰ŽZŽq‚Å‚Æ‚éˆø”‚Ì”
+//æ¼”ç®—å­ã§ã¨ã‚‹å¼•æ•°ã®æ•°
 unsigned int GetOperatorArgCount(const uint16_t arg){
 	if(arg==TOKEN_NOT || arg==OP_MINUSSIGN)return 1;
 	return 2;
 }
 
-//ƒGƒ‰[ƒƒbƒZ[ƒWˆê——
+//ã‚¨ãƒ©ãƒ¼ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ä¸€è¦§
 char* GetErrorMessage(const char arg){
 	static char *errmesstr[]={
 		"Undefined Error",
@@ -158,7 +158,7 @@ char* GetErrorMessage(const char arg){
 	return errmesstr[arg];
 }
 
-//‰‰ŽZŽqƒg[ƒNƒ“‚©
+//æ¼”ç®—å­ãƒˆãƒ¼ã‚¯ãƒ³ã‹
 int isOperator(const uint16_t arg){
 	char tmp=Code2Char(arg);
 	if(
@@ -171,7 +171,7 @@ int isOperator(const uint16_t arg){
 	return false;
 }
 
-//‚»‚ÌƒVƒXƒeƒ€•Ï”‚Í”’lŒ^‚©/•¶Žš—ñŒ^‚©/‘ã“ü‰Â”\‚©
+//ãã®ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°ã¯æ•°å€¤åž‹ã‹/æ–‡å­—åˆ—åž‹ã‹/ä»£å…¥å¯èƒ½ã‹
 int GetSystemVariableType(const int arg){
 	if(
 		inrange(arg,TOKEN_TRUE,TOKEN_RESULT)||(arg==TOKEN_MAINCNTL)||(arg==TOKEN_MAINCNTH)||
@@ -187,7 +187,7 @@ int GetSystemVariableType(const int arg){
 	return 0;
 }
 
-//‚»‚ÌŠÖ”‚Í”’l‚ð•Ô‚·‚©/•¶Žš—ñ‚ð•Ô‚·‚©
+//ãã®é–¢æ•°ã¯æ•°å€¤ã‚’è¿”ã™ã‹/æ–‡å­—åˆ—ã‚’è¿”ã™ã‹
 int GetFunctionType(const int arg){
 	if(!isFunction(arg))return 0;
 	if(
@@ -201,25 +201,25 @@ int GetFunctionType(const int arg){
 	return 0;
 }
 
-//ƒVƒXƒeƒ€•Ï”‚©
+//ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°ã‹
 bool isSystemVariable(const int arg){
 	if((arg&0xFF00)==0xE800)return true;
 	return false;
 }
 
-//ŠÖ”‚©
+//é–¢æ•°ã‹
 bool isFunction(const int arg){
 	if((arg&0xFF00)==0xE400)return true;
 	return false;
 }
 
-//–½—ß‚©
+//å‘½ä»¤ã‹
 bool isInstruction(const int arg){
 	if(inrange(arg,TOKEN_GOTO,TOKEN_GFILL)||(arg==TOKEN_CLEAR))return true;
 	return false;
 }
 
-//‚»‚Ì–½—ß‚Íˆø”‚È‚µ‚©
+//ãã®å‘½ä»¤ã¯å¼•æ•°ãªã—ã‹
 bool isNoArgInstruction(const int arg){
 	if(
 		(arg==TOKEN_CLEAR)||(arg==TOKEN_CLS)||(arg==TOKEN_BGMSTOP)
@@ -227,13 +227,13 @@ bool isNoArgInstruction(const int arg){
 	return false;
 }
 
-//‚»‚Ì–½—ß‚Íˆø”‚ ‚è‚©
+//ãã®å‘½ä»¤ã¯å¼•æ•°ã‚ã‚Šã‹
 bool isArgInstruction(const int arg){
 	if(isInstruction(arg)&&(!(isNoArgInstruction(arg))))return true;
 	return false;
 } 
 
-//BGM‚ÌABƒ‹[ƒvˆÊ’u(ƒTƒ“ƒvƒ‹”)
+//BGMã®ABãƒ«ãƒ¼ãƒ—ä½ç½®(ã‚µãƒ³ãƒ—ãƒ«æ•°)
 int GetLoopPos(const char arg){
 	static int data[]={
 		72140,0,28152,577536,0,0,0,0,0,0,
@@ -243,13 +243,13 @@ int GetLoopPos(const char arg){
 	return data[arg];
 }
 
-//‚»‚ÌBGM‚Í’P”­‚©ƒ‹[ƒv‚©
+//ãã®BGMã¯å˜ç™ºã‹ãƒ«ãƒ¼ãƒ—ã‹
 bool isLoop(const char arg){
 	if((arg>=4)&&(arg<=6))return false;
 	return true;
 }
 
-//‰‰ŽZŽq‚Ì—Dæ‡ˆÊ
+//æ¼”ç®—å­ã®å„ªå…ˆé †ä½
 int GetOperatorPriority(const int arg){
 	switch(Code2Char(arg)){
 		case '(':case ')':case '[':case ']':
@@ -280,7 +280,7 @@ int GetOperatorPriority(const int arg){
 	return -1;
 }
 
-//¶Œ‹‡«‚©
+//å·¦çµåˆæ€§ã‹
 bool isOperatorLeftAssoc(const int arg){
 	if((Code2Char(arg)=='=')||(arg==OP_MINUSSIGN)||(arg==TOKEN_NOT))return false;
 	return true;

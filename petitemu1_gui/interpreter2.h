@@ -1,4 +1,4 @@
-//interpreter2.h
+﻿//interpreter2.h
 #pragma once
 
 #ifndef INTERPRETER2_H_INCLUDED

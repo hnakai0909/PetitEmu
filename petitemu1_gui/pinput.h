@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 //#ifndef PINPUT_H_INCLUDED
 //#define PINPUT_H_INCLUDED
 
@@ -14,17 +14,9 @@ extern "C" {
 #endif
 
 extern unsigned char keybuffer[KEYBUFFER_MAX];
-extern int keybuffer_qhead;//“Ç‚ŞˆÊ’u
-extern int keybuffer_qtail;//‘‚­ˆÊ’u
+extern int keybuffer_qhead;//èª­ã‚€ä½ç½®
+extern int keybuffer_qtail;//æ›¸ãä½ç½®
 
-extern unsigned char KeyMap_A[256];
-extern unsigned char KeyMap_A_S[256];
-extern unsigned char KeyMap_G[256];
-extern unsigned char KeyMap_G_S[256];
-extern unsigned char KeyMap_K[256];
-extern unsigned char KeyMap_K_S[256];
-//‘÷“_E”¼‘÷“_ƒtƒ‰ƒO
-extern unsigned char KeyMap_K_S_DAKU[256];
 
 void ClearKeyBuffer(void);
 void WriteKeyBuffer(const unsigned char arg);

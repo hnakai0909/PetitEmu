@@ -1,4 +1,4 @@
-#include "psystem.h"
+ï»¿#include "psystem.h"
 
 enum SystemMode systemmode;
 
@@ -81,7 +81,7 @@ void PSysInit(void){
 	memset(srcline_begin_token_pos,0x0000,sizeof(srcline_begin_token_pos));
 	memset(srcline_token_count,0x0000,sizeof(srcline_token_count));
 	srclinecount=0;
-	source_ptr=(unsigned char *)malloc(sizeof(unsigned char)*100);//‚Æ‚è‚ ‚¦‚¸malloc
+	source_ptr=(unsigned char *)malloc(sizeof(unsigned char)*100);//ã¨ã‚Šã‚ãˆãšmalloc
     if((source_ptr==NULL)){printf("Can't malloc(init)");return ;}
 	memset(source_ptr,0x00,sizeof(source_ptr));
 	memset(labellist_name,0x00,sizeof(labellist_name));
@@ -98,7 +98,7 @@ int SystemInit(void){
 	memset(consolecharbuf,0x00,sizeof(consolecharbuf));
 	memset(consolecolorbuf,0x00,sizeof(consolecolorbuf));
     srand((unsigned) time(NULL));
-	// •`‰æ‚·‚é•¶š—ñ‚Ì•¶šƒZƒbƒg‚ğ•ÏX‚µ‚Ü‚·
+	// æç”»ã™ã‚‹æ–‡å­—åˆ—ã®æ–‡å­—ã‚»ãƒƒãƒˆã‚’å¤‰æ›´ã—ã¾ã™
 	ChangeFont(FONT_PETITCOM);
 	SetFontSize(8);
 	SetFontThickness(5);

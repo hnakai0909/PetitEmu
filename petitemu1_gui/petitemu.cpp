@@ -1,4 +1,4 @@
-#include "DxLib.h"
+ï»¿#include "DxLib.h"
 #include "data.h"
 #include "petitemu.h"
 
@@ -8,7 +8,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	int tmp=0,i=0;
 	char tmpstr[STR_LEN_MAX];
 	char inputline[64];
-	uint16_t codedata[10000];//‚Ç‚±‚Ü‚Å•K—vH
+	uint16_t codedata[10000];//ã©ã“ã¾ã§å¿…è¦ï¼Ÿ
 	memset(tmpstr,0x00,sizeof(tmpstr));
 	memset(inputline,0x00,sizeof(inputline));
 	memset(codedata,0x0000,sizeof(codedata));
@@ -37,6 +37,6 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		if(ProcessMessage()==-1)break;
 	}
 	FreeConsole();
-	DxLib_End() ;		// ‚c‚wƒ‰ƒCƒuƒ‰ƒŠg—p‚ÌI—¹ˆ—
-	return 0 ;		// ƒ\ƒtƒg‚ÌI—¹
+	DxLib_End() ;		// ï¼¤ï¼¸ãƒ©ã‚¤ãƒ–ãƒ©ãƒªä½¿ç”¨ã®çµ‚äº†å‡¦ç†
+	return 0 ;		// ã‚½ãƒ•ãƒˆã®çµ‚äº†
 }

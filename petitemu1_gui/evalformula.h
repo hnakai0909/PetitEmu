@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #define _CRT_SECURE_NO_WARNINGS
 
 #ifndef EVALFORMULA_H_INCLUDED
@@ -53,13 +53,13 @@ extern int log_en2;
 
 extern struct VARIABLE Variable[VAR_MAX];
 
-extern struct OP_S op_s[OP_S_MAX];//‰‰ZqƒXƒ^ƒbƒN
-extern struct CalcStack calc_s[CALC_S_MAX];//ŒvZƒXƒ^ƒbƒN
+extern struct OP_S op_s[OP_S_MAX];//æ¼”ç®—å­ã‚¹ã‚¿ãƒƒã‚¯
+extern struct CalcStack calc_s[CALC_S_MAX];//è¨ˆç®—ã‚¹ã‚¿ãƒƒã‚¯
 
 extern char consolecharbuf[32][24];
 extern char consolecolorbuf[32][24];
 
-//ƒvƒ`ƒRƒ“ƒVƒXƒeƒ€•Ï”
+//ãƒ—ãƒã‚³ãƒ³ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°
 extern int32_t Psys_VERSION;
 extern int32_t Psys_TRUE;
 extern int32_t Psys_FALSE;
@@ -91,8 +91,8 @@ extern int consolecolor;
 extern int SHandleBEEP[70];
 extern int SHandleBGM;
 
-extern unsigned int calc_sl;//ƒXƒ^ƒbƒN‚ÌŒ»İ‚Ì[‚³
-extern unsigned int op_sl;//ƒXƒ^ƒbƒN‚ÌŒ»İ‚Ì[‚³
+extern unsigned int calc_sl;//ã‚¹ã‚¿ãƒƒã‚¯ã®ç¾åœ¨ã®æ·±ã•
+extern unsigned int op_sl;//ã‚¹ã‚¿ãƒƒã‚¯ã®ç¾åœ¨ã®æ·±ã•
 
 enum PanelMode{
 	PNLMD_OFF,PNLMD_PANEL,PNLMD_KYA,PNLMD_KYM,PNLMD_KYK,PNLMD_DIALOG
@@ -133,7 +133,7 @@ extern int bgofs_time[2][2];
 extern unsigned char color_palette[3][256][3];
 
 struct VisibleFlag{
-	//ƒRƒ“ƒ\[ƒ‹,ƒpƒlƒ‹,BG0,BG1,ƒXƒvƒ‰ƒCƒg,ƒOƒ‰ƒtƒBƒbƒN
+	//ã‚³ãƒ³ã‚½ãƒ¼ãƒ«,ãƒ‘ãƒãƒ«,BG0,BG1,ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆ,ã‚°ãƒ©ãƒ•ã‚£ãƒƒã‚¯
 	bool console:1;
 	bool panel:1;
 	bool BG0:1;
@@ -145,10 +145,10 @@ struct VisibleFlag{
 extern struct VisibleFlag VisibleFlags;
 
 extern unsigned char keybuffer[KEYBUFFER_MAX];
-extern int keybuffer_qhead;//“Ç‚ŞˆÊ’u
-extern int keybuffer_qtail;//‘‚­ˆÊ’u
+extern int keybuffer_qhead;//èª­ã‚€ä½ç½®
+extern int keybuffer_qtail;//æ›¸ãä½ç½®
 
-//malloc‚·‚é...?
+//mallocã™ã‚‹...?
 extern uint16_t translated_source[10000];
 
 extern unsigned char* source_ptr;
@@ -179,7 +179,7 @@ struct Dimention {
 	bool isStr;
 };
 
-//ŠÖ”ƒvƒƒgƒ^ƒCƒvéŒ¾
+//é–¢æ•°ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ—å®£è¨€
 
 int PushOpStack(uint16_t op,int argcount);
 int PopOpStack(uint16_t* op,int* argcount);

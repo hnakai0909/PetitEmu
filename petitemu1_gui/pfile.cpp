@@ -1,10 +1,10 @@
-#include "pfile.h"
+ï»¿#include "pfile.h"
 
 
-//Illegal‚È‚½‚ß••ˆó
+//IllegalãªãŸã‚å°å°
 /*
 bool LoadFile_Program(void){
-	//Qlhttp://d.hatena.ne.jp/gust_notch/20120316/p1
+	//å‚è€ƒhttp://d.hatena.ne.jp/gust_notch/20120316/p1
 	FILE *fp;
     int i,tmp,tmp2[8],data_size=0,code_size=0,version_num=0;
 	char filebuf[STR_LEN_MAX],tmpstr[STR_LEN_MAX],tmpdata[STR_LEN_MAX],filename[8],tmpc;
@@ -32,10 +32,10 @@ bool LoadFile_Program(void){
 		if(!isdigit(tmpc)){puts("Illegal DATA header Version String");return false;}
 		version_num+=(tmpc-'0')*(int)pow(10.0,(double)(3-i));
 	}
-	//‰‘ã
+	//åˆä»£
 	if(version_num==100){
 		puts("Version:1.0 - 1.2");
-		//’†ŠÔƒR[ƒh‚ç‚µ‚¢
+		//ä¸­é–“ã‚³ãƒ¼ãƒ‰ã‚‰ã—ã„
 	//mkII
 	}else if(version_num==300){
 		puts("Version:2.0 - 2.3");
@@ -57,7 +57,7 @@ bool LoadFile_Program(void){
 	fread(source_ptr,sizeof(unsigned char),code_size,fp);
 
     fclose(fp);
-	//MessageBox(GetMainWindowHandle(),TEXT("Kitty on your lap"),TEXT("ƒƒbƒZ[ƒWƒ{ƒbƒNƒX"),MB_OK);
+	//MessageBox(GetMainWindowHandle(),TEXT("Kitty on your lap"),TEXT("ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒœãƒƒã‚¯ã‚¹"),MB_OK);
 	return true;
 }
 */
@@ -81,7 +81,7 @@ int LoadPResource(char restype[6],char filename[8]){
 	fp=fopen(tmpstr,"rb");
 	if(fp==NULL){
 		puts("File open error");
-		//ƒ_ƒCƒAƒƒOo‚·
+		//ãƒ€ã‚¤ã‚¢ãƒ­ã‚°å‡ºã™
 		return ERR_UNDEFINED;
 	}
 	fseek(fp,0,SEEK_END); 

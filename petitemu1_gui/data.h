@@ -1,4 +1,4 @@
-/*===============================================*/
+ï»¿/*===============================================*/
 /* data.h                                        */
 /*===============================================*/
 
@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-/*===’è”éŒ¾===*/
+/*===å®šæ•°å®£è¨€===*/
 #ifndef true
 #define true 1
 #endif
@@ -28,7 +28,7 @@ extern "C" {
 #ifndef NULL
 #define NULL 0
 #endif
-#define FONT_PETITCOM "ƒvƒ`ƒRƒ“"
+#define FONT_PETITCOM "ãƒ—ãƒã‚³ãƒ³"
 #define BGM_ID_MIN 0
 #define BGM_ID_MAX 29
 #define BEEP_ID_MAX 0
@@ -65,7 +65,7 @@ extern "C" {
 #define KEY_TIME_TO_RENSYA 40
 #define KEY_RENSYA_INTERVAL 4
 
-//–½—ß
+//å‘½ä»¤
 #define TOKEN_NEW 0xE000
 #define TOKEN_LIST 0xE001
 #define TOKEN_RUN 0xE002
@@ -92,7 +92,7 @@ extern "C" {
 #define TOKEN_TMREAD 0xE017
 #define TOKEN_DTREAD 0xE018
 #define TOKEN_DATA 0xE019
-//‘¼‚Ìƒ‰ƒCƒuƒ‰ƒŠ‚É‘¶İ‚µ‚½“¯–¼‚Ìd•¡’è‹`‚ğ‰ñ”ğ
+//ä»–ã®ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã«å­˜åœ¨ã—ãŸåŒåã®é‡è¤‡å®šç¾©ã‚’å›é¿
 #ifdef TOKEN_READ
 #undef TOKEN_READ
 #endif
@@ -151,7 +151,7 @@ extern "C" {
 #define TOKEN_SPCHR 0xE052
 #define TOKEN_EXEC 0xE053
 #define TOKEN_GFILL 0xE054
-//ŠÖ”
+//é–¢æ•°
 #define TOKEN_ASC 0xE400
 #define TOKEN_CHR 0xE401
 #define TOKEN_VAL 0xE402
@@ -180,7 +180,7 @@ extern "C" {
 #define TOKEN_BGMCHK 0xE419
 #define TOKEN_DEG 0xE41A
 #define TOKEN_SPCHK 0xE41B
-//ƒVƒXƒeƒ€•Ï”
+//ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°
 #define TOKEN_TRUE 0xE800
 #define TOKEN_FALSE 0xE801
 #define TOKEN_CANCEL 0xE802
@@ -207,18 +207,18 @@ extern "C" {
 #define TOKEN_MEM 0xE817
 #define TOKEN_TABSTEP 0xE818
 #define TOKEN_SYSBEEP 0xE819
-//•¶š‰‰Zq
+//æ–‡å­—æ¼”ç®—å­
 #define TOKEN_NOT 0xEC00
 #define TOKEN_AND 0xEC01
 #define TOKEN_OR 0xEC02
 #define TOKEN_XOR 0xEC03
-//‹L†‰‰Zq1(‘¼‚Æ‹L†‚ªd•¡‚µ‚Ä‚¢‚é‚à‚Ì‚È‚Ç)
+//è¨˜å·æ¼”ç®—å­1(ä»–ã¨è¨˜å·ãŒé‡è¤‡ã—ã¦ã„ã‚‹ã‚‚ã®ãªã©)
 #define OP_MINUSSIGN 0xED00
 #define OP_SHONARI_EQUAL 0xED01
 #define OP_DAINARI_EQUAL 0xED02
 #define OP_EQUAL 0xED03
 #define OP_NOTEQUAL 0xED04
-//‹L†‰‰Zq2(1ˆÈŠO)
+//è¨˜å·æ¼”ç®—å­2(1ä»¥å¤–)
 #define OP_MOD 0xFF05
 #define OP_MULTIPLY 0xFF0A
 #define OP_PLUS	0xFF0B
@@ -228,7 +228,7 @@ extern "C" {
 #define OP_SUBSTITUTE 0xFF1D
 #define OP_DAINARI 0xFF1E
 
-//ƒGƒ‰[í•Ê—ñ‹“Œ^(ƒVƒXƒeƒ€•Ï”ERR‚É€‹’)
+//ã‚¨ãƒ©ãƒ¼ç¨®åˆ¥åˆ—æŒ™å‹(ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°ERRã«æº–æ‹ )
 enum errorid{
 	ERR_UNDEFINED=0,
 	ERR_SYNTAX_ERROR,
@@ -255,7 +255,7 @@ enum errorid{
 	ERR_NO_ERROR=100
 };
 
-//ƒCƒ“ƒ^ƒvƒŠƒ^‘JˆÚó‘Ô—p—ñ‹“Œ^
+//ã‚¤ãƒ³ã‚¿ãƒ—ãƒªã‚¿é·ç§»çŠ¶æ…‹ç”¨åˆ—æŒ™å‹
 enum State {
 	ST_LINE_BEGIN,
 	ST_NEW_STATEMENT,
@@ -281,7 +281,7 @@ enum State {
 	ST_LINPUT
 };
 
-//‰º‰æ–Êƒpƒlƒ‹‚ÌƒL[ƒ{[ƒh—p—ñ‹“Œ^(ƒvƒ`ƒRƒ“mkII‚ÌƒVƒXƒeƒ€•Ï”KEYBOARD‚É€‹’)
+//ä¸‹ç”»é¢ãƒ‘ãƒãƒ«ã®ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ç”¨åˆ—æŒ™å‹(ãƒ—ãƒã‚³ãƒ³mkIIã®ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°KEYBOARDã«æº–æ‹ )
 enum CharKeyCode {
 	PKEY_NO=0,
 	PKEY_ESC,PKEY_1,PKEY_2,PKEY_3,PKEY_4,PKEY_5,PKEY_6,PKEY_7,PKEY_8,PKEY_9,PKEY_0,PKEY_MINUS,PKEY_PLUS,PKEY_EQUAL,PKEY_BS,
@@ -293,19 +293,19 @@ enum CharKeyCode {
 	PKEY_HELP,PKEY_RUN,PKEY_EDIT,PKEY_ICON_UP,PKEY_ICON_DOWN
 };
 
-//‰º‰æ–Êƒpƒlƒ‹‚Ìƒ{ƒ^ƒ“í•Ê¯•Ê—p—ñ‹“Œ^
+//ä¸‹ç”»é¢ãƒ‘ãƒãƒ«ã®ãƒœã‚¿ãƒ³ç¨®åˆ¥è­˜åˆ¥ç”¨åˆ—æŒ™å‹
 enum KeyType {
 	KT_NO,KT_FUNCKEY,KT_CHAR,KT_SYSTEM,KT_ICON	
 };
 
-// ‘÷“_/”¼‘÷“_ƒtƒ‰ƒO—p—ñ‹“Œ^
+// æ¿ç‚¹/åŠæ¿ç‚¹ãƒ•ãƒ©ã‚°ç”¨åˆ—æŒ™å‹
 enum Dakuten {
 	DAKU_NO,DAKU_HAN,DAKU_DAKU
 };
 
-/*===ƒOƒ[ƒoƒ‹•Ï”éŒ¾E’è‹`===*/
+/*===ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°å®£è¨€ãƒ»å®šç¾©===*/
 
-//ƒRƒ“ƒ\[ƒ‹•¶šF(RGB)
+//ã‚³ãƒ³ã‚½ãƒ¼ãƒ«æ–‡å­—è‰²(RGB)
 static int consolecharcolor[16][3]={
 	{255,255,255}	,{0,0,0}	,{191,191,191}	,{255,224,0}	,
 	{0,240,31}		,{0,127,0}	,{255,203,167}	,{255,160,0}	,
@@ -313,7 +313,7 @@ static int consolecharcolor[16][3]={
 	{255,95,192}	,{255,31,0}	,{63,63,63}		,{255,255,255}	
 };
 
-//ƒg[ƒNƒ“<-->ƒ\[ƒX•¶š—ñƒe[ƒuƒ‹
+//ãƒˆãƒ¼ã‚¯ãƒ³<-->ã‚½ãƒ¼ã‚¹æ–‡å­—åˆ—ãƒ†ãƒ¼ãƒ–ãƒ«
 static uint16_t TokenConvTable_Code[150]={
 	TOKEN_NEW,TOKEN_LIST,TOKEN_RUN,TOKEN_CONT,TOKEN_FILES,TOKEN_IF,TOKEN_THEN,TOKEN_FOR,
 	TOKEN_TO,TOKEN_STEP,TOKEN_NEXT,TOKEN_STOP,TOKEN_END,TOKEN_CLEAR,TOKEN_REM,TOKEN_REM2,
@@ -355,7 +355,7 @@ static char TokenConvTable_Str[150][10]={
 	"AND","OR","XOR",NULL
 };
 
-//ƒL[ƒ{[ƒhƒ}ƒbƒsƒ“ƒOƒf[ƒ^
+//ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ãƒãƒƒãƒ”ãƒ³ã‚°ãƒ‡ãƒ¼ã‚¿
 //Alphabet
 static const unsigned char KeyMap_A[256]={
 	'1','2','3','4','5','6','7','8','9','0',
@@ -416,7 +416,7 @@ static const unsigned char KeyMap_K_S[256]={
 	0xC0,0xC1,0xC2,0xC3,0xC4,'6','7','8','9','0',0,0,
 	' '
 };
-//Kana + Shift‚Ì‘÷“_E”¼‘÷“_ƒtƒ‰ƒO
+//Kana + Shiftæ™‚ã®æ¿ç‚¹ãƒ»åŠæ¿ç‚¹ãƒ•ãƒ©ã‚°
 static const unsigned char KeyMap_K_S_DAKU[256]={
 	DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,DAKU_NO,
 	DAKU_HAN,DAKU_HAN,DAKU_HAN,
@@ -427,7 +427,7 @@ static const unsigned char KeyMap_K_S_DAKU[256]={
 	DAKU_NO
 };
 
-/*===ŠÖ”ƒvƒƒgƒ^ƒCƒvéŒ¾===*/
+/*===é–¢æ•°ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ—å®£è¨€===*/
 uint16_t Char2Code(unsigned char arg);
 bool Str2TokenCode(char* arg,uint16_t* arg2);
 unsigned char Code2Char(uint16_t arg);

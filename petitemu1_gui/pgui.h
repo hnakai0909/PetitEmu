@@ -1,4 +1,4 @@
-//#pragma once
+ï»¿//#pragma once
 
 # //ifndef PGUI_H_INCLUDED
 # //define PGUI_H_INCLUDED
@@ -15,14 +15,6 @@
 extern "C" {
 #endif
 extern int GrHandle[10]; 
-extern unsigned char KeyMap_A[256];
-extern unsigned char KeyMap_A_S[256];
-extern unsigned char KeyMap_G[256];
-extern unsigned char KeyMap_G_S[256];
-extern unsigned char KeyMap_K[256];
-extern unsigned char KeyMap_K_S[256];
-//‘÷“_E”¼‘÷“_ƒtƒ‰ƒO
-extern unsigned char KeyMap_K_S_DAKU[256];
 bool ProcessFrame(void);
 void LineInput(char* arg);
 void DrawConsole(void);

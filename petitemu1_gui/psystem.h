@@ -1,4 +1,4 @@
-#ifndef PSYSTEM_H_INCLUDED
+﻿#ifndef PSYSTEM_H_INCLUDED
 #define PSYSTEM_H_INCLUDED
 
 #define _CRT_SECURE_NO_WARNINGS
@@ -26,8 +26,8 @@ enum SystemMode{
 
 extern enum KeyBoardMode keyboardmode;
 extern unsigned char keybuffer[KEYBUFFER_MAX];
-extern int keybuffer_qhead;//�ǂވʒu
-extern int keybuffer_qtail;//�����ʒu
+extern int keybuffer_qhead;//読む位置
+extern int keybuffer_qtail;//書く位置
 
 bool InitWindow(void);
 void InitPicture(void);

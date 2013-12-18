@@ -1,4 +1,4 @@
-//#ifndef MYUTIL_H_INCLUDED
+﻿//#ifndef MYUTIL_H_INCLUDED
 //#define MYUTIL_H_INCLUDED
 
 #include <ctype.h>

@@ -1,4 +1,4 @@
-#include "myutil.h"
+﻿#include "myutil.h"
 
 int inrange(int arg,int min,int max){
 	return (arg>=min)&&(arg<=max);

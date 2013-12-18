@@ -1,4 +1,4 @@
-#include "pgui.h"
+ï»¿#include "pgui.h"
 
 int GrHandle[10];
 
@@ -10,27 +10,27 @@ extern "C" bool ProcessFrame(void){
 	UpdateSystemVariable();
 	tmp=ProcessMessage();
 	if(tmp)return false;
-	//ˆ—
+	//å‡¦ç†
 	keyboard_special=0;
 	CheckJoypad();
 	switch(panelmode){
 		case PNLMD_OFF:
 			break;
 		case PNLMD_PANEL:
-			//–¢ŽÀ‘•
+			//æœªå®Ÿè£…
 			break;
 		case PNLMD_KYA:case PNLMD_KYM:case PNLMD_KYK:
 			CheckPanel();
 			CheckKey();
 			break;
 		case PNLMD_DIALOG:
-			//–¢ŽÀ‘•
+			//æœªå®Ÿè£…
 			break;
 		default:
 			break;
 	}
 	
-	//•`‰æ
+	//æç”»
 	ClearDrawScreen();
 	//SetDrawScreen(DX_SCREEN_BACK);
 	ProcessBG();
@@ -39,7 +39,7 @@ extern "C" bool ProcessFrame(void){
 			DrawBG();
 			break;
 		case PNLMD_PANEL:
-			//–¢ŽÀ‘•
+			//æœªå®Ÿè£…
 			DrawBG();
 			break;
 		case PNLMD_KYA:case PNLMD_KYM:case PNLMD_KYK:
@@ -61,7 +61,7 @@ extern "C" bool ProcessFrame(void){
 }
 
 extern "C" void LineInput(char* arg){
-	ChangeFont("‚l‚r ƒSƒVƒbƒN");
+	ChangeFont("ï¼­ï¼³ ã‚´ã‚·ãƒƒã‚¯");
 	SetFontSize(16);
 	DrawString(0,192,"?",GetColor(255,255,255));
 	KeyInputSingleCharString(8,192,64,arg,FALSE);
@@ -274,7 +274,7 @@ int Print2Console(char *string,int indent_option){
 		i++;
 	}
 	switch(indent_option){
-		case 0://‰üs
+		case 0://æ”¹è¡Œ
 			if(Psys_CSRY>=23){
 				ScrollConsole();
 				Psys_CSRY--;
@@ -290,9 +290,9 @@ int Print2Console(char *string,int indent_option){
 				}
 			}
 			break;
-		case 1://‰üs‚È‚µ@';'
+		case 1://æ”¹è¡Œãªã—ã€€';'
 			break;
-		case 2://ƒ^ƒu ','
+		case 2://ã‚¿ãƒ– ','
 			while(Psys_CSRX%4!=0)Psys_CSRX++;
 			if(Psys_CSRX>=32){Psys_CSRY++;Psys_CSRX=0;}
 			if(Psys_CSRY>=24){

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "evalformula.h"
 
 struct VARIABLE Variable[VAR_MAX];
@@ -6,7 +6,7 @@ struct VARIABLE Variable[VAR_MAX];
 bool log_en=false;
 int log_en2=false;
 
-//ƒvƒ`ƒRƒ“ƒVƒXƒeƒ€•Ï”(•¶š—ñ)
+//ãƒ—ãƒã‚³ãƒ³ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°(æ–‡å­—åˆ—)
 char Psys_DATE_D[10];	//DATE$
 char Psys_TIME_D[10];	//TIME$
 unsigned char Psys_MEM_D[STR_LEN_MAX];	//MEM$
@@ -45,11 +45,11 @@ int consolecolor;
 int SHandleBEEP[70];
 int SHandleBGM;
 
-struct OP_S op_s[OP_S_MAX];//‰‰ZqƒXƒ^ƒbƒN
-struct CalcStack calc_s[CALC_S_MAX];//ŒvZƒXƒ^ƒbƒN
+struct OP_S op_s[OP_S_MAX];//æ¼”ç®—å­ã‚¹ã‚¿ãƒƒã‚¯
+struct CalcStack calc_s[CALC_S_MAX];//è¨ˆç®—ã‚¹ã‚¿ãƒƒã‚¯
 
-unsigned int op_sl;//ƒXƒ^ƒbƒN‚ÌŒ»İ‚Ì[‚³
-unsigned int calc_sl;//ƒXƒ^ƒbƒN‚ÌŒ»İ‚Ì[‚³
+unsigned int op_sl;//ã‚¹ã‚¿ãƒƒã‚¯ã®ç¾åœ¨ã®æ·±ã•
+unsigned int calc_sl;//ã‚¹ã‚¿ãƒƒã‚¯ã®ç¾åœ¨ã®æ·±ã•
 int error_occured_token;
 struct BGDATA BGData[2][2][64][64];
 bool bgpage;
@@ -77,11 +77,11 @@ enum RunMode runmode;
 
 unsigned char FuncKeyStr[5][STR_LEN_MAX]={"FILES","LOAD\"","SAVE\"","CONT","RUN"};
 
-//ƒL[“ü—Í‚ğ‹L˜^‚·‚éƒoƒbƒtƒ@BƒŠƒ“ƒOƒoƒbƒtƒ@B
+//ã‚­ãƒ¼å…¥åŠ›ã‚’è¨˜éŒ²ã™ã‚‹ãƒãƒƒãƒ•ã‚¡ã€‚ãƒªãƒ³ã‚°ãƒãƒƒãƒ•ã‚¡ã€‚
 unsigned char keybuffer[KEYBUFFER_MAX];
 
-int keybuffer_qhead;//“Ç‚ŞˆÊ’u(ƒLƒ…[æ“ª)
-int keybuffer_qtail;//‘‚­ˆÊ’u(ƒLƒ…[––”ö)
+int keybuffer_qhead;//èª­ã‚€ä½ç½®(ã‚­ãƒ¥ãƒ¼å…ˆé ­)
+int keybuffer_qtail;//æ›¸ãä½ç½®(ã‚­ãƒ¥ãƒ¼æœ«å°¾)
 
 uint16_t translated_source[10000];
 unsigned char* source_ptr;
@@ -717,7 +717,7 @@ int EvalFormula(const int arg,const int argcount){
 			break;
 		case TOKEN_ICONCHK:
 			if(argcount!=0)return ERR_SYNTAX_ERROR;
-			errtmp=PushCalcStack(TYPE_INT_LIT,/*ICON‰Ÿ‚µ‰º‚°ó‘Ô@-1=X 0~3=O*/1*4096,"",0);
+			errtmp=PushCalcStack(TYPE_INT_LIT,/*ICONæŠ¼ã—ä¸‹ã’çŠ¶æ…‹ã€€-1=X 0~3=O*/1*4096,"",0);
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
 			break;
 		case TOKEN_LEN:
@@ -744,7 +744,7 @@ int EvalFormula(const int arg,const int argcount){
 			break;
 		case TOKEN_PI:
 			if(argcount!=0)return ERR_SYNTAX_ERROR;
-			//11.0010010000111110... à 11.00100100001 = 0x3243
+			//11.0010010000111110... â‰’ 11.00100100001 = 0x3243
 			PushCalcStack(TYPE_INT_LIT,0x3243,"",0);
 			break;
 		case TOKEN_RAD:
@@ -808,7 +808,7 @@ int EvalFormula(const int arg,const int argcount){
 			}
 			break;
 		case TOKEN_VAL:
-			//—v’²¸E‰üC
+			//è¦èª¿æŸ»ãƒ»æ”¹ä¿®
 			if(argcount==0)return ERR_MISSING_OPERAND;
 			if(argcount>1)return ERR_SYNTAX_ERROR;
 			if(argtypes[0]!=ATYPE_STR)return ERR_TYPE_MISMATCH;
@@ -835,9 +835,9 @@ int EvalFormula(const int arg,const int argcount){
 						i--;
 					}
 					p+=tmp;
-					//lÌŒÜ“ü“I‚ÈŒø‰Ê‚ª‚ ‚é‚ÆŠú‘Ò
-					//Ø‚èÌ‚Ä‚ç‚ê‚é‚à‚Ì‚É
-					//Å¬•ª‰ğ”\‚Ì1/4096‚Ì1/2‚ğ‘«‚·
+					//å››æ¨äº”å…¥çš„ãªåŠ¹æœãŒã‚ã‚‹ã¨æœŸå¾…
+					//åˆ‡ã‚Šæ¨ã¦ã‚‰ã‚Œã‚‹ã‚‚ã®ã«
+					//æœ€å°åˆ†è§£èƒ½ã®1/4096ã®1/2ã‚’è¶³ã™
 					tmpw+=(1.0/8192.0);
 					tmpw*=4096.0;
 					tmpint+=(int)tmpw;
@@ -900,10 +900,10 @@ int EvalFormula(const int arg,const int argcount){
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
 			break;
 		case TOKEN_INKEY:
-			//—v‰üC
+			//è¦æ”¹ä¿®
 			if(argcount>0)return ERR_SYNTAX_ERROR;
 			if(!ReadKeyBuffer(&tmpc)){
-				//ƒL[“ü—Í‚È‚µ
+				//ã‚­ãƒ¼å…¥åŠ›ãªã—
 				tmpstr[0]=0;
 				errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
@@ -919,7 +919,7 @@ int EvalFormula(const int arg,const int argcount){
 			if(argtypes[2]!=ATYPE_STR || argtypes[1]!=ATYPE_INT || argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
 			tmpints[1]=FloorInt(tmpints[1]);
 			tmpints[0]=FloorInt(tmpints[0]);
-			//failsafe‚µ‚Ä‚Ü‚¹‚ñ@#‚µ‚ë
+			//failsafeã—ã¦ã¾ã›ã‚“ã€€#ã—ã‚
 			if(tmpints[1]<0)return ERR_OUT_OF_RANGE;
 			if(tmpints[0]<0)return ERR_OUT_OF_RANGE;
 			memset(tmpstr,0x00,sizeof(tmpstr));
@@ -940,8 +940,8 @@ int EvalFormula(const int arg,const int argcount){
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
 			break;
 		case TOKEN_BEEP:
-			//ˆø”È—ª‰Â
-			//BEEP ‰¹FA‰¹‚A‰¹—ÊAƒpƒ“
+			//å¼•æ•°çœç•¥å¯
+			//BEEP éŸ³è‰²ã€éŸ³é«˜ã€éŸ³é‡ã€ãƒ‘ãƒ³
 			switch(argcount){
 				case 0:
 					SetFrequencySoundMem(44100,SHandleBEEP[0]);
@@ -1036,7 +1036,7 @@ int EvalFormula(const int arg,const int argcount){
 			memset(consolecolorbuf,0x00,sizeof(consolecolorbuf));
 			break;
 		case TOKEN_LOCATE:
-			//”ÍˆÍŠO‚Å‚àó‚¯•t‚¯‚é
+			//ç¯„å›²å¤–ã§ã‚‚å—ã‘ä»˜ã‘ã‚‹
 			if(argcount<2)return ERR_MISSING_OPERAND;
 			if(argcount>2)return ERR_SYNTAX_ERROR;
 			if(argtypes[1]!=ATYPE_INT || argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
@@ -1216,7 +1216,7 @@ int EvalFormula(const int arg,const int argcount){
 			}
 			break;
 		default:
-			//”z—ñ
+			//é…åˆ—
 			if(arg>=0 && arg<1024){
 				if(argcount==1){
 					tmpints[0]=FloorInt(tmpints[0]);
@@ -1249,7 +1249,7 @@ int EvalFormula(const int arg,const int argcount){
 					return ERR_SYNTAX_ERROR;
 				}
 				break;
-			//”z—ñƒ|ƒCƒ“ƒ^?
+			//é…åˆ—ãƒã‚¤ãƒ³ã‚¿?
 			}else if(arg>=1024 && arg<2048){
 				if(argcount==1){
 					tmpints[0]=FloorInt(tmpints[0]);
