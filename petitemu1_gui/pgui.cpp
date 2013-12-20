@@ -1,6 +1,12 @@
-﻿#include "pgui.h"
+﻿/*===============================================*/
+/* pgui.cpp                                      */
+/*===============================================*/
+
+#include "pgui.h"
 
 int GrHandle[10];
+
+/*===関数定義===*/
 
 extern "C" bool ProcessFrame(void){
 	int tmp=0;

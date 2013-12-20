@@ -1,13 +1,17 @@
-﻿#include "interpreter2.h"
+﻿/*===============================================*/
+/* interpreter2.cpp                              */
+/*===============================================*/
+
+#include "interpreter2.h"
 
 struct ForGosubStack ForGosub_s[FORGOSUB_S_MAX];
 unsigned int ForGosub_sl=0;
 
-int bracket_nest;
-
 #ifdef __cplusplus
 extern "C"{
 #endif
+
+/*===関数定義===*/
 
 char hex2int(const char arg){
 	if(arg>='A' && arg<='F')
@@ -118,7 +122,6 @@ void IncrementSrcPos(void){
 	return;
 }
 
-//演算子スタックの残留を処理
 int ProcessRemainingOperator(void){
 	int argcount=0,errtmp;	
 	uint16_t op=0;

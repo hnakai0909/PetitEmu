@@ -1,7 +1,9 @@
-﻿//#ifndef PFILE_H_INCLUDED
-//#define PFILE_H_INCLUDED
+﻿/*===============================================*/
+/* pfile.h                                       */
+/*===============================================*/
 
-#define _CRT_SECURE_NO_WARNINGS
+#ifndef PFILE_H_INCLUDED
+#define PFILE_H_INCLUDED
 
 #include <Windows.h>
 #include <stdio.h>
@@ -16,12 +18,13 @@
 #ifdef __cplusplus
 extern "C"{
 #endif
-	
-//bool LoadFile_Program(void);
+
+/*===関数プロトタイプ宣言===*/
+//リソースをロード(現在PRGのみ対応)
 int LoadPResource(char restype[6],char filename[8]);
 
 #ifdef __cplusplus
 }
 #endif
 
-//#endif
+#endif

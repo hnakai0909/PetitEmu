@@ -1,4 +1,8 @@
-﻿#include "pinput.h"
+﻿/*===============================================*/
+/* pinput.cpp                                    */
+/*===============================================*/
+
+#include "pinput.h"
 
 /*===関数定義===*/
 
@@ -54,12 +58,12 @@ void CheckPanel(void){
 				break;
 			case PNLMD_PANEL:
 				if(MouseY>=484){
-					tmp2=keyboard_whichkey(MouseX,MouseY-192,&type,&code);
+					tmp2=KeyboardWhichKey(MouseX,MouseY-192,&type,&code);
 				}
 				//未実装
 				break;
 			case PNLMD_KYA:case PNLMD_KYM:case PNLMD_KYK:
-				tmp2=keyboard_whichkey(MouseX,MouseY-192,&type,&code);
+				tmp2=KeyboardWhichKey(MouseX,MouseY-192,&type,&code);
 				if(mousetime==1){
 					type_clickstart=type;
 					code_clickstart=code;
@@ -76,7 +80,7 @@ void CheckPanel(void){
 								}
 								break;
 							case KT_CHAR:
-								tmpc=keychar2char(code,&tmp);
+								tmpc=Keychar2Char(code,&tmp);
 								if(tmpc==0)break;
 								WriteKeyBuffer(tmpc);
 								if(tmp==DAKU_DAKU)WriteKeyBuffer(0xDE);//濁点プッシュ
@@ -90,7 +94,7 @@ void CheckPanel(void){
 									case PKEY_BS:
 										break;
 									case PKEY_TAB:
-										//TABSTEP・現在の文字位置に依存する
+										//本来はTABSTEP・現在の文字位置に依存する
 										WriteKeyBuffer(' ');
 										break;
 									case PKEY_SHIFT:
@@ -187,7 +191,7 @@ void CheckJoypad(void){
 	return;
 }
 
-bool keyboard_whichkey(int x,int y,int* type,int* code){
+bool KeyboardWhichKey(int x,int y,int* type,int* code){
 	*type=KT_NO;
 	*code=PKEY_NO;
 	if(inrange(y,0,15)){
@@ -433,7 +437,7 @@ void CheckKey(void){
 	return;
 }
 
-unsigned char keychar2char(int code,int* daku_flag){
+unsigned char Keychar2Char(int code,int* daku_flag){
 	int i=0;
 	int Table1[256]={
 		PKEY_1		,PKEY_2		,PKEY_3		,PKEY_4	,PKEY_5	,PKEY_6	,PKEY_7	,PKEY_8	,PKEY_9	,PKEY_0	,

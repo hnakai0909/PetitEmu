@@ -1,4 +1,8 @@
-﻿#ifndef PSYSTEM_H_INCLUDED
+﻿/*===============================================*/
+/* psystem.h                                     */
+/*===============================================*/
+
+#ifndef PSYSTEM_H_INCLUDED
 #define PSYSTEM_H_INCLUDED
 
 #define _CRT_SECURE_NO_WARNINGS
@@ -10,9 +14,10 @@
 
 extern "C"{
 
-#include "evalformula.h"
 #include "interpreter2.h"
 #include "pfile.h"
+#include "evalformula.h"
+#include "resource.h"
 
 enum SystemMode{
 	SPLASH=0,
@@ -22,15 +27,21 @@ enum SystemMode{
 	INTERPRETATION
 };
 
-extern enum KeyBoardMode keyboardmode;
-extern unsigned char keybuffer[KEYBUFFER_MAX];
-extern int keybuffer_qhead;//読む位置
-extern int keybuffer_qtail;//書く位置
+/*===関数プロトタイプ宣言===*/
 
+//ウィンドウ初期化処理
 bool InitWindow(void);
+
+//ボタン等用画像初期化処理
 void InitPicture(void);
+
+//音声初期化処理
 void InitSound(void);
-void PSysInit(void);
+
+//グローバル変数初期化等処理
+int PSysInit(void);
+
+//システム初期化処理
 int SystemInit(void);
 
 }

@@ -4,7 +4,7 @@
 
 #include "data.h"
 
-//*===関数定義===*/
+/*===関数定義===*/
 
 uint16_t Char2Code(unsigned char arg){
 	int i;

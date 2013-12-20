@@ -1,8 +1,15 @@
-﻿#include "psystem.h"
+﻿/*===============================================*/
+/* psystem.cpp                                   */
+/*===============================================*/
+
+#include "psystem.h"
 
 enum SystemMode systemmode;
 
+/*===関数定義===*/
+
 bool InitWindow(void){
+	SetWindowIconID(IDI_ICON1);
 	SetGraphMode(512,384,32);
 	SetMainWindowText("PetitEmu ver 0.30");
 	ChangeWindowMode(TRUE);
@@ -30,10 +37,7 @@ void InitSound(void){
 	return;
 }
 
-void PSysInit(void){
-	InitPicture();
-	InitSound();
-
+int PSysInit(void){
 	Psys_CSRX=0x00000000;
 	Psys_CSRY=0x00000000;
 	Psys_FREEMEM=0x00400000;
@@ -82,7 +86,7 @@ void PSysInit(void){
 	memset(srcline_token_count,0x0000,sizeof(srcline_token_count));
 	srclinecount=0;
 	source_ptr=(unsigned char *)malloc(sizeof(unsigned char)*100);//とりあえずmalloc
-    if((source_ptr==NULL)){printf("Can't malloc(init)");return ;}
+    if((source_ptr==NULL)){printf("Can't malloc(init)");return false;}
 	memset(source_ptr,0x00,sizeof(source_ptr));
 	memset(labellist_name,0x00,sizeof(labellist_name));
 	memset(labellist_line,0x00,sizeof(labellist_line));
@@ -90,17 +94,18 @@ void PSysInit(void){
 	labelcount=0;
 	keyboard_special=0;
 	ClearDim();
-	return;
+	memset(consolecharbuf,0x00,sizeof(consolecharbuf));
+	memset(consolecolorbuf,0x00,sizeof(consolecolorbuf));
+	return true;
 }
 
 int SystemInit(void){
-	PSysInit();
-	memset(consolecharbuf,0x00,sizeof(consolecharbuf));
-	memset(consolecolorbuf,0x00,sizeof(consolecolorbuf));
+	InitPicture();
+	InitSound();
+	if(!PSysInit())return false;
     srand((unsigned) time(NULL));
-	// 描画する文字列の文字セットを変更します
 	ChangeFont(FONT_PETITCOM);
 	SetFontSize(8);
 	SetFontThickness(5);
-	return 0;
+	return true;
 }

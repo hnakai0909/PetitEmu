@@ -1,18 +1,18 @@
-﻿#pragma once
+﻿/*===============================================*/
+/* evalformula.cpp                               */
+/*===============================================*/
+
+#pragma once
 #include "evalformula.h"
+
+/*===グローバル変数定義===*/
 
 struct VARIABLE Variable[VAR_MAX];
 
 bool log_en=false;
 int log_en2=false;
 
-//プチコンシステム変数(文字列)
-char Psys_DATE_D[10];	//DATE$
-char Psys_TIME_D[10];	//TIME$
-unsigned char Psys_MEM_D[STR_LEN_MAX];	//MEM$
-
-char consolecharbuf[32][24];
-char consolecolorbuf[32][24];
+//プチコンシステム変数
 int32_t Psys_VERSION=0x1020000;//ver 1.2
 int32_t Psys_TRUE=0x00001000;
 int32_t Psys_FALSE=0x00000000;
@@ -41,7 +41,8 @@ char Psys_DATE[STR_LEN_MAX];
 char Psys_MEM[STR_LEN_MAX];
 
 int consolecolor;
-
+char consolecharbuf[32][24];
+char consolecolorbuf[32][24];
 int SHandleBEEP[70];
 int SHandleBGM;
 
@@ -63,12 +64,12 @@ int bgofs_nowx[2][2];
 int bgofs_nowy[2][2];
 int bgofs_time[2][2];
 
-//BG SP GRP
 unsigned char color_palette[3][256][3];
 
 struct VisibleFlag VisibleFlags={1,1,1,1,1,1};
 
 bool kbd_shift_flag;
+bool kbd_caps_flag;
 
 int button_state;
 enum PanelMode panelmode;
@@ -77,7 +78,6 @@ enum RunMode runmode;
 
 unsigned char FuncKeyStr[5][STR_LEN_MAX]={"FILES","LOAD\"","SAVE\"","CONT","RUN"};
 
-//キー入力を記録するバッファ。リングバッファ。
 unsigned char keybuffer[KEYBUFFER_MAX];
 
 int keybuffer_qhead;//読む位置(キュー先頭)
@@ -104,6 +104,8 @@ BYTE dim_mem[DIM_MAX*STR_LEN_MAX];
 int dim_p;
 int dim_count;
 struct Dimention dim_index[VAR_MAX];
+
+/*===関数定義===*/
 
 int PushOpStack(uint16_t op,int argcount){
 	if(op_sl>=OP_S_MAX)return false;

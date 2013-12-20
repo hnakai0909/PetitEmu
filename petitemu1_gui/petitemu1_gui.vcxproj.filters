@@ -87,9 +87,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="petitemu_s.ico">
-      <Filter>リソース ファイル</Filter>
-    </None>
     <None Include="petitemu.ico">
       <Filter>リソース ファイル</Filter>
     </None>

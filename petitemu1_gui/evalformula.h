@@ -1,4 +1,8 @@
-﻿#ifndef EVALFORMULA_H_INCLUDED
+﻿/*===============================================*/
+/* evalformula.h                                 */
+/*===============================================*/
+
+#ifndef EVALFORMULA_H_INCLUDED
 #define EVALFORMULA_H_INCLUDED
 
 #ifdef __cplusplus
@@ -110,17 +114,19 @@ extern char Psys_TIME[STR_LEN_MAX];
 extern char Psys_DATE[STR_LEN_MAX];
 extern char Psys_MEM[STR_LEN_MAX];
 
-extern int consolecolor;
-extern int SHandleBEEP[70];
-extern int SHandleBGM;
-extern unsigned int calc_sl;//スタックの現在の深さ
-extern unsigned int op_sl;//スタックの現在の深さ
-extern bool kbd_shift_flag;
-extern int button_state;
-extern enum PanelMode panelmode;
-extern enum RunMode runmode;
-extern unsigned char FuncKeyStr[5][STR_LEN_MAX];
-extern int error_occured_token;
+extern int consolecolor;//コンソール文字色
+extern int SHandleBEEP[70];//BEEP音声データハンドル
+extern int SHandleBGM;//BGM音声データハンドル
+extern unsigned int calc_sl;//計算スタックの現在の深さ
+extern unsigned int op_sl;//演算子スタックの現在の深さ
+extern bool kbd_shift_flag;//キーボードシフトフラグ
+extern bool kbd_caps_flag;//キーボードCapslockフラグ
+extern int button_state;//ボタン状態(各ビットに格納)
+extern enum PanelMode panelmode;//下画面の表示
+extern enum RunMode runmode;//実行モード
+extern unsigned char FuncKeyStr[5][STR_LEN_MAX];//ファンクションキー文字列
+extern int error_occured_token;//エラー発生トークン
+//BG用各種状態変数(未使用)
 extern struct BGDATA BGData[2][2][64][64];
 extern bool bgpage;
 extern int bgclip_x_begin[2];
@@ -132,29 +138,29 @@ extern int bgofs_desty[2][2];
 extern int bgofs_nowx[2][2];
 extern int bgofs_nowy[2][2];
 extern int bgofs_time[2][2];
-extern unsigned char color_palette[3][256][3];
-extern struct VisibleFlag VisibleFlags;
-extern unsigned char keybuffer[KEYBUFFER_MAX];
+extern unsigned char color_palette[3][256][3];//BG,スプライト,GRPのパレットデータ(未使用)
+extern struct VisibleFlag VisibleFlags;//VISIBLEで指定された描画/非描画情報
+extern unsigned char keybuffer[KEYBUFFER_MAX];//キー入力バッファ(リングバッファ)
 extern int keybuffer_qhead;//読む位置
 extern int keybuffer_qtail;//書く位置
-extern uint16_t translated_source[10000];
+extern uint16_t translated_source[10000];//内部コードに変換したソースデータ
 extern unsigned char* source_ptr;
-extern uint32_t cur_line;
-extern uint16_t *srcpos;
-extern uint16_t *read_srcpos;
-extern bool read_initialized;
-extern uint32_t srcline_begin_token_pos[10000];
-extern uint32_t srcline_token_count[10000];
-extern uint32_t srclinecount;
-extern char labellist_name[10000][9];
-extern int labellist_line[10000];
-extern int labelcount;
-extern bool breakflag;
+extern uint32_t cur_line;//インタプリタが現在シークしている行
+extern uint16_t *srcpos;//インタプリタのシーク位置
+extern uint16_t *read_srcpos;//READのシーク位置
+extern bool read_initialized;//READ準備完了フラグ
+extern uint32_t srcline_begin_token_pos[10000];//ソースの各行の開始位置
+extern uint32_t srcline_token_count[10000];//ソースの各行の内部コード長
+extern uint32_t srclinecount;//ソースの行数
+extern char labellist_name[10000][9];//ラベル名リスト
+extern int labellist_line[10000];//ラベルのある行リスト
+extern int labelcount;//ラベルの数
+extern bool breakflag;//実行中断フラグ
 extern int keyboard_special;
-extern BYTE dim_mem[DIM_MAX*STR_LEN_MAX];
-extern int dim_p;
-extern int dim_count;
-extern struct Dimention dim_index[VAR_MAX];
+extern BYTE dim_mem[DIM_MAX*STR_LEN_MAX];//配列変数用メモリ空間
+extern int dim_p;//配列変数メモリ先頭ポインタ
+extern int dim_count;//配列変数メモリの空きの先頭
+extern struct Dimention dim_index[VAR_MAX];//配列変数情報
 
 /*===関数プロトタイプ宣言===*/
 
@@ -171,12 +177,23 @@ bool PopCalcStack_intptr(int* arg);
 bool PopCalcStack_strptr(int* arg);
 bool PopCalcStack_void(void);
 
+//配列変数を新規登録/領域確保
 int RegistDim(int VarID,int d1,int d2);
+
+//配列変数データ全消去
 void ClearDim(void);
+
+//内部コードに対応した関数/命令/代入/演算子等を実行
 int EvalFormula(const int arg,const int argcount);
+
+//システム変数のポインタを渡す(数値型/文字列型)
 int* GetSystemVariableIntPtr(uint16_t arg);
 char* GetSystemVariableStrPtr(uint16_t arg);
+
+//システム変数の値の範囲を制限
 void SystemVariableLimitValue(void);
+
+//システム状態変数を更新
 void UpdateSystemVariable(void);
 
 #ifdef __cplusplus

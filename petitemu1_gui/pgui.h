@@ -8,9 +8,9 @@
 #ifdef __cplusplus
 #include "DxLib.h"
 #endif
-#include "data.h"
 #include "evalformula.h"
 #include "pinput.h"
+#include "data.h"
 
 #ifdef __cplusplus
 extern "C" {

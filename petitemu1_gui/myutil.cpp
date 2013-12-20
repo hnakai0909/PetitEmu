@@ -1,6 +1,12 @@
-﻿#include "myutil.h"
+﻿/*===============================================*/
+/* myutil.cpp                                    */
+/*===============================================*/
 
-int inrange(int arg,int min,int max){
+#include "myutil.h"
+
+/*===関数定義===*/
+
+bool inrange(int arg,int min,int max){
 	return (arg>=min)&&(arg<=max);
 }
 
