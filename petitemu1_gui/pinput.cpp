@@ -41,6 +41,7 @@ void CheckPanel(void){
 	unsigned char tmpc=0;
 	static int mousetime=0,type_clickstart=0,code_clickstart=0;
 	mouseinput=!!(GetMouseInput()&MOUSE_INPUT_LEFT);
+	keyboard_special=0;
 	if(mouseinput){
 		Psys_TCHST=1;
 		Psys_TCHTIME++;
@@ -101,7 +102,6 @@ void CheckPanel(void){
 										kbd_shift_flag=(kbd_shift_flag+1)%2;
 										break;
 									case PKEY_ENTER:
-										WriteKeyBuffer(0);
 										break;
 									case PKEY_CAPS:
 										break;
@@ -121,6 +121,7 @@ void CheckPanel(void){
 										//CAPS LOCK はずす
 										break;
 									case PKEY_INS:
+										kbd_insert_flag=(kbd_insert_flag+1)%2;
 										break;
 									case PKEY_DEL:
 										break;
@@ -379,14 +380,30 @@ void CheckKey(void){
 			if((KeyCheckTimeBuf[Table1_2[i]]==0)||(KeyCheckTimeBuf[Table1_2[i]]==KEY_TIME_TO_RENSYA)){
 				switch(Table1_2[i]){
 					/*
-					KEY_INPUT_ESCAPE,
-					KEY_INPUT_INSERT,KEY_INPUT_DELETE,
-					KEY_INPUT_BACK,KEY_INPUT_TAB,KEY_INPUT_RETURN,KEY_INPUT_CAPSLOCK,
 					KEY_INPUT_PGUP,KEY_INPUT_PGDN,KEY_INPUT_HOME,KEY_INPUT_END,
-					KEY_INPUT_UP,KEY_INPUT_LEFT,KEY_INPUT_RIGHT,KEY_INPUT_DOWN,0
 					*/
 					case KEY_INPUT_ESCAPE:
 						breakflag=1;
+						keyboard_special=PKEY_ESC;
+						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+						break;
+					case KEY_INPUT_INSERT:
+						kbd_insert_flag=(kbd_insert_flag+1)%2;
+						keyboard_special=PKEY_INS;
+						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+						break;
+					case KEY_INPUT_DELETE:
+						keyboard_special=PKEY_DEL;
+						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+						break;
+					case KEY_INPUT_BACK:
+						keyboard_special=PKEY_BS;
+						break;
+					case KEY_INPUT_TAB:
+						keyboard_special=PKEY_TAB;
+						break;
+					case KEY_INPUT_CAPSLOCK:
+						keyboard_special=PKEY_CAPS;
 						break;
 					case KEY_INPUT_UP:
 						button_state|=1;
@@ -421,7 +438,7 @@ void CheckKey(void){
 						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
 						break;
 					case KEY_INPUT_RETURN:
-						WriteKeyBuffer(0);
+						keyboard_special=PKEY_ENTER;
 						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
 						break;
 					default:
@@ -480,46 +497,56 @@ unsigned char Keychar2Char(int code,int* daku_flag){
 }
 
 void InputLine(char* arg){
-	int i=0,Cr=0,tmp=0;
-	char *arg_p,*arg_start;
-	char tmpstr[4];
+	int i=0,j=0,cursol=0;
 	int cursol_blink_timer=0;
 	unsigned char tmpc=0;
-	arg_p=arg;
-	arg_start=arg;
-	memset(arg,0x00,64);
-	memset(tmpstr,0x00,sizeof(tmpstr));
-	if(Psys_CSRX!=0){
-		Print2Console("",0);
-	}
-	ConsoleClearLine();
-	// キー入力終了待ちループ
+	memset(arg,0x00,32+1);
 	while(ProcessFrame()){
-		tmpc=0;
-		if(!ReadKeyBuffer(&tmpc)){
-			//キー入力なし、なにもしない
-		}else{
-			// 入力が終了している場合は終了
-			if(tmpc==0)break;
-			if(inrange(arg_p-arg_start,0,31)){
-				*arg_p=tmpc;
-				arg_p++;
-			}
-		}
-		Psys_CSRX=0;
-		if(i==32)Psys_CSRY--;
-		Print2Console(arg,1);
-		ProcessFrame();
-		for(i=0;i<32;i++){
-			if(arg[i]==0){
-				if(cursol_blink_timer<30){
-					DrawBox(i*8,Psys_CSRY*8+5,i*8+7,Psys_CSRY*8+7,GetColor(255,255,255),TRUE);
-				}
-				break;
-			}
+		if(breakflag==1)break;
+		if(cursol_blink_timer<30){
+			DrawBox(cursol*8,(kbd_insert_flag)?(Psys_CSRY*8+5):(Psys_CSRY*8),cursol*8+7,Psys_CSRY*8+7,GetColor(255,255,255),TRUE);
 		}
 		cursol_blink_timer=(cursol_blink_timer+1)%60;
 		WaitVSync(1);
+		tmpc=0;
+		//printf("%d\n",keyboard_special);
+		if(keyboard_special==PKEY_ENTER)break;
+		if(keyboard_special==PKEY_BS){
+			if(cursol>0){
+				for(i=cursol-1;i<31;i++){
+					consolecharbuf[i][Psys_CSRY]=consolecharbuf[i+1][Psys_CSRY];
+				}
+				consolecharbuf[31][Psys_CSRY]=0;
+				cursol--;
+			}
+		}
+		if(keyboard_special==PKEY_DEL){
+			for(i=cursol;i<31;i++){
+				consolecharbuf[i][Psys_CSRY]=consolecharbuf[i+1][Psys_CSRY];
+			}
+			consolecharbuf[31][Psys_CSRY]=0;
+		}
+		if(ReadKeyBuffer(&tmpc)){
+			if((kbd_insert_flag)&&(consolecharbuf[31][Psys_CSRY]==0)){
+				for(i=31;i>cursol;i--){
+					consolecharbuf[i][Psys_CSRY]=consolecharbuf[i-1][Psys_CSRY];
+				}
+			}
+			consolecharbuf[cursol][Psys_CSRY]=tmpc;
+			cursol++;
+		}
+		if(button_state&0x0004)cursol--;
+		if(button_state&0x0008)cursol++;
+		cursol=limitrange(cursol,0,31);
+	}
+	for(i=0;i<32;i++){
+		if(consolecharbuf[i][Psys_CSRY]!=0)break;
+	}
+	for(j=0;(j+i)<32;j++){
+		arg[j]=consolecharbuf[j+i][Psys_CSRY];
+	}
+	for(i=32-i;i<=32;i++){
+		arg[i]=0;	
 	}
 	Print2Console("",0);
 	return;

@@ -38,34 +38,15 @@ void InitSound(void){
 }
 
 int PSysInit(void){
-	Psys_CSRX=0x00000000;
-	Psys_CSRY=0x00000000;
-	Psys_FREEMEM=0x00400000;
-	Psys_ERR=0x00000000;
-	Psys_ERL=0x00000000;
-	Psys_RESULT=0x00000000;
-	Psys_TCHX=0x00000000;
-	Psys_TCHY=0x00000000;
-	Psys_TCHST=0x00000000;
-	Psys_TCHTIME=0x00000000;
-	Psys_MAINCNTL=0x00000000;
-	Psys_MAINCNTH=0x00000000;
-	Psys_TABSTEP=0x00000000;
-	Psys_ICONPUSE=0x00000000;
-	Psys_ICONPAGE=0x00000000;
-	Psys_ICONPMAX=0x00000000;
-	Psys_FUNCNO=0x00000000;
-	Psys_FREEVAR=VAR_MAX*4096;
-	Psys_SYSBEEP=0x00001000;
-	memset(Psys_TIME,0x00,sizeof(Psys_TIME));
-	memset(Psys_DATE,0x00,sizeof(Psys_DATE));
-	memset(Psys_MEM,0x00,sizeof(Psys_MEM));
-
+	InitSystemVariable();
 	consolecolor=0;
 	panelmode=PNLMD_KYA;
 	runmode=RMD_STOP;
 	memset(keybuffer,0x00,sizeof(keybuffer));
-	kbd_shift_flag=0;
+	keyboard_special=0;
+	kbd_shift_flag=false;
+	kbd_capslock_flag=false;
+	kbd_insert_flag=true;
 	keybuffer_qhead=0;
 	keybuffer_qtail=0;
 	memset(BGData,0x00,sizeof(BGData));
@@ -92,7 +73,6 @@ int PSysInit(void){
 	memset(labellist_line,0x00,sizeof(labellist_line));
 	read_srcpos=0;
 	labelcount=0;
-	keyboard_special=0;
 	ClearDim();
 	memset(consolecharbuf,0x00,sizeof(consolecharbuf));
 	memset(consolecolorbuf,0x00,sizeof(consolecolorbuf));

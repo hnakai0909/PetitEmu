@@ -13,22 +13,6 @@ extern "C"{
 
 /*===関数定義===*/
 
-char hex2int(const char arg){
-	if(arg>='A' && arg<='F')
-		return arg-'A'+10;
-	if(arg>='a' && arg<='f')
-		return arg-'a'+10;
-	if(arg>='0' && arg<='9')
-		return arg-'0';
-	return -1;
-}
-
-char dec2int(const char arg){
-	if(arg>='0' && arg<='9')
-		return arg-'0';
-	return -1;
-}
-
 int Str2VarID(const char* arg){
 	int cnt=0;
 	for(cnt=0;cnt<(VAR_MAX-Psys_FREEVAR/4096);cnt++){
@@ -1379,6 +1363,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					state=ST_NEW_STATEMENT;
 					break;
 				case TOKEN_INPUT:
+					//TODO:複数変数の代入
 					srcpos=JumpSpace(srcpos+1);
 					if(*srcpos==Char2Code('"')){
 						errtmp=PushCalcStack(TYPE_FUNC,Char2Code('('),"",0);
@@ -1387,7 +1372,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 						errtmp=PushCalcStack(TYPE_FUNC,Char2Code(')'),"",0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						errtmp=PushCalcStack(TYPE_FUNC,Char2Code('+'),"",0);
+						errtmp=PushCalcStack(TYPE_FUNC,Char2Code('+'),"",2);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 						errtmp=PushCalcStack(TYPE_STR_LIT,0,"?",0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
@@ -1401,29 +1386,40 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					}
 					memset(tmpstr,0x00,sizeof(tmpstr));
 					if(!PopCalcStack_str(tmpstr))return ERR_UNDEFINED;
-					//プロンプト文表示
-					Print2Console(tmpstr,0);
-					tmpint=0;
-					//複雑なので保留
+					tmpint3=0;
 					do{
-						if(tmpint==1)Print2Console("?REDO FROM START",0);
+						if(tmpint3==1)Print2Console("?REDO FROM START",0);
+						Print2Console(tmpstr,0);
 						memset(tmpstr3,0x00,sizeof(tmpstr3));
 						InputLine(tmpstr3);
-						tmpint=1;
-						break;
+						if(breakflag==1)break;
+						if(tmpint3==0)srcpos=GetVarID(srcpos,&tmpint,&errtmp);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						if(Variable[tmpint].isStr){
+							errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
+							if(errtmp!=ERR_NO_ERROR)return errtmp;
+							errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr3,0);
+							if(errtmp!=ERR_NO_ERROR)return errtmp;
+							break;
+						}else{
+							if(isintliteral(tmpstr3)){
+								tmpint2=(int32_t)(atof(tmpstr3)*4096.0);//本来はVAL()を内部的に使用
+								errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
+								if(errtmp!=ERR_NO_ERROR)return errtmp;
+								errtmp=PushCalcStack(TYPE_INT_LIT,tmpint2,"",0);
+								if(errtmp!=ERR_NO_ERROR)return errtmp;
+								break;
+							}
+						}
+						tmpint3=1;
 					}while(1);
-					tmpint=(int32_t)(atof(tmpstr)*4096.0);
-					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					if(breakflag==1)break;
 					srcpos=JumpSpace(srcpos);
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					state=ST_NEW_STATEMENT;
 					break;
 				case TOKEN_LINPUT:
-					//未完
 					memset(tmpstr,0x00,sizeof(tmpstr));
 					tmpstr_p=0;
 					srcpos=JumpSpace(srcpos+1);
@@ -1478,7 +1474,6 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 						memcpy(tmpstr2,tmpstr,tmpint);
 						memcpy(tmpstr3,&tmpstr[tmpint+1],i-tmpint-1);
 						errtmp=LoadPResource(tmpstr2,tmpstr3);
-						//ダイアログ出す？
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 						if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[46],DX_PLAYTYPE_BACK);
 					}

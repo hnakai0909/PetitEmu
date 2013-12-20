@@ -12,7 +12,6 @@ struct VARIABLE Variable[VAR_MAX];
 bool log_en=false;
 int log_en2=false;
 
-//プチコンシステム変数
 int32_t Psys_VERSION=0x1020000;//ver 1.2
 int32_t Psys_TRUE=0x00001000;
 int32_t Psys_FALSE=0x00000000;
@@ -63,33 +62,24 @@ int bgofs_desty[2][2];
 int bgofs_nowx[2][2];
 int bgofs_nowy[2][2];
 int bgofs_time[2][2];
-
 unsigned char color_palette[3][256][3];
-
 struct VisibleFlag VisibleFlags={1,1,1,1,1,1};
-
 bool kbd_shift_flag;
-bool kbd_caps_flag;
-
+bool kbd_capslock_flag;
+bool kbd_insert_flag;
 int button_state;
 enum PanelMode panelmode;
-
 enum RunMode runmode;
-
 unsigned char FuncKeyStr[5][STR_LEN_MAX]={"FILES","LOAD\"","SAVE\"","CONT","RUN"};
-
 unsigned char keybuffer[KEYBUFFER_MAX];
-
 int keybuffer_qhead;//読む位置(キュー先頭)
 int keybuffer_qtail;//書く位置(キュー末尾)
-
 uint16_t translated_source[10000];
 unsigned char* source_ptr;
 uint16_t *srcpos;
 uint32_t cur_line=0;
 uint16_t *read_srcpos=NULL;
 bool read_initialized=false;
-
 uint32_t srcline_begin_token_pos[10000];
 uint32_t srcline_token_count[10000];
 uint32_t srclinecount;
@@ -97,9 +87,7 @@ char labellist_name[10000][9];
 int labellist_line[10000];
 int labelcount;
 bool breakflag=0;
-
 int keyboard_special=0;
-
 BYTE dim_mem[DIM_MAX*STR_LEN_MAX];
 int dim_p;
 int dim_count;
@@ -1363,4 +1351,33 @@ void UpdateSystemVariable(void){
 	Psys_MAINCNTH=(maincount/524288)*4096;
 	if(runmode!=RMD_PRG)Psys_ICONPAGE=0x00000000;
 	return;
+}
+
+void InitSystemVariable(void){
+	Psys_VERSION=0x1020000;//ver 1.2
+	Psys_TRUE=0x00001000;
+	Psys_FALSE=0x00000000;
+	Psys_CANCEL=0xFFFFF000;
+	Psys_CSRX=0x00000000;
+	Psys_CSRY=0x00000000;
+	Psys_FREEMEM=0x00400000;
+	Psys_ERR=0x00000000;
+	Psys_ERL=0x00000000;
+	Psys_RESULT=0x00000000;
+	Psys_TCHX=0x00000000;
+	Psys_TCHY=0x00000000;
+	Psys_TCHST=0x00000000;
+	Psys_TCHTIME=0x00000000;
+	Psys_MAINCNTL=0x00000000;
+	Psys_MAINCNTH=0x00000000;
+	Psys_TABSTEP=0x00000000;
+	Psys_ICONPUSE=0x00000000;
+	Psys_ICONPAGE=0x00000000;
+	Psys_ICONPMAX=0x00000000;
+	Psys_FUNCNO=0x00000000;
+	Psys_FREEVAR=VAR_MAX*4096;
+	Psys_SYSBEEP=0x00001000;
+	memset(Psys_TIME,0x00,sizeof(Psys_TIME));
+	memset(Psys_DATE,0x00,sizeof(Psys_DATE));
+	memset(Psys_MEM,0x00,sizeof(Psys_MEM));
 }

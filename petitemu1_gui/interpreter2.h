@@ -48,8 +48,6 @@ extern struct ForGosubStack ForGosub_s[FORGOSUB_S_MAX];
 extern unsigned int ForGosub_sl;
 
 /*===関数プロトタイプ宣言===*/
-char hex2int(const char arg);
-char dec2int(const char arg);
 
 //変数名を検索し変数IDを返す
 int Str2VarID(const char* arg);

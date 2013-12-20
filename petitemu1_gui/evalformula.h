@@ -120,7 +120,8 @@ extern int SHandleBGM;//BGM音声データハンドル
 extern unsigned int calc_sl;//計算スタックの現在の深さ
 extern unsigned int op_sl;//演算子スタックの現在の深さ
 extern bool kbd_shift_flag;//キーボードシフトフラグ
-extern bool kbd_caps_flag;//キーボードCapslockフラグ
+extern bool kbd_capslock_flag;//キーボードCapslockフラグ
+extern bool kbd_insert_flag;//キーボード挿入(true)/上書き(false)モードフラグ
 extern int button_state;//ボタン状態(各ビットに格納)
 extern enum PanelMode panelmode;//下画面の表示
 extern enum RunMode runmode;//実行モード
@@ -195,6 +196,9 @@ void SystemVariableLimitValue(void);
 
 //システム状態変数を更新
 void UpdateSystemVariable(void);
+
+//システム変数初期化
+void InitSystemVariable(void);
 
 #ifdef __cplusplus
 }

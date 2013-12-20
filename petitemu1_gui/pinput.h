@@ -29,7 +29,7 @@ void CheckPanel(void);
 //ジョイパッド押下状態検出
 void CheckJoypad(void);
 
-//一行入力
+//コンソールから一行入力
 void InputLine(char* arg);
 
 //タッチ座標からキー特定

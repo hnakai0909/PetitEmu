@@ -125,17 +125,17 @@ void DrawKeyboard(void){
 				default:tmp=0;break;
 			}
 			FontTable(tmp,tmpstr);
-			if(inrange(i,0,12))DrawString(i*16+27,51+8+192,tmpstr,GetColor(121,56,251));
-			if(inrange(i,13,28))DrawString((i-13)*16+3,75+8+192,tmpstr,GetColor(121,56,251));
-			if(inrange(i,29,42))DrawString((i-29)*16+27,99+8+192,tmpstr,GetColor(121,56,251));
-			if(inrange(i,43,54))DrawString((i-43)*16+35,123+8+192,tmpstr,GetColor(121,56,251));
+			if(inrange(i,0,12))DrawString(i*16+29,51+8+194,tmpstr,GetColor(121,56,251));
+			if(inrange(i,13,28))DrawString((i-13)*16+5,75+8+194,tmpstr,GetColor(121,56,251));
+			if(inrange(i,29,42))DrawString((i-29)*16+29,99+8+194,tmpstr,GetColor(121,56,251));
+			if(inrange(i,43,54))DrawString((i-43)*16+37,123+8+194,tmpstr,GetColor(121,56,251));
 			if(tmp2==DAKU_DAKU)FontTable(0xDE,tmpstr);
 			if(tmp2==DAKU_HAN)FontTable(0xDF,tmpstr);
 			if(tmp2!=DAKU_NO){
-				if(inrange(i,0,12))DrawString(i*16+27+5,51+8+192,tmpstr,GetColor(121,56,251));
-				if(inrange(i,13,28))DrawString((i-13)*16+3+5,75+8+192,tmpstr,GetColor(121,56,251));
-				if(inrange(i,29,42))DrawString((i-29)*16+27+5,99+8+192,tmpstr,GetColor(121,56,251));
-				if(inrange(i,43,54))DrawString((i-43)*16+35+5,123+8+192,tmpstr,GetColor(121,56,251));
+				if(inrange(i,0,12))DrawString(i*16+27+7,51+8+194,tmpstr,GetColor(121,56,251));
+				if(inrange(i,13,28))DrawString((i-13)*16+3+7,75+8+194,tmpstr,GetColor(121,56,251));
+				if(inrange(i,29,42))DrawString((i-29)*16+27+7,99+8+194,tmpstr,GetColor(121,56,251));
+				if(inrange(i,43,54))DrawString((i-43)*16+35+7,123+8+194,tmpstr,GetColor(121,56,251));
 			}
 		}
 	}
