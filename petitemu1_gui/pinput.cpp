@@ -502,7 +502,7 @@ void InputLine(char* arg){
 	unsigned char tmpc=0;
 	memset(arg,0x00,32+1);
 	while(ProcessFrame()){
-		if(breakflag==1)break;
+		if(breakflag==1 && runmode==RMD_PRG)break;
 		if(cursol_blink_timer<30){
 			DrawBox(cursol*8,(kbd_insert_flag)?(Psys_CSRY*8+5):(Psys_CSRY*8),cursol*8+7,Psys_CSRY*8+7,GetColor(255,255,255),TRUE);
 		}
@@ -539,6 +539,7 @@ void InputLine(char* arg){
 		if(button_state&0x0008)cursol++;
 		cursol=limitrange(cursol,0,31);
 	}
+	if(breakflag==1 && runmode==RMD_PRG)return;
 	for(i=0;i<32;i++){
 		if(consolecharbuf[i][Psys_CSRY]!=0)break;
 	}
