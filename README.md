@@ -4,3 +4,7 @@
 Project of Petit-Computer(ver 1.2 Japan) emulator from full scratch by hnakai
 
 プチコン1.2日本版のフルスクラッチ再現プロジェクト by hnakai
+
+「プチコン」のエミュレーターをフルスクラッチで作るプロジェクトです。
+情報は、いまのところこちらを参照してください：
+http://www55.atwiki.jp/petitemu/
