@@ -52,7 +52,7 @@ uint16_t* GetVarID(uint16_t* p,int* tmpint,int* errtmp){
 	}
 	p_char=Code2Char(*p);
 	if(p_char=='('||p_char=='['){
-		tmpstr[tmpstr_p]=p_char;
+		tmpstr[tmpstr_p]='(';
 		tmpstr_p++;
 		tmpints[0]=Str2VarID(tmpstr);
 		*tmpint=tmpints[0];
@@ -128,15 +128,16 @@ uint16_t* JumpSpace(uint16_t* p){
 
 uint16_t* ForJump(uint16_t* p,int* errtmp){
 	int nest=0;
-	int i=0,f=0;
+	int i=0,f=0,flag=0;
 	*errtmp=ERR_NO_ERROR;
-	for(i=cur_line+1;i<(srclinecount-cur_line-1);i++){
-		p=translated_source+srcline_begin_token_pos[i];
+	for(i=cur_line+1;i<(srclinecount-1);i++){
+		if(flag!=0)p=translated_source+srcline_begin_token_pos[i];
+		flag=1;
 		while(*p!=0x000D && *p!=TOKEN_REM && *p!=TOKEN_REM2){
 			if(*p==TOKEN_FOR)nest++;
 			if(*p==TOKEN_NEXT){
 				if(nest==0){
-					cur_line+=i;
+					cur_line=i;
 					f=1;
 					break;
 				}
@@ -195,7 +196,7 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 			}
 			p_char=Code2Char(*p);
 			if(p_char=='(' || p_char=='['){
-				tmpstr[tmpstr_p]=p_char;
+				tmpstr[tmpstr_p]='(';
 				tmpstr_p++;
 				tmpint=Str2VarID(tmpstr);
 				if((beforetokentype==TYPE_INT_LIT)||(beforetokentype==TYPE_STR_LIT)){
@@ -336,12 +337,16 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 			p=JumpSpace(p);
 			p_char=Code2Char(*p);
 		}else if(p_char=='"'){
+			if((beforetokentype==TYPE_INT_LIT)||(beforetokentype==TYPE_STR_LIT)||(beforetokentype==TYPE_SPECIAL2)){
+				*errtmp=ERR_NO_ERROR;
+				return p;
+			}
 			p++;
 			p_char=Code2Char(*p);
 			memset(tmpstr, 0x00,sizeof(tmpstr));
 			tmpstr_p=0;
 			while((p_char!='"')&&(p_char!=0)){
-				
+
 				//ソースは最大でも一行100文字のため、
 				//ここでSTR_LEN_MAX文字を超えることはない
 				tmpstr[tmpstr_p]=Code2Char(*p);
@@ -484,7 +489,7 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 				beforetokentype=TYPE_FUNC;
 			}
 		}else if(isOperator(*p)){
-			*errtmp=PushCalcStack(TYPE_FUNC,*p,"",2);
+			*errtmp=PushCalcStack(TYPE_FUNC,*p,"",GetOperatorArgCount(*p));
 			if(*errtmp!=ERR_NO_ERROR)return p;
 			p++;p_char=Code2Char(*p);
 			beforetokentype=TYPE_FUNC;
@@ -497,24 +502,25 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 		}else if(isSystemVariable(*p)){
 			tmp=GetSystemVariableType(*p);
 			switch(tmp){
-				case 1:case 2:
-					tmpint=*(GetSystemVariableIntPtr(*p));
-					*errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,"",0);
-					if(*errtmp!=ERR_NO_ERROR)return p;
-					beforetokentype=TYPE_INT_LIT;
-					p++;p_char=Code2Char(*p);
-					break;
-				case 3:case 4:
-					memset(tmpstr,0x00,sizeof(tmpstr));
-					strcpy(tmpstr,GetSystemVariableStrPtr(*p));
-					*errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
-					if(*errtmp!=ERR_NO_ERROR)return p;
-					beforetokentype=TYPE_STR_LIT;
-					p++;p_char=Code2Char(*p);
-					break;
-				default:
-					p++;
-					break;
+			case 1:case 2:
+				tmpint=*(GetSystemVariableIntPtr(*p));
+				if((*p==TOKEN_CSRX)||(*p==TOKEN_CSRY))tmpint*=4096;
+				*errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,"",0);
+				if(*errtmp!=ERR_NO_ERROR)return p;
+				beforetokentype=TYPE_INT_LIT;
+				p++;p_char=Code2Char(*p);
+				break;
+			case 3:case 4:
+				memset(tmpstr,0x00,sizeof(tmpstr));
+				strcpy(tmpstr,GetSystemVariableStrPtr(*p));
+				*errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
+				if(*errtmp!=ERR_NO_ERROR)return p;
+				beforetokentype=TYPE_STR_LIT;
+				p++;p_char=Code2Char(*p);
+				break;
+			default:
+				p++;
+				break;
 			}
 		}else if(*p==0x0020){
 			p++;
@@ -549,7 +555,7 @@ void TranslateRaw2Code(unsigned char* input,uint16_t* output,int *outlen){
 		if(isalpha(c)){
 			i=0;
 			memset(tmpstr, 0x00,sizeof(tmpstr));
-			while((i<8)&&(isalpha(c)||isdigit(c))){
+			while((i<8)&&(isalpha(c)||isdigit(c)||c=='_')){
 				if(islower(inpos[i])){
 					tmpstr[i]=toupper(inpos[i]);
 				}else{
@@ -633,7 +639,7 @@ void TranslateRaw2Code(unsigned char* input,uint16_t* output,int *outlen){
 			srcline_token_count[srclinecount]++;
 			inpos++;
 		}
-		
+
 	};
 	*outpos=0x0000;
 	outpos++;
@@ -862,7 +868,7 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 	int32_t tmpint=0,tmpint3=0;
 	int64_t tmpint2=0;
 	int lastprintmode=0,errtmp=ERR_NO_ERROR;
-	
+
 	int state = ST_LINE_BEGIN;//状態変数
 
 	memset(tmpstr, 0x00,sizeof(tmpstr));
@@ -882,907 +888,898 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 		if(c==0x00){
 			//Code
 			switch(t){
-				case TOKEN_PRINT:case TOKEN_PRINT2:
-					srcpos++;
-					while(srcpos<srcend){
-						srcpos=JumpSpace(srcpos);
-						srcpos=ReadFormula(srcpos,&errtmp);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						errtmp=ProcessRemainingOperator();
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						if(!PopCalcStack_void()){
-							memset(tmpstr,0x00,sizeof(tmpstr));
-							i=PopCalcStack_int(&tmpint);
-							if(i){
-								if(tmpint%4096==0){
-									sprintf(tmpstr,"%d",tmpint/4096);
-								}else{
-									sprintf(tmpstr,"%.3f",(double)(tmpint/4096.0));
-									for(i=strlen(tmpstr)-1;(i!=0)&&(tmpstr[i]=='0');i--){
-										tmpstr[i]=0;
-									}
-									if(tmpstr[i]=='.')tmpstr[i]=0;
-								}
-							}else{
-								i=PopCalcStack_str(tmpstr);
-							}
-							tmpint=0;
-							switch(Code2Char(*srcpos)){
-								case ';':
-									lastprintmode=1;
-									Print2Console(tmpstr,1);
-									srcpos=JumpSpace(srcpos+1);
-									if(*srcpos==0x000D){
-										cur_line++;
-										if(cur_line>=srclinecount)return ERR_NO_ERROR;
-										GOTOLINE(cur_line);
-										tmpint=1;
-									}
-									break;
-								case ',':
-									lastprintmode=2;
-									Print2Console(tmpstr,2);
-									srcpos=JumpSpace(srcpos+1);
-									if(*srcpos==0x000D){
-										cur_line++;
-										if(cur_line>=srclinecount)return ERR_NO_ERROR;
-										GOTOLINE(cur_line);
-										tmpint=1;
-									}
-									break;
-								case '\'':
-									lastprintmode=0;
-									Print2Console(tmpstr,0);
-									cur_line++;
-									if(cur_line>=srclinecount)return ERR_NO_ERROR;
-									GOTOLINE(cur_line);
-									tmpint=1;
-									break;
-								case ':':
-									lastprintmode=0;
-									Print2Console(tmpstr,0);
-									srcpos++;
-									tmpint=1;
-									break;
-								default:
-									lastprintmode=0;
-									Print2Console(tmpstr,0);
-									tmpint=1;
-									if(isalpha(Code2Char(*srcpos)))tmpint=0;
-									break;
-							}
-						}else{
-							Print2Console("",lastprintmode);
-							lastprintmode=0;
-							srcpos++;
-							tmpint=1;
-							//if(isInstruction(*srcpos))return ERR_SYNTAX_ERROR;
-							break;
-						}
-						if(tmpint==1)break;
-					}
-					state=ST_NEW_STATEMENT;
-					break;
-				case TOKEN_DIM:
-					do{
-						srcpos=JumpSpace(srcpos+1);
-						memset(tmpstr,0x00,sizeof(tmpstr));
-						p_char=Code2Char(*srcpos);
-						tmpstr_p=0;
-						while(isalpha(p_char)||(p_char=='_')||(isdigit(p_char))){
-							if((tmpstr_p==0)&&(isdigit(p_char))){
-								return ERR_SYNTAX_ERROR;
-							}
-							if(tmpstr_p>=8)return ERR_STRING_TOO_LONG;
-							tmpstr[tmpstr_p]=toupper(p_char);
-							tmpstr_p++;
-							srcpos++;
-							p_char=Code2Char(*srcpos);
-						}
-						p_char=Code2Char(*srcpos);
-						if(p_char=='$'){
-							tmpstr[tmpstr_p]='$';
-							tmpstr_p++;
-							srcpos++;
-							tmpint2=1;
-						}else{
-							tmpint2=0;
-						}
-						if(Code2Char(*srcpos)=='('){
-							tmpstr[tmpstr_p]='(';
-							tmpstr_p++;
-						}else if(Code2Char(*srcpos)=='['){
-							tmpstr[tmpstr_p]='(';
-							tmpstr_p++;
-						}else{
-							return ERR_SYNTAX_ERROR;
-						}
-						tmpint=Str2VarID(tmpstr);
-						if(tmpint!=-1)return ERR_DUPLICATE_DEFINITION;
-						errtmp=PushCalcStack(TYPE_INT_LIT,tmpint2,"",0);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						errtmp=PushCalcStack(TYPE_FUNC,TOKEN_DIM,"",0);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						srcpos=ReadFormula(srcpos,&errtmp);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						ProcessRemainingOperator();
-					}while(Code2Char(*srcpos)==',');
-					state=ST_NEW_STATEMENT;
-					break;
-				case TOKEN_READ:
-					if(!read_initialized){
-						errtmp=ReadSeekNext();
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-					}
-					do{
-						srcpos=JumpSpace(srcpos+1);
-						srcpos=GetVarID(srcpos,&tmpint,&errtmp);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						read_srcpos=JumpSpace(read_srcpos);
-						p_char=Code2Char(*read_srcpos);
-						tmpint2=1;//符号フラグとして使用
-						if((inrange(p_char,0,127)&&isdigit(p_char))||(p_char=='-')){
-							if(p_char=='-'){
-								tmpint2=-1;
-								read_srcpos++;
-								p_char=Code2Char(*read_srcpos);
-							}
-							cnt=0;
-							tmpint=0;
-							tmpint3=0;
-							while(isdigit(p_char)){
-								if(cnt>=7){
-									return ERR_OVERFLOW;
-								}
-								tmpint=(tmpint*10)+(p_char-'0');
-								read_srcpos++;p_char=Code2Char(*read_srcpos);cnt++;
-							}
-							if(tmpint>=524288){
-								return ERR_OVERFLOW;
-							}
-							tmpint*=4096*tmpint2;
-							if(p_char=='.'){
-								read_srcpos++;
-								p_char=Code2Char(*read_srcpos);
-								tmpw=0;
-								for(cnt=0;isdigit(Code2Char(*(read_srcpos+cnt)))&&(cnt<=6);cnt++);
-								cnt--;
-								tmpint3=cnt;
-								while(cnt>=0){
-									tmpw=((tmpw+(double)(Code2Char(*(read_srcpos+cnt))-'0'))/10.0);
-									cnt--;
-								}
-								read_srcpos+=tmpint3;
-								p_char=Code2Char(*read_srcpos);
-								//切り捨てられるものに最小分解能の1/4096の1/2を足すことで
-								//四捨五入する
-								tmpw+=(1.0/8192.0);
-								tmpw*=4096.0;
-								tmpint+=(int)tmpw;
-								for(;isdigit(Code2Char(*read_srcpos));read_srcpos++);
-								p_char=Code2Char(*read_srcpos);
-							}
-							errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,"",0);
-							if(errtmp!=ERR_NO_ERROR)return errtmp;
-							read_srcpos=JumpSpace(read_srcpos);
-							p_char=Code2Char(*read_srcpos);
-						}else if(p_char=='&'){
-							read_srcpos++;
-							p_char=Code2Char(*read_srcpos);
-							if(toupper(p_char)=='H'){
-								read_srcpos++;
-								p_char=Code2Char(*read_srcpos);
-								tmpint=0;
-								cnt=0;
-								while(isxdigit(p_char)){
-									if(cnt>=5){
-										return ERR_SYNTAX_ERROR;
-									}
-									tmpint=(tmpint<<4)|((p_char<='9')?(p_char-'0'):(toupper(p_char)-'A'+10));
-									read_srcpos++;p_char=Code2Char(*read_srcpos);cnt++;
-								}
-								tmpint*=4096;
-							}else if(toupper(p_char)=='B'){
-								read_srcpos++;
-								p_char=Code2Char(*read_srcpos);
-								tmpint=0;
-								cnt=0;
-								while(isBin(p_char)){
-									if(cnt>=20){
-										return ERR_SYNTAX_ERROR;
-									}
-									tmpint=(tmpint<<1)|(p_char-'0');
-									read_srcpos++;p_char=Code2Char(*read_srcpos);cnt++;
-								}
-								tmpint*=4096;
-							}else{
-								return ERR_SYNTAX_ERROR;
-							}
-							errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,"",0);
-							if(errtmp!=ERR_NO_ERROR)return errtmp;
-							read_srcpos=JumpSpace(read_srcpos);
-							p_char=Code2Char(*read_srcpos);
-						}else if(p_char=='"'){
-							read_srcpos++;
-							p_char=Code2Char(*read_srcpos);
-							memset(tmpstr,0x00,sizeof(tmpstr));
-							tmpstr_p=0;
-							while((p_char!='"')&&(*read_srcpos!=0x0000)&&(*read_srcpos!=0x000D)){
-								//ソースは最大でも一行100文字のため、
-								//ここでSTR_LEN_MAX文字を超えることはない
-								tmpstr[tmpstr_p]=Code2Char(*read_srcpos);
-								tmpstr_p++;
-								read_srcpos++;	
-								p_char=Code2Char(*read_srcpos);
-							}
-							if(p_char=='"'){read_srcpos++;p_char=Code2Char(*read_srcpos);}
-							errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
-							if(errtmp!=ERR_NO_ERROR)return errtmp;
-						}
-						ProcessRemainingOperator();
-						read_srcpos=JumpSpace(read_srcpos);
-						if(Code2Char(*read_srcpos)==','){
-							read_srcpos++;
-						}else{
-							read_initialized=false;
-						}
-						srcpos=JumpSpace(srcpos);
-					}while(Code2Char(*srcpos)==',');
-					state=ST_NEW_STATEMENT;
-					break;
-				case TOKEN_RESTORE:
-					srcpos=JumpSpace(srcpos+1);
-					if(*srcpos!=TOKEN_LABEL && *srcpos!=TOKEN_LABEL2)return ERR_SYNTAX_ERROR;
-					srcpos=JumpSpace(srcpos+1);
-					srcpos=GetLabelName(srcpos,tmpstr,&errtmp);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					tmpint=0;
-					for(i=0;i<labelcount;i++){
-						if(strcmp(labellist_name[i],tmpstr)==0){
-							ReadGotoLine(input,i);
-							tmpint=1;
-							break;
-						}
-					}
-					if(tmpint==0)return ERR_UNDEFINED_LABEL;
-					break;
-				case TOKEN_DATA:
-					cur_line++;
-					if(cur_line>=srclinecount)return ERR_NO_ERROR;
-					GOTOLINE(cur_line);
-					break;
-				case TOKEN_IF:
-					srcpos=JumpSpace(srcpos+1);
+			case TOKEN_PRINT:case TOKEN_PRINT2:
+				srcpos++;
+				while(srcpos<srcend){
+					srcpos=JumpSpace(srcpos);
+					tmpint=Code2Char(*srcpos);
+					if((tmpint==',')||(tmpint==';'))srcpos++;
 					srcpos=ReadFormula(srcpos,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=JumpSpace(srcpos);
-					errtmp=PopCalcStack_int(&tmpint);
-					if(!errtmp)return ERR_UNDEFINED;
-					if(*srcpos==TOKEN_THEN){
-						srcpos=JumpSpace(srcpos+1);
-						if(*srcpos==TOKEN_LABEL || *srcpos==TOKEN_LABEL2){
-							srcpos++;
-							memset(tmpstr,0x00,sizeof(tmpstr));
-							for(i=0;i<8;i++){
-								c=Code2Char(*srcpos);
-								if((c==' ')||(*srcpos==0x000D)||(*srcpos==0x0000)||(*srcpos==':')||(*srcpos=='\''))break;
-								if((c!='_')&&(!isalpha(c))&&(!isdigit(c))){
-									return ERR_SYNTAX_ERROR;
+					if(!PopCalcStack_void()){
+						memset(tmpstr,0x00,sizeof(tmpstr));
+						i=PopCalcStack_int(&tmpint);
+						if(i){
+							if(tmpint%4096==0){
+								sprintf(tmpstr,"%d",tmpint/4096);
+							}else{
+								sprintf(tmpstr,"%.3f",(double)(tmpint/4096.0));
+								for(i=strlen(tmpstr)-1;(i!=0)&&(tmpstr[i]=='0');i--){
+									tmpstr[i]=0;
 								}
-								tmpstr[i]=toupper(c);
-								srcpos++;
+								if(tmpstr[i]=='.')tmpstr[i]=0;
 							}
-							if(tmpint==0){
+						}else{
+							i=PopCalcStack_str(tmpstr);
+						}
+						tmpint=0;
+						switch(Code2Char(*srcpos)){
+						case ';':
+							lastprintmode=1;
+							Print2Console(tmpstr,1);
+							srcpos=JumpSpace(srcpos+1);
+							if(*srcpos==0x000D){
 								cur_line++;
 								if(cur_line>=srclinecount)return ERR_NO_ERROR;
 								GOTOLINE(cur_line);
-								break;
+								tmpint=1;
 							}
-							tmpint2=0;
-							for(i=0;i<labelcount;i++){
-								if(strcmp(labellist_name[i],tmpstr)==0){
-									cur_line=labellist_line[i];
-									GOTOLINE(cur_line);
-									tmpint2=1;
-									break;
-								}
+							break;
+						case ',':
+							lastprintmode=2;
+							Print2Console(tmpstr,2);
+							srcpos=JumpSpace(srcpos+1);
+							if(*srcpos==0x000D){
+								cur_line++;
+								if(cur_line>=srclinecount)return ERR_NO_ERROR;
+								GOTOLINE(cur_line);
+								tmpint=1;
 							}
-							if(tmpint2==0)return ERR_UNDEFINED_LABEL;
 							break;
-						}
-						if(tmpint!=0){
-							state=ST_NEW_STATEMENT;
-							break;
-						}else{
+						case '\'':
+							lastprintmode=0;
+							Print2Console(tmpstr,0);
 							cur_line++;
 							if(cur_line>=srclinecount)return ERR_NO_ERROR;
 							GOTOLINE(cur_line);
+							tmpint=1;
+							break;
+						case ':':
+							lastprintmode=0;
+							Print2Console(tmpstr,0);
+							srcpos++;
+							tmpint=1;
+							break;
+						default:
+							lastprintmode=0;
+							tmpint=1;
+							p_char=Code2Char(*srcpos);
+							if((p_char=='_')||(p_char=='"')||isalpha(p_char)||isdigit(p_char)){
+								Print2Console(tmpstr,1);
+								tmpint=0;
+								lastprintmode=1;
+								break;
+							}
+							Print2Console(tmpstr,0);
+							break;
 						}
-					}else if(*srcpos==TOKEN_GOTO){
+					}else{
+						Print2Console("",lastprintmode);
+						lastprintmode=0;
+						srcpos++;
+						tmpint=1;
+						//if(isInstruction(*srcpos))return ERR_SYNTAX_ERROR;
+						break;
+					}
+					if(tmpint==1)break;
+				}
+				state=ST_NEW_STATEMENT;
+				break;
+			case TOKEN_DIM:
+				do{
+					srcpos=JumpSpace(srcpos+1);
+					memset(tmpstr,0x00,sizeof(tmpstr));
+					p_char=Code2Char(*srcpos);
+					tmpstr_p=0;
+					while(isalpha(p_char)||(p_char=='_')||(isdigit(p_char))){
+						if((tmpstr_p==0)&&(isdigit(p_char))){
+							return ERR_SYNTAX_ERROR;
+						}
+						if(tmpstr_p>=8)return ERR_STRING_TOO_LONG;
+						tmpstr[tmpstr_p]=toupper(p_char);
+						tmpstr_p++;
+						srcpos++;
+						p_char=Code2Char(*srcpos);
+					}
+					p_char=Code2Char(*srcpos);
+					if(p_char=='$'){
+						tmpstr[tmpstr_p]='$';
+						tmpstr_p++;
+						srcpos++;
+						tmpint2=1;
+					}else{
+						tmpint2=0;
+					}
+					if(Code2Char(*srcpos)=='('){
+						tmpstr[tmpstr_p]='(';
+						tmpstr_p++;
+					}else if(Code2Char(*srcpos)=='['){
+						tmpstr[tmpstr_p]='(';
+						tmpstr_p++;
+					}else{
+						return ERR_SYNTAX_ERROR;
+					}
+					tmpint=Str2VarID(tmpstr);
+					if(tmpint!=-1)return ERR_DUPLICATE_DEFINITION;
+					errtmp=PushCalcStack(TYPE_INT_LIT,tmpint2,"",0);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					errtmp=PushCalcStack(TYPE_FUNC,TOKEN_DIM,"",0);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					srcpos=ReadFormula(srcpos,&errtmp);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					ProcessRemainingOperator();
+				}while(Code2Char(*srcpos)==',');
+				state=ST_NEW_STATEMENT;
+				break;
+			case TOKEN_RESTORE:
+				srcpos=JumpSpace(srcpos+1);
+				if(*srcpos!=TOKEN_LABEL && *srcpos!=TOKEN_LABEL2)return ERR_SYNTAX_ERROR;
+				srcpos=JumpSpace(srcpos+1);
+				srcpos=GetLabelName(srcpos,tmpstr,&errtmp);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				tmpint=0;
+				for(i=0;i<labelcount;i++){
+					if(strcmp(labellist_name[i],tmpstr)==0){
+						ReadGotoLine(input,labellist_line[i]);
+						tmpint=1;
+						break;
+					}
+				}
+				if(tmpint==0)return ERR_UNDEFINED_LABEL;
+				break;
+			case TOKEN_DATA:
+				cur_line++;
+				if(cur_line>=srclinecount)return ERR_NO_ERROR;
+				GOTOLINE(cur_line);
+				break;
+			case TOKEN_READ:
+				if(!read_initialized){
+					errtmp=ReadSeekNext();
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+				}
+				do{
+					srcpos=JumpSpace(srcpos+1);
+					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					read_srcpos=JumpSpace(read_srcpos);
+					p_char=Code2Char(*read_srcpos);
+					tmpint2=1;//符号フラグとして使用
+					if(inrange(p_char,'0','9')||(p_char=='-')){
+						if(p_char=='-'){
+							tmpint2=-1;
+							read_srcpos++;
+							p_char=Code2Char(*read_srcpos);
+						}
+						cnt=0;
+						tmpint=0;
+						tmpint3=0;
+						while(isdigit(p_char)){
+							if(cnt>=7){
+								return ERR_OVERFLOW;
+							}
+							tmpint=(tmpint*10)+(p_char-'0');
+							read_srcpos++;p_char=Code2Char(*read_srcpos);cnt++;
+						}
+						if(tmpint>=524288){
+							return ERR_OVERFLOW;
+						}
+						tmpint*=4096*tmpint2;
+						if(p_char=='.'){
+							read_srcpos++;
+							p_char=Code2Char(*read_srcpos);
+							tmpw=0;
+							for(cnt=0;isdigit(Code2Char(*(read_srcpos+cnt)))&&(cnt<=6);cnt++);
+							cnt--;
+							tmpint3=cnt;
+							while(cnt>=0){
+								tmpw=((tmpw+(double)(Code2Char(*(read_srcpos+cnt))-'0'))/10.0);
+								cnt--;
+							}
+							read_srcpos+=tmpint3;
+							p_char=Code2Char(*read_srcpos);
+							//切り捨てられるものに最小分解能の1/4096の1/2を足すことで
+							//四捨五入する
+							tmpw+=(1.0/8192.0);
+							tmpw*=4096.0;
+							tmpint+=(int)tmpw;
+							for(;isdigit(Code2Char(*read_srcpos));read_srcpos++);
+							p_char=Code2Char(*read_srcpos);
+						}
+						errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,"",0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						read_srcpos=JumpSpace(read_srcpos);
+						p_char=Code2Char(*read_srcpos);
+					}else if(p_char=='&'){
+						read_srcpos++;
+						p_char=Code2Char(*read_srcpos);
+						if(toupper(p_char)=='H'){
+							read_srcpos++;
+							p_char=Code2Char(*read_srcpos);
+							tmpint=0;
+							cnt=0;
+							while(isxdigit(p_char)){
+								if(cnt>=5){
+									return ERR_SYNTAX_ERROR;
+								}
+								tmpint=(tmpint<<4)|((p_char<='9')?(p_char-'0'):(toupper(p_char)-'A'+10));
+								read_srcpos++;p_char=Code2Char(*read_srcpos);cnt++;
+							}
+							tmpint*=4096;
+						}else if(toupper(p_char)=='B'){
+							read_srcpos++;
+							p_char=Code2Char(*read_srcpos);
+							tmpint=0;
+							cnt=0;
+							while(isBin(p_char)){
+								if(cnt>=20){
+									return ERR_SYNTAX_ERROR;
+								}
+								tmpint=(tmpint<<1)|(p_char-'0');
+								read_srcpos++;p_char=Code2Char(*read_srcpos);cnt++;
+							}
+							tmpint*=4096;
+						}else{
+							return ERR_SYNTAX_ERROR;
+						}
+						errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,"",0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						read_srcpos=JumpSpace(read_srcpos);
+						p_char=Code2Char(*read_srcpos);
+					}else if(p_char=='"'){
+						read_srcpos++;
+						p_char=Code2Char(*read_srcpos);
+						memset(tmpstr,0x00,sizeof(tmpstr));
+						tmpstr_p=0;
+						while((p_char!='"')&&(*read_srcpos!=0x0000)&&(*read_srcpos!=0x000D)){
+							//ソースは最大でも一行100文字のため、
+							//ここでSTR_LEN_MAX文字を超えることはない
+							tmpstr[tmpstr_p]=Code2Char(*read_srcpos);
+							tmpstr_p++;
+							read_srcpos++;	
+							p_char=Code2Char(*read_srcpos);
+						}
+						if(p_char=='"'){read_srcpos++;p_char=Code2Char(*read_srcpos);}
+						errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+					}
+					ProcessRemainingOperator();
+					read_srcpos=JumpSpace(read_srcpos);
+					if(Code2Char(*read_srcpos)==','){
+						read_srcpos++;
+					}else{
+						read_initialized=false;
+					}
+					srcpos=JumpSpace(srcpos);
+				}while(Code2Char(*srcpos)==',');
+				state=ST_NEW_STATEMENT;
+				break;
+			case TOKEN_TMREAD:
+				srcpos=JumpSpace(srcpos+1);
+				if(*srcpos!=Char2Code('('))return ERR_SYNTAX_ERROR;
+				srcpos=ReadFormula(srcpos,&errtmp);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				errtmp=ProcessRemainingOperator();
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				if(!PopCalcStack_str(tmpstr))return ERR_TYPE_MISMATCH;
+				if(tmpstr[8]!=0)return ERR_SYNTAX_ERROR;
+				for(i=0;i<3;i++){					
+					srcpos=JumpSpace(srcpos);
+					if(*srcpos!=Char2Code(','))return ERR_MISSING_OPERAND;
+					srcpos=JumpSpace(srcpos+1);
+					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					if(inrange(tmpstr[i*3],'0','9')&&inrange(tmpstr[i*3+1],'0','9')&&((i==2)||(tmpstr[i*3+2]==':'))){
+						tmpint=((tmpstr[i*3]-'0')*10+(tmpstr[i*3+1]-'0'))*4096;
+					}else{
+						return ERR_SYNTAX_ERROR;
+					}
+					errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,"",0);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					errtmp=ProcessRemainingOperator();
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+				}
+				srcpos=JumpSpace(srcpos);
+				state=ST_NEW_STATEMENT;
+				break;
+			case TOKEN_DTREAD:
+				srcpos=JumpSpace(srcpos+1);
+				if(*srcpos!=Char2Code('('))return ERR_SYNTAX_ERROR;
+				srcpos=ReadFormula(srcpos,&errtmp);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				errtmp=ProcessRemainingOperator();
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				if(!PopCalcStack_str(tmpstr))return ERR_TYPE_MISMATCH;
+				if(tmpstr[10]!=0)return ERR_SYNTAX_ERROR;
+				for(i=0;i<3;i++){					
+					srcpos=JumpSpace(srcpos);
+					if(*srcpos!=Char2Code(','))return ERR_MISSING_OPERAND;
+					srcpos=JumpSpace(srcpos+1);
+					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					switch(i){
+					case 0:
+						if(
+							inrange(tmpstr[0],'0','9')&&inrange(tmpstr[1],'0','9')&&
+							inrange(tmpstr[2],'0','9')&&inrange(tmpstr[3],'0','9')&&(tmpstr[4]=='/')
+						){
+							tmpint=((tmpstr[0]-'0')*1000+(tmpstr[1]-'0')*100+(tmpstr[2]-'0')*10+(tmpstr[3]-'0'))*4096;
+						}else{
+							return ERR_SYNTAX_ERROR;
+						}
+						break;
+					case 1:
+						if(inrange(tmpstr[5],'0','9')&&inrange(tmpstr[6],'0','9')&&(tmpstr[7]=='/')){
+							tmpint=((tmpstr[5]-'0')*10+(tmpstr[6]-'0'))*4096;
+						}else{
+							return ERR_SYNTAX_ERROR;
+						}
+						break;
+					case 2:
+						if(inrange(tmpstr[8],'0','9')&&inrange(tmpstr[9],'0','9')){
+							tmpint=((tmpstr[8]-'0')*10+(tmpstr[9]-'0'))*4096;
+						}else{
+							return ERR_SYNTAX_ERROR;
+						}
+						break;
+					default:
+						break;
+					}
+					errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,"",0);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					errtmp=ProcessRemainingOperator();
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+				}
+				srcpos=JumpSpace(srcpos);
+				state=ST_NEW_STATEMENT;
+				break;
+			case TOKEN_IF:
+				srcpos=JumpSpace(srcpos+1);
+				srcpos=ReadFormula(srcpos,&errtmp);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				errtmp=ProcessRemainingOperator();
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				srcpos=JumpSpace(srcpos);
+				errtmp=PopCalcStack_int(&tmpint);
+				if(!errtmp)return ERR_TYPE_MISMATCH;
+				if(*srcpos==TOKEN_THEN){
+					srcpos=JumpSpace(srcpos+1);
+					if(*srcpos==TOKEN_LABEL || *srcpos==TOKEN_LABEL2){
+						srcpos++;
+						memset(tmpstr,0x00,sizeof(tmpstr));
+						for(i=0;i<8;i++){
+							c=Code2Char(*srcpos);
+							if((c==' ')||(*srcpos==0x000D)||(*srcpos==0x0000)||(*srcpos==':')||(*srcpos=='\''))break;
+							if((c!='_')&&(!isalpha(c))&&(!isdigit(c))){
+								return ERR_SYNTAX_ERROR;
+							}
+							tmpstr[i]=toupper(c);
+							srcpos++;
+						}
 						if(tmpint==0){
 							cur_line++;
 							if(cur_line>=srclinecount)return ERR_NO_ERROR;
 							GOTOLINE(cur_line);
-						}
-						//式が成り立っている場合は、そのままの状態で次の解析をさせる
-					}else{
-						return ERR_SYNTAX_ERROR;
-					}
-					break;
-				case TOKEN_FOR:
-					memset(ForGosub_s+ForGosub_sl,0x00,sizeof(ForGosub_s+ForGosub_sl));
-					srcpos=JumpSpace(srcpos+1);
-					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					ForGosub_s[ForGosub_sl].VarID=tmpint;
-					if(Code2Char(*srcpos)!='=')return ERR_SYNTAX_ERROR;
-					srcpos=JumpSpace(srcpos+1);
-					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=ReadFormula(srcpos,&errtmp);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=JumpSpace(srcpos);
-					errtmp=ProcessRemainingOperator();
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					//代入処理ここまで
-					if(*srcpos!=TOKEN_TO)return ERR_SYNTAX_ERROR;
-					srcpos=JumpSpace(srcpos+1);
-					ForGosub_s[ForGosub_sl].line=cur_line;
-					ForGosub_s[ForGosub_sl].col=srcpos-input;
-					srcpos=ReadFormula(srcpos,&errtmp);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=JumpSpace(srcpos);
-					errtmp=ProcessRemainingOperator();
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
-					if(*srcpos==Char2Code(':')){
-						srcpos++;
-						if((Variable[ForGosub_s[ForGosub_sl].VarID].value)>tmpint){
-							srcpos=ForJump(srcpos,&errtmp);
-							if(errtmp!=ERR_NO_ERROR)return errtmp;
-						}else{
-							ForGosub_s[ForGosub_sl].step=4096;
-							ForGosub_sl++;
-							state=ST_NEW_STATEMENT;
 							break;
 						}
-					}else if(*srcpos==Char2Code('\'') || *srcpos==0x0000 || *srcpos==0x000D){
-						if((Variable[ForGosub_s[ForGosub_sl].VarID].value)>tmpint){
-							srcpos=ForJump(srcpos,&errtmp);
-							if(errtmp!=ERR_NO_ERROR)return errtmp;
-							break;
-						}else{
-							ForGosub_s[ForGosub_sl].step=4096;
-							ForGosub_sl++;
-							cur_line++;
-							if(cur_line>=srclinecount)return ERR_NO_ERROR;
-							GOTOLINE(cur_line);
-							break;
-						}
-					}
-					if(*srcpos!=TOKEN_STEP)return ERR_SYNTAX_ERROR;
-					srcpos=JumpSpace(srcpos+1);
-					srcpos=ReadFormula(srcpos,&errtmp);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=JumpSpace(srcpos);
-					errtmp=ProcessRemainingOperator();
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
-					if(tmpint>0){
-						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint){
-							srcpos=ForJump(srcpos,&errtmp);
-							if(errtmp!=ERR_NO_ERROR)return errtmp;
-						}
-					}
-					if(tmpint<0){
-						if(Variable[ForGosub_s[ForGosub_sl].VarID].value<tmpint){
-							srcpos=ForJump(srcpos,&errtmp);
-							if(errtmp!=ERR_NO_ERROR)return errtmp;
-						}
-					}
-					ForGosub_s[ForGosub_sl].step=tmpint;
-					ForGosub_sl++;
-					state=ST_NEW_STATEMENT;
-					break;
-				case TOKEN_NEXT:
-					if(ForGosub_sl<=0)return ERR_NEXT_WITHOUT_FOR;
-					ForGosub_sl--;
-					memset(tmpstr,0x00,sizeof(tmpstr));
-					tmpstr_p=0;
-					srcpos=JumpSpace(srcpos+1);
-					while(isalpha(Code2Char(*srcpos))||(Code2Char(*srcpos)=='_')||(isdigit(Code2Char(*srcpos)))){
-						if(tmpstr_p>=8)return ERR_STRING_TOO_LONG;
-						tmpstr[tmpstr_p]=toupper(Code2Char(*srcpos));
-						tmpstr_p++;
-						srcpos++;
-					}
-					if(tmpstr_p!=0){
-						tmpint=Str2VarID(tmpstr);
-						if(tmpint==-1)return ERR_NEXT_WITHOUT_FOR;
-						if(ForGosub_s[ForGosub_sl].VarID!=tmpint)return ERR_NEXT_WITHOUT_FOR;
-					}
-					tmpint=Variable[ForGosub_s[ForGosub_sl].VarID].value;
-					tmpint+=ForGosub_s[ForGosub_sl].step;
-					Variable[ForGosub_s[ForGosub_sl].VarID].value=tmpint;
-					tmppos=srcpos;
-					tmpline=cur_line;
-					srcpos=input+ForGosub_s[ForGosub_sl].col;
-					cur_line=ForGosub_s[ForGosub_sl].line;
-					srcpos=ReadFormula(srcpos,&errtmp);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=JumpSpace(srcpos);
-					errtmp=ProcessRemainingOperator();
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					if(!PopCalcStack_int(&tmpint)){
-						return ERR_SYNTAX_ERROR;
-					}
-					tmpint2=tmpint;
-					if(*srcpos!=TOKEN_STEP){
-						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint){
-							cur_line=tmpline;
-							GOTOLINE(cur_line);
-							srcpos=tmppos;	
-						}else{
-							ForGosub_s[ForGosub_sl].step=4096;
-							ForGosub_sl++;
-						}
-						state=ST_NEW_STATEMENT;
-						break;
-					}
-					srcpos=JumpSpace(srcpos+1);
-					srcpos=ReadFormula(srcpos,&errtmp);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=JumpSpace(srcpos);
-					errtmp=ProcessRemainingOperator();
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
-					if(tmpint>0){
-						if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint2){
-							srcpos=tmppos+1;
-							cur_line=tmpline;
-							state=ST_NEW_STATEMENT;
-							break;
-						}
-					}
-					if(tmpint<0){
-						if(Variable[ForGosub_s[ForGosub_sl].VarID].value<tmpint2){
-							srcpos=tmppos+1;
-							cur_line=tmpline;
-							state=ST_NEW_STATEMENT;
-							break;
-						}
-					}
-					ForGosub_s[ForGosub_sl].step=tmpint;
-					ForGosub_sl++;
-					state=ST_NEW_STATEMENT;
-					break;
-				case TOKEN_INPUT:
-					//TODO:複数変数の代入
-					srcpos=JumpSpace(srcpos+1);
-					if(*srcpos==Char2Code('"')){
-						errtmp=PushCalcStack(TYPE_FUNC,Char2Code('('),"",0);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						srcpos=ReadFormula(srcpos,&errtmp);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						errtmp=PushCalcStack(TYPE_FUNC,Char2Code(')'),"",0);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						errtmp=PushCalcStack(TYPE_FUNC,Char2Code('+'),"",2);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						errtmp=PushCalcStack(TYPE_STR_LIT,0,"?",0);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						errtmp=ProcessRemainingOperator();
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						if(*srcpos!=Char2Code(';'))return ERR_SYNTAX_ERROR;
-						srcpos=JumpSpace(srcpos+1);
-					}else{
-						errtmp=PushCalcStack(TYPE_STR_LIT,0,"?",0);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-					}
-					memset(tmpstr,0x00,sizeof(tmpstr));
-					if(!PopCalcStack_str(tmpstr))return ERR_UNDEFINED;
-					tmpint3=0;
-					do{
-						if(tmpint3==1)Print2Console("?REDO FROM START",0);
-						Print2Console(tmpstr,0);
-						memset(tmpstr3,0x00,sizeof(tmpstr3));
-						InputLine(tmpstr3);
-						if(breakflag==1)break;
-						if(tmpint3==0)srcpos=GetVarID(srcpos,&tmpint,&errtmp);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						if(Variable[tmpint].isStr){
-							errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
-							if(errtmp!=ERR_NO_ERROR)return errtmp;
-							errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr3,0);
-							if(errtmp!=ERR_NO_ERROR)return errtmp;
-							break;
-						}else{
-							if(isintliteral(tmpstr3)){
-								tmpint2=(int32_t)(atof(tmpstr3)*4096.0);//本来はVAL()を内部的に使用
-								errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
-								if(errtmp!=ERR_NO_ERROR)return errtmp;
-								errtmp=PushCalcStack(TYPE_INT_LIT,tmpint2,"",0);
-								if(errtmp!=ERR_NO_ERROR)return errtmp;
+						tmpint2=0;
+						for(i=0;i<labelcount;i++){
+							if(strcmp(labellist_name[i],tmpstr)==0){
+								cur_line=labellist_line[i];
+								GOTOLINE(cur_line);
+								tmpint2=1;
 								break;
 							}
 						}
-						tmpint3=1;
-					}while(1);
-					if(breakflag==1)break;
-					srcpos=JumpSpace(srcpos);
-					errtmp=ProcessRemainingOperator();
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					state=ST_NEW_STATEMENT;
-					break;
-				case TOKEN_LINPUT:
-					memset(tmpstr,0x00,sizeof(tmpstr));
-					tmpstr_p=0;
-					srcpos=JumpSpace(srcpos+1);
-					if(*srcpos==Char2Code('"')){
-						srcpos=ReadFormula(srcpos,&errtmp);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						errtmp=ProcessRemainingOperator();
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						if(*srcpos!=Char2Code(';'))return ERR_SYNTAX_ERROR;
-						srcpos=JumpSpace(srcpos+1);
+						if(tmpint2==0)return ERR_UNDEFINED_LABEL;
+						break;
 					}
-					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
-					if(!Variable[tmpint].isStr)return ERR_TYPE_MISMATCH;
-					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
+					if(tmpint!=0){
+						state=ST_NEW_STATEMENT;
+						break;
+					}else{
+						cur_line++;
+						if(cur_line>=srclinecount)return ERR_NO_ERROR;
+						GOTOLINE(cur_line);
+					}
+				}else if(*srcpos==TOKEN_GOTO){
+					if(tmpint==0){
+						cur_line++;
+						if(cur_line>=srclinecount)return ERR_NO_ERROR;
+						GOTOLINE(cur_line);
+					}
+					//式が成り立っている場合は、そのままの状態で次の解析をさせる
+				}else{
+					return ERR_SYNTAX_ERROR;
+				}
+				break;
+			case TOKEN_FOR:
+				memset(ForGosub_s+ForGosub_sl,0x00,sizeof(ForGosub_s+ForGosub_sl));
+				srcpos=JumpSpace(srcpos+1);
+				srcpos=GetVarID(srcpos,&tmpint,&errtmp);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				ForGosub_s[ForGosub_sl].VarID=tmpint;
+				if(Code2Char(*srcpos)!='=')return ERR_SYNTAX_ERROR;
+				srcpos=JumpSpace(srcpos+1);
+				errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				srcpos=ReadFormula(srcpos,&errtmp);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				srcpos=JumpSpace(srcpos);
+				errtmp=ProcessRemainingOperator();
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				//代入処理ここまで
+				if(*srcpos!=TOKEN_TO)return ERR_SYNTAX_ERROR;
+				srcpos=JumpSpace(srcpos+1);
+				ForGosub_s[ForGosub_sl].line=cur_line;
+				ForGosub_s[ForGosub_sl].col=srcpos-input;
+				srcpos=ReadFormula(srcpos,&errtmp);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				srcpos=JumpSpace(srcpos);
+				errtmp=ProcessRemainingOperator();
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
+				if(*srcpos==Char2Code(':')){
+					srcpos++;
+					if((Variable[ForGosub_s[ForGosub_sl].VarID].value)>tmpint){
+						srcpos=ForJump(srcpos,&errtmp);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+					}else{
+						ForGosub_s[ForGosub_sl].step=4096;
+						ForGosub_sl++;
+						state=ST_NEW_STATEMENT;
+						break;
+					}
+				}else if(*srcpos==Char2Code('\'') || *srcpos==0x0000 || *srcpos==0x000D){
+					if((Variable[ForGosub_s[ForGosub_sl].VarID].value)>tmpint){
+						srcpos=ForJump(srcpos,&errtmp);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						break;
+					}else{
+						ForGosub_s[ForGosub_sl].step=4096;
+						ForGosub_sl++;
+						cur_line++;
+						if(cur_line>=srclinecount)return ERR_NO_ERROR;
+						GOTOLINE(cur_line);
+						break;
+					}
+				}
+				tmpint3=tmpint;
+				if(*srcpos!=TOKEN_STEP)return ERR_SYNTAX_ERROR;
+				srcpos=JumpSpace(srcpos+1);
+				srcpos=ReadFormula(srcpos,&errtmp);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				srcpos=JumpSpace(srcpos);
+				errtmp=ProcessRemainingOperator();
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
+				if(tmpint>0){
+					if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint3){
+						srcpos=ForJump(srcpos,&errtmp);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+					}
+				}
+				if(tmpint<0){
+					if(Variable[ForGosub_s[ForGosub_sl].VarID].value<tmpint3){
+						srcpos=ForJump(srcpos,&errtmp);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+					}
+				}
+				ForGosub_s[ForGosub_sl].step=tmpint;
+				ForGosub_sl++;
+				state=ST_NEW_STATEMENT;
+				break;
+			case TOKEN_NEXT:
+				if(ForGosub_sl<=0)return ERR_NEXT_WITHOUT_FOR;
+				ForGosub_sl--;
+				memset(tmpstr,0x00,sizeof(tmpstr));
+				tmpstr_p=0;
+				srcpos=JumpSpace(srcpos+1);
+				while(isalpha(Code2Char(*srcpos))||(Code2Char(*srcpos)=='_')||(isdigit(Code2Char(*srcpos)))){
+					if(tmpstr_p>=8)return ERR_STRING_TOO_LONG;
+					tmpstr[tmpstr_p]=toupper(Code2Char(*srcpos));
+					tmpstr_p++;
+					srcpos++;
+				}
+				if(tmpstr_p!=0){
+					tmpint=Str2VarID(tmpstr);
+					if(tmpint==-1)return ERR_NEXT_WITHOUT_FOR;
+					if(ForGosub_s[ForGosub_sl].VarID!=tmpint)return ERR_NEXT_WITHOUT_FOR;
+				}
+				tmpint=Variable[ForGosub_s[ForGosub_sl].VarID].value;
+				tmpint+=ForGosub_s[ForGosub_sl].step;
+				Variable[ForGosub_s[ForGosub_sl].VarID].value=tmpint;
+				tmppos=srcpos;
+				tmpline=cur_line;
+				srcpos=input+ForGosub_s[ForGosub_sl].col;
+				cur_line=ForGosub_s[ForGosub_sl].line;
+				srcpos=ReadFormula(srcpos,&errtmp);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				srcpos=JumpSpace(srcpos);
+				errtmp=ProcessRemainingOperator();
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				if(!PopCalcStack_int(&tmpint)){
+					return ERR_SYNTAX_ERROR;
+				}
+				tmpint2=tmpint;
+				if(*srcpos!=TOKEN_STEP){
+					if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint){
+						cur_line=tmpline;
+						GOTOLINE(cur_line);
+						srcpos=tmppos;	
+					}else{
+						ForGosub_s[ForGosub_sl].step=4096;
+						ForGosub_sl++;
+					}
+					state=ST_NEW_STATEMENT;
+					break;
+				}
+				srcpos=JumpSpace(srcpos+1);
+				srcpos=ReadFormula(srcpos,&errtmp);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				srcpos=JumpSpace(srcpos);
+				errtmp=ProcessRemainingOperator();
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
+				if(tmpint>0){
+					if(Variable[ForGosub_s[ForGosub_sl].VarID].value>tmpint2){
+						srcpos=tmppos+1;
+						cur_line=tmpline;
+						state=ST_NEW_STATEMENT;
+						break;
+					}
+				}
+				if(tmpint<0){
+					if(Variable[ForGosub_s[ForGosub_sl].VarID].value<tmpint2){
+						srcpos=tmppos+1;
+						cur_line=tmpline;
+						state=ST_NEW_STATEMENT;
+						break;
+					}
+				}
+				ForGosub_s[ForGosub_sl].step=tmpint;
+				ForGosub_sl++;
+				state=ST_NEW_STATEMENT;
+				break;
+			case TOKEN_INPUT:
+				//TODO:複数変数の代入
+				srcpos=JumpSpace(srcpos+1);
+				if(*srcpos==Char2Code('"')){
+					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('('),"",0);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=JumpSpace(srcpos);
-					memset(tmpstr,0x00,sizeof(tmpstr));
-					InputLine(tmpstr);
-					errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
+					srcpos=ReadFormula(srcpos,&errtmp);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					errtmp=PushCalcStack(TYPE_FUNC,Char2Code(')'),"",0);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('+'),"",2);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					errtmp=PushCalcStack(TYPE_STR_LIT,0,"?",0);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					state=ST_NEW_STATEMENT;
-					break;
-				case TOKEN_LOAD:
+					if(*srcpos!=Char2Code(';'))return ERR_SYNTAX_ERROR;
 					srcpos=JumpSpace(srcpos+1);
+				}else{
+					errtmp=PushCalcStack(TYPE_STR_LIT,0,"?",0);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+				}
+				memset(tmpstr,0x00,sizeof(tmpstr));
+				if(!PopCalcStack_str(tmpstr))return ERR_UNDEFINED;
+				tmpint3=0;
+				do{
+					if(tmpint3==1)Print2Console("?REDO FROM START",0);
+					Print2Console(tmpstr,0);
+					memset(tmpstr3,0x00,sizeof(tmpstr3));
+					InputLine(tmpstr3);
+					if(breakflag==1)break;
+					if(tmpint3==0)srcpos=GetVarID(srcpos,&tmpint,&errtmp);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					if(Variable[tmpint].isStr){
+						errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr3,0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						break;
+					}else{
+						if(isintliteral(tmpstr3)){
+							tmpint2=(int32_t)(atof(tmpstr3)*4096.0);//本来はVAL()を内部的に使用
+							errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
+							if(errtmp!=ERR_NO_ERROR)return errtmp;
+							errtmp=PushCalcStack(TYPE_INT_LIT,tmpint2,"",0);
+							if(errtmp!=ERR_NO_ERROR)return errtmp;
+							break;
+						}
+					}
+					tmpint3=1;
+				}while(1);
+				if(breakflag==1)break;
+				srcpos=JumpSpace(srcpos);
+				errtmp=ProcessRemainingOperator();
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				state=ST_NEW_STATEMENT;
+				break;
+			case TOKEN_LINPUT:
+				memset(tmpstr,0x00,sizeof(tmpstr));
+				tmpstr_p=0;
+				srcpos=JumpSpace(srcpos+1);
+				if(*srcpos==Char2Code('"')){
 					srcpos=ReadFormula(srcpos,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=JumpSpace(srcpos);
-					errtmp=PopCalcStack_str(tmpstr);
-					if(!errtmp)return ERR_SYNTAX_ERROR;
-					c2=strchr(tmpstr,':');
-					if(c2==NULL){
-						if(strlen(tmpstr)>8)return ERR_ILLEGAL_FUNCTION_CALL;
-						for(i=0;tmpstr[i]!=0;i++){
-							if((!isupper(tmpstr[i]))&&(!isdigit(tmpstr[i]))&&(tmpstr[i]!='_'))return ERR_ILLEGAL_FUNCTION_CALL;
-						}
-						errtmp=LoadPResource("PRG",tmpstr);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;						   
-						if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[46],DX_PLAYTYPE_BACK);
+					if(*srcpos!=Char2Code(';'))return ERR_SYNTAX_ERROR;
+					srcpos=JumpSpace(srcpos+1);
+				}
+				srcpos=GetVarID(srcpos,&tmpint,&errtmp);
+				if(!Variable[tmpint].isStr)return ERR_TYPE_MISMATCH;
+				errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				srcpos=JumpSpace(srcpos);
+				memset(tmpstr,0x00,sizeof(tmpstr));
+				InputLine(tmpstr);
+				errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				errtmp=ProcessRemainingOperator();
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				state=ST_NEW_STATEMENT;
+				break;
+			case TOKEN_LOAD:
+				srcpos=JumpSpace(srcpos+1);
+				srcpos=ReadFormula(srcpos,&errtmp);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				errtmp=ProcessRemainingOperator();
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				srcpos=JumpSpace(srcpos);
+				errtmp=PopCalcStack_str(tmpstr);
+				if(!errtmp)return ERR_SYNTAX_ERROR;
+				c2=strchr(tmpstr,':');
+				if(c2==NULL){
+					if(strlen(tmpstr)>8)return ERR_ILLEGAL_FUNCTION_CALL;
+					for(i=0;tmpstr[i]!=0;i++){
+						if((!isupper(tmpstr[i]))&&(!isdigit(tmpstr[i]))&&(tmpstr[i]!='_'))return ERR_ILLEGAL_FUNCTION_CALL;
+					}
+					errtmp=LoadPResource("PRG",tmpstr);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;						   
+					if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[46],DX_PLAYTYPE_BACK);
+					break;
+				}else{
+					for(i=0;tmpstr[i]!=':';i++){
+						if((i>6)||((!isupper(tmpstr[i]))&&(!isdigit(tmpstr[i]))))return ERR_ILLEGAL_RESOURCE_TYPE;
+					}
+					tmpint=i;
+					for(i++;tmpstr[i]!=0;i++){
+						if((i>8)||((!isupper(tmpstr[i]))&&(!isdigit(tmpstr[i]))))return ERR_ILLEGAL_FUNCTION_CALL;
+					}
+					memcpy(tmpstr2,tmpstr,tmpint);
+					memcpy(tmpstr3,&tmpstr[tmpint+1],i-tmpint-1);
+					errtmp=LoadPResource(tmpstr2,tmpstr3);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[46],DX_PLAYTYPE_BACK);
+				}
+				break;
+			case TOKEN_RUN:
+				if(!interactive_flag)return ERR_ILLEGAL_FUNCTION_CALL;
+				*runflag=1;
+				return ERR_NO_ERROR;
+				break;
+			case TOKEN_NEW:
+				if(!interactive_flag)return ERR_ILLEGAL_FUNCTION_CALL;
+				memset(srcline_begin_token_pos,0x0000,sizeof(srcline_begin_token_pos));
+				memset(srcline_token_count,0x0000,sizeof(srcline_token_count));
+				srclinecount=0;
+				memset(source_ptr,0x0000,sizeof(source_ptr));
+				memset(translated_source,0x0000,sizeof(translated_source));
+				return ERR_NO_ERROR;
+				break;
+			case TOKEN_GOTO:
+				srcpos=JumpSpace(srcpos+1);
+				if(*srcpos!=TOKEN_LABEL && *srcpos!=TOKEN_LABEL2)return ERR_SYNTAX_ERROR;
+				srcpos=JumpSpace(srcpos+1);
+				srcpos=GetLabelName(srcpos,tmpstr,&errtmp);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				tmpint=0;
+				for(i=0;i<labelcount;i++){
+					if(strcmp(labellist_name[i],tmpstr)==0){
+						cur_line=labellist_line[i];
+						GOTOLINE(cur_line);
+						tmpint=1;
 						break;
-					}else{
-						for(i=0;tmpstr[i]!=':';i++){
-							if((i>6)||((!isupper(tmpstr[i]))&&(!isdigit(tmpstr[i]))))return ERR_ILLEGAL_RESOURCE_TYPE;
-						}
-						tmpint=i;
-						for(i++;tmpstr[i]!=0;i++){
-							if((i>8)||((!isupper(tmpstr[i]))&&(!isdigit(tmpstr[i]))))return ERR_ILLEGAL_FUNCTION_CALL;
-						}
-						memcpy(tmpstr2,tmpstr,tmpint);
-						memcpy(tmpstr3,&tmpstr[tmpint+1],i-tmpint-1);
-						errtmp=LoadPResource(tmpstr2,tmpstr3);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[46],DX_PLAYTYPE_BACK);
+					}
+				}
+				if(tmpint==0)return ERR_UNDEFINED_LABEL;
+				break;
+			case TOKEN_GOSUB:
+				srcpos=JumpSpace(srcpos+1);
+				if(*srcpos!=TOKEN_LABEL && *srcpos!=TOKEN_LABEL2)return ERR_SYNTAX_ERROR;
+				srcpos=JumpSpace(srcpos+1);
+				memset(tmpstr,0x00,sizeof(tmpstr));
+				for(i=0;i<8;i++){
+					c=Code2Char(*srcpos);
+					if((c==' ')||(*srcpos==0x000D)||(*srcpos==0x0000)||(c==':')||(c=='\''))break;
+					if((c!='_')&&(!isalpha(c))&&(!isdigit(c))){
+						return ERR_SYNTAX_ERROR;
+					}
+					tmpstr[i]=toupper(c);
+					srcpos++;
+				}
+				tmpint=0;
+				for(i=0;i<labelcount;i++){
+					if(strcmp(labellist_name[i],tmpstr)==0){
+						ForGosub_s[ForGosub_sl].col=srcpos-input;
+						ForGosub_s[ForGosub_sl].line=cur_line;
+						cur_line=labellist_line[i];
+						GOTOLINE(cur_line);
+						ForGosub_sl++;
+						tmpint=1;
+						break;
+					}
+				}
+				if(tmpint==0)return ERR_UNDEFINED_LABEL;
+				break;
+			case TOKEN_ON:
+				srcpos=JumpSpace(srcpos+1);
+				srcpos=ReadFormula(srcpos,&errtmp);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
+				tmpint=FloorInt(tmpint);
+				if(tmpint<0){
+					while((*srcpos!=0x0000)&&(*srcpos!=0x000D)&&(c!=':')&&(c!='\'')){
+						srcpos++;
+						c=Code2Char(*srcpos);
 					}
 					break;
-				case TOKEN_RUN:
-					if(!interactive_flag)return ERR_ILLEGAL_FUNCTION_CALL;
-					*runflag=1;
-					return ERR_NO_ERROR;
-					break;
-				case TOKEN_NEW:
-					if(!interactive_flag)return ERR_ILLEGAL_FUNCTION_CALL;
-					memset(srcline_begin_token_pos,0x0000,sizeof(srcline_begin_token_pos));
-					memset(srcline_token_count,0x0000,sizeof(srcline_token_count));
-					srclinecount=0;
-					memset(source_ptr,0x0000,sizeof(source_ptr));
-					memset(translated_source,0x0000,sizeof(translated_source));
-					return ERR_NO_ERROR;
-					break;
-				case TOKEN_GOTO:
-					srcpos=JumpSpace(srcpos+1);
-					if(*srcpos!=TOKEN_LABEL && *srcpos!=TOKEN_LABEL2)return ERR_SYNTAX_ERROR;
-					srcpos=JumpSpace(srcpos+1);
-					srcpos=GetLabelName(srcpos,tmpstr,&errtmp);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					tmpint=0;
-					for(i=0;i<labelcount;i++){
-						if(strcmp(labellist_name[i],tmpstr)==0){
+				}
+				srcpos=JumpSpace(srcpos);
+				tmpint2=0;
+				if(*srcpos==TOKEN_GOTO)tmpint2=1;
+				if(*srcpos==TOKEN_GOSUB){
+					tmpint2=2;
+				}
+				if(tmpint2==0)return ERR_SYNTAX_ERROR;
+				if(tmpint>0){
+					for(i=0;i<tmpint;i++){
+						if(i!=0)srcpos++;
+						while(1){
+							c=Code2Char(*srcpos);
+							if(c==',')break;
+							if((*srcpos==0x0000)||(*srcpos==0x000D)||(c==':')||(c=='\'')){
+								tmpint2=0;
+								break;
+							}
+							srcpos++;
+						}
+					}
+				}
+				if(tmpint2==0)break;
+				srcpos=JumpSpace(srcpos+1);
+				if(*srcpos!=TOKEN_LABEL && *srcpos!=TOKEN_LABEL2)return ERR_SYNTAX_ERROR;
+				srcpos=JumpSpace(srcpos+1);
+				memset(tmpstr,0x00,sizeof(tmpstr));
+				for(i=0;i<8;i++){
+					c=Code2Char(*srcpos);
+					if((c==' ')||(*srcpos==0x000D)||(*srcpos==0x0000)||(c==':')||(c=='\'')||(c==','))break;
+					if((c!='_')&&(!isalnum(c))){
+						return ERR_SYNTAX_ERROR;
+					}
+					tmpstr[i]=toupper(c);
+					srcpos++;
+				}
+				tmpint=0;
+				for(i=0;i<labelcount;i++){
+					if(strcmp(labellist_name[i],tmpstr)==0){
+						if(tmpint2==1){//GOTO
 							cur_line=labellist_line[i];
 							GOTOLINE(cur_line);
 							tmpint=1;
 							break;
-						}
-					}
-					if(tmpint==0)return ERR_UNDEFINED_LABEL;
-					break;
-				case TOKEN_GOSUB:
-					srcpos=JumpSpace(srcpos+1);
-					if(*srcpos!=TOKEN_LABEL && *srcpos!=TOKEN_LABEL2)return ERR_SYNTAX_ERROR;
-					srcpos=JumpSpace(srcpos+1);
-					memset(tmpstr,0x00,sizeof(tmpstr));
-					for(i=0;i<8;i++){
-						c=Code2Char(*srcpos);
-						if((c==' ')||(*srcpos==0x000D)||(*srcpos==0x0000)||(c==':')||(c=='\''))break;
-						if((c!='_')&&(!isalpha(c))&&(!isdigit(c))){
-							return ERR_SYNTAX_ERROR;
-						}
-						tmpstr[i]=toupper(c);
-						srcpos++;
-					}
-					tmpint=0;
-					for(i=0;i<labelcount;i++){
-						if(strcmp(labellist_name[i],tmpstr)==0){
+						}else if(tmpint2==2){//GOSUB
+							while(1){
+								if(*srcpos==0x000D || *srcpos==0x0000 || *srcpos==Char2Code(':'))break;
+								if(Code2Char(*srcpos)==0 && (*srcpos!=TOKEN_LABEL && *srcpos!=TOKEN_LABEL2))break;
+								srcpos++;
+							}
 							ForGosub_s[ForGosub_sl].col=srcpos-input;
 							ForGosub_s[ForGosub_sl].line=cur_line;
 							cur_line=labellist_line[i];
 							GOTOLINE(cur_line);
 							ForGosub_sl++;
 							tmpint=1;
+							state=ST_NEW_STATEMENT;
 							break;
 						}
 					}
-					if(tmpint==0)return ERR_UNDEFINED_LABEL;
-					break;
-				case TOKEN_ON:
-					srcpos=JumpSpace(srcpos+1);
-					srcpos=ReadFormula(srcpos,&errtmp);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					if(!PopCalcStack_int(&tmpint))return ERR_SYNTAX_ERROR;
-					tmpint=FloorInt(tmpint);
-					if(tmpint<0){
-						while((*srcpos!=0x0000)&&(*srcpos!=0x000D)&&(c!=':')&&(c!='\'')){
-							srcpos++;
-							c=Code2Char(*srcpos);
-						}
-						break;
-					}
-					srcpos=JumpSpace(srcpos);
-					tmpint2=0;
-					if(*srcpos==TOKEN_GOTO)tmpint2=1;
-					if(*srcpos==TOKEN_GOSUB){
-						tmpint2=2;
-					}
-					if(tmpint2==0)return ERR_SYNTAX_ERROR;
-					if(tmpint>0){
-						for(i=0;i<tmpint;i++){
-							if(i!=0)srcpos++;
-							while(1){
-								c=Code2Char(*srcpos);
-								if(c==',')break;
-								if((*srcpos==0x0000)||(*srcpos==0x000D)||(c==':')||(c=='\'')){
-									tmpint2=0;
-									break;
-								}
-								srcpos++;
-							}
-						}
-					}
-					if(tmpint2==0)break;
-					srcpos=JumpSpace(srcpos+1);
-					if(*srcpos!=TOKEN_LABEL && *srcpos!=TOKEN_LABEL2)return ERR_SYNTAX_ERROR;
-					srcpos=JumpSpace(srcpos+1);
-					memset(tmpstr,0x00,sizeof(tmpstr));
-					for(i=0;i<8;i++){
-						c=Code2Char(*srcpos);
-						if((c==' ')||(*srcpos==0x000D)||(*srcpos==0x0000)||(c==':')||(c=='\'')||(c==','))break;
-						if((c!='_')&&(!isalnum(c))){
-							return ERR_SYNTAX_ERROR;
-						}
-						tmpstr[i]=toupper(c);
+				}
+				if(tmpint==0)return ERR_UNDEFINED_LABEL;
+				break;
+			case TOKEN_RETURN:
+				if(ForGosub_sl<=0)return ERR_RETURN_WITHOUT_GOSUB;
+				ForGosub_sl--;
+				srcpos=input+ForGosub_s[ForGosub_sl].col;
+				cur_line=ForGosub_s[ForGosub_sl].line;
+				srcpos=JumpSpace(srcpos);
+				state=ST_NEW_STATEMENT;
+				break;
+			case TOKEN_LABEL:case TOKEN_LABEL2:
+				cur_line++;
+				if(cur_line>=srclinecount)return ERR_NO_ERROR;
+				GOTOLINE(cur_line);
+				break;
+			case TOKEN_END:
+				return ERR_NO_ERROR;
+			case TOKEN_STOP:
+				breakflag=1;
+				return ERR_NO_ERROR;
+			default:
+				if(isInstruction(t)){
+					if(isNoArgInstruction(t)){
+						errtmp=PushCalcStack(TYPE_FUNC,t,"",0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						errtmp=PushCalcStack(TYPE_VOID,0,"",0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						ProcessRemainingOperator();
 						srcpos++;
-					}
-					tmpint=0;
-					for(i=0;i<labelcount;i++){
-						if(strcmp(labellist_name[i],tmpstr)==0){
-							if(tmpint2==1){//GOTO
-								cur_line=labellist_line[i];
-								GOTOLINE(cur_line);
-								tmpint=1;
-								break;
-							}else if(tmpint2==2){//GOSUB
-								while(1){
-									if(*srcpos==0x000D || *srcpos==0x0000 || *srcpos==Char2Code(':'))break;
-									if(Code2Char(*srcpos)==0 && (*srcpos!=TOKEN_LABEL && *srcpos!=TOKEN_LABEL2))break;
-									srcpos++;
-								}
-								ForGosub_s[ForGosub_sl].col=srcpos-input;
-								ForGosub_s[ForGosub_sl].line=cur_line;
-								cur_line=labellist_line[i];
-								GOTOLINE(cur_line);
-								ForGosub_sl++;
-								tmpint=1;
-								state=ST_NEW_STATEMENT;
-								break;
-							}
-						}
-					}
-					if(tmpint==0)return ERR_UNDEFINED_LABEL;
-					break;
-				case TOKEN_RETURN:
-					if(ForGosub_sl<=0)return ERR_RETURN_WITHOUT_GOSUB;
-					ForGosub_sl--;
-					srcpos=input+ForGosub_s[ForGosub_sl].col;
-					cur_line=ForGosub_s[ForGosub_sl].line;
-					srcpos=JumpSpace(srcpos);
-					state=ST_NEW_STATEMENT;
-					break;
-				case TOKEN_LABEL:case TOKEN_LABEL2:
-					cur_line++;
-					if(cur_line>=srclinecount)return ERR_NO_ERROR;
-					GOTOLINE(cur_line);
-					break;
-				case TOKEN_END:
-					return ERR_NO_ERROR;
-				case TOKEN_STOP:
-					breakflag=1;
-					return ERR_NO_ERROR;
-				default:
-					if(isInstruction(t)){
-						if(isNoArgInstruction(t)){
-							errtmp=PushCalcStack(TYPE_FUNC,t,"",0);
-							if(errtmp!=ERR_NO_ERROR)return errtmp;
+						state=ST_NEW_STATEMENT;
+						break;
+					}else{
+						errtmp=PushCalcStack(TYPE_FUNC,t,"",0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						errtmp=PushCalcStack(TYPE_FUNC,Char2Code('('),"",0);
+						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						srcpos=JumpSpace(srcpos+1);
+						if((*srcpos==0x0000)||(Code2Char(*srcpos)==':')){
 							errtmp=PushCalcStack(TYPE_VOID,0,"",0);
 							if(errtmp!=ERR_NO_ERROR)return errtmp;
-							ProcessRemainingOperator();
-							srcpos++;
-							state=ST_NEW_STATEMENT;
-							break;
-						}else{
-							errtmp=PushCalcStack(TYPE_FUNC,t,"",0);
-							if(errtmp!=ERR_NO_ERROR)return errtmp;
-							errtmp=PushCalcStack(TYPE_FUNC,Char2Code('('),"",0);
-							if(errtmp!=ERR_NO_ERROR)return errtmp;
-							srcpos=JumpSpace(srcpos+1);
-							if((*srcpos==0x0000)||(Code2Char(*srcpos)==':')){
-								errtmp=PushCalcStack(TYPE_VOID,0,"",0);
-								if(errtmp!=ERR_NO_ERROR)return errtmp;
-								errtmp=PushCalcStack(TYPE_FUNC,Char2Code(')'),"",0);
-								if(errtmp!=ERR_NO_ERROR)return errtmp;
-								state=ST_NEW_STATEMENT;
-								break;
-							}
-							srcpos=ReadFormula(srcpos,&errtmp);
-							if(errtmp!=ERR_NO_ERROR)return errtmp;
-							argcount=1;
-							while(Code2Char(*srcpos)==','){
-								errtmp=PushCalcStack(TYPE_SPECIAL,Char2Code(','),"",0);
-								if(errtmp!=ERR_NO_ERROR)return errtmp;
-								srcpos=JumpSpace(srcpos+1);
-								srcpos=ReadFormula(srcpos,&errtmp);
-								if(errtmp!=ERR_NO_ERROR)return errtmp;
-								argcount++;
-							}
-							errtmp=PushCalcStack(TYPE_FUNC,Char2Code(')'),"",argcount);
-							if(errtmp!=ERR_NO_ERROR)return ERR_UNDEFINED;
-							errtmp=ProcessRemainingOperator();
+							errtmp=PushCalcStack(TYPE_FUNC,Char2Code(')'),"",0);
 							if(errtmp!=ERR_NO_ERROR)return errtmp;
 							state=ST_NEW_STATEMENT;
 							break;
 						}
-					}else if((GetSystemVariableType(*srcpos)==2)||(GetSystemVariableType(*srcpos)==4)){
-						if(GetSystemVariableType(*srcpos)==2){
-							errtmp=PushCalcStack(TYPE_INT_SYSVAR,*srcpos,"",0);
-						}else{
-							//MEM$
-							errtmp=PushCalcStack(TYPE_STR_SYSVAR,*srcpos,"",0);
-						}
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						srcpos=JumpSpace(srcpos+1);
-						if(Code2Char(*srcpos)!='=')return ERR_SYNTAX_ERROR;
-						errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
-						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						srcpos=JumpSpace(srcpos+1);
 						srcpos=ReadFormula(srcpos,&errtmp);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
+						argcount=1;
+						while(Code2Char(*srcpos)==','){
+							errtmp=PushCalcStack(TYPE_SPECIAL,Char2Code(','),"",0);
+							if(errtmp!=ERR_NO_ERROR)return errtmp;
+							srcpos=JumpSpace(srcpos+1);
+							srcpos=ReadFormula(srcpos,&errtmp);
+							if(errtmp!=ERR_NO_ERROR)return errtmp;
+							argcount++;
+						}
+						errtmp=PushCalcStack(TYPE_FUNC,Char2Code(')'),"",argcount);
+						if(errtmp!=ERR_NO_ERROR)return ERR_UNDEFINED;
 						errtmp=ProcessRemainingOperator();
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 						state=ST_NEW_STATEMENT;
-						break;		
-					}else if(*srcpos==0x0000){
-						if(state==ST_SUBSTITUTION_NAME)return ERR_SYNTAX_ERROR;
-						return ERR_NO_ERROR;
-					}else{
-						//error
-						return ERR_SYNTAX_ERROR;
+						break;
 					}
-					break;
-			}
-		}else{
-			//Char
-		
-			switch(state){
-				case ST_LINE_BEGIN:
-					if(c=='\''){
-						cur_line++;
-						if(cur_line>=srclinecount)return ERR_NO_ERROR;
-						GOTOLINE(cur_line);
-						srcpos--;
-					}else if(c=='@'){
-						cur_line++;
-						if(cur_line>=srclinecount)return ERR_NO_ERROR;
-						GOTOLINE(cur_line);
-						srcpos--;
-					}else if(c=='?'){
-						state=ST_PRINT;
-					//代入
-					}else if(isalpha(c)||(c=='_')){
-						memset(tmpstr,0x00,sizeof(tmpstr));
-						tmpstr_p=0;
-						tmpstr[0]=toupper(c);//一文字目記録
-						tmpstr_p++;
-						state=ST_SUBSTITUTION_NAME;
-					}else if((c==' ')||(c==':')){
-						//NOP
-					}else if(c==0){
-						return ERR_NO_ERROR;
+				}else if((GetSystemVariableType(*srcpos)==2)||(GetSystemVariableType(*srcpos)==4)){
+					if(GetSystemVariableType(*srcpos)==2){
+						errtmp=PushCalcStack(TYPE_INT_SYSVAR,*srcpos,"",0);
 					}else{
-						if(*srcpos==0x0D){
-							cur_line++;
-							if(cur_line>=srclinecount)return ERR_NO_ERROR;
-							GOTOLINE(cur_line);
-							break;
-						}
-						printf("srcpos=%X='%c'\n",t,c);
-						return ERR_SYNTAX_ERROR;
+						//MEM$
+						errtmp=PushCalcStack(TYPE_STR_SYSVAR,*srcpos,"",0);
 					}
-					srcpos++;
-					break;
-				case ST_NEW_STATEMENT:
-					if(c=='\''){
-						cur_line++;
-						if(cur_line>=srclinecount)return ERR_NO_ERROR;
-						GOTOLINE(cur_line);
-						srcpos--;
-					}else if(c=='@'){
-						cur_line++;
-						if(cur_line>=srclinecount)return ERR_NO_ERROR;
-						GOTOLINE(cur_line);
-						srcpos--;
-					}else if(c=='?'){
-						state=ST_PRINT;
-					//代入
-					}else if(isalpha(c)||(c=='_')){
-						memset(tmpstr,0x00,sizeof(tmpstr));
-						tmpstr_p=0;
-						tmpstr[0]=toupper(c);//一文字目記録
-						tmpstr_p++;
-						state=ST_SUBSTITUTION_NAME;
-					}else if((c==' ')||(c==':')){
-						//NOP
-					}else if(c==0){
-						//正常終了
-						return ERR_NO_ERROR;
-					}else{
-						if(*srcpos==0x0D){
-							cur_line++;
-							if(cur_line>=srclinecount)return ERR_NO_ERROR;
-							GOTOLINE(cur_line);
-							break;
-						}
-						printf("srcpos=%X='%c'\n",t,c);
-						return ERR_SYNTAX_ERROR;
-					}
-					srcpos++;
-					break;
-				case ST_SUBSTITUTION_NAME:
-					srcpos--;
-					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					srcpos=JumpSpace(srcpos);
+					srcpos=JumpSpace(srcpos+1);
 					if(Code2Char(*srcpos)!='=')return ERR_SYNTAX_ERROR;
 					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
@@ -1793,15 +1790,116 @@ int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					state=ST_NEW_STATEMENT;
 					break;		
-				default:
+				}else if(*srcpos==0x0000){
+					if(state==ST_SUBSTITUTION_NAME)return ERR_SYNTAX_ERROR;
+					return ERR_NO_ERROR;
+				}else{
+					//error
+					return ERR_SYNTAX_ERROR;
+				}
+				break;
+			}
+		}else{
+			//Char
+
+			switch(state){
+			case ST_LINE_BEGIN:
+				if(c=='\''){
+					cur_line++;
+					if(cur_line>=srclinecount)return ERR_NO_ERROR;
+					GOTOLINE(cur_line);
+					srcpos--;
+				}else if(c=='@'){
+					cur_line++;
+					if(cur_line>=srclinecount)return ERR_NO_ERROR;
+					GOTOLINE(cur_line);
+					srcpos--;
+				}else if(c=='?'){
+					state=ST_PRINT;
+					//代入
+				}else if(isalpha(c)||(c=='_')){
+					memset(tmpstr,0x00,sizeof(tmpstr));
+					tmpstr_p=0;
+					tmpstr[0]=toupper(c);//一文字目記録
+					tmpstr_p++;
+					state=ST_SUBSTITUTION_NAME;
+				}else if((c==' ')||(c==':')){
+					//NOP
+				}else if(c==0){
+					return ERR_NO_ERROR;
+				}else{
 					if(*srcpos==0x0D){
 						cur_line++;
 						if(cur_line>=srclinecount)return ERR_NO_ERROR;
 						GOTOLINE(cur_line);
 						break;
 					}
-					srcpos++;
+					printf("srcpos=%X='%c'\n",t,c);
+					return ERR_SYNTAX_ERROR;
+				}
+				srcpos++;
+				break;
+			case ST_NEW_STATEMENT:
+				if(c=='\''){
+					cur_line++;
+					if(cur_line>=srclinecount)return ERR_NO_ERROR;
+					GOTOLINE(cur_line);
+					srcpos--;
+				}else if(c=='@'){
+					cur_line++;
+					if(cur_line>=srclinecount)return ERR_NO_ERROR;
+					GOTOLINE(cur_line);
+					srcpos--;
+				}else if(c=='?'){
+					state=ST_PRINT;
+					//代入
+				}else if(isalpha(c)||(c=='_')){
+					memset(tmpstr,0x00,sizeof(tmpstr));
+					tmpstr_p=0;
+					tmpstr[0]=toupper(c);//一文字目記録
+					tmpstr_p++;
+					state=ST_SUBSTITUTION_NAME;
+				}else if((c==' ')||(c==':')){
+					//NOP
+				}else if(c==0){
+					//正常終了
+					return ERR_NO_ERROR;
+				}else{
+					if(*srcpos==0x0D){
+						cur_line++;
+						if(cur_line>=srclinecount)return ERR_NO_ERROR;
+						GOTOLINE(cur_line);
+						break;
+					}
+					printf("srcpos=%X='%c'\n",t,c);
+					return ERR_SYNTAX_ERROR;
+				}
+				srcpos++;
+				break;
+			case ST_SUBSTITUTION_NAME:
+				srcpos--;
+				srcpos=GetVarID(srcpos,&tmpint,&errtmp);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				srcpos=JumpSpace(srcpos);
+				if(Code2Char(*srcpos)!='=')return ERR_SYNTAX_ERROR;
+				errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),"",2);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				srcpos=JumpSpace(srcpos+1);
+				srcpos=ReadFormula(srcpos,&errtmp);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				errtmp=ProcessRemainingOperator();
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				state=ST_NEW_STATEMENT;
+				break;		
+			default:
+				if(*srcpos==0x0D){
+					cur_line++;
+					if(cur_line>=srclinecount)return ERR_NO_ERROR;
+					GOTOLINE(cur_line);
 					break;
+				}
+				srcpos++;
+				break;
 			}
 		}
 		tmpint=ProcessFrame();

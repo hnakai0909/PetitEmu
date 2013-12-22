@@ -398,12 +398,14 @@ void CheckKey(void){
 						break;
 					case KEY_INPUT_BACK:
 						keyboard_special=PKEY_BS;
+						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
 						break;
 					case KEY_INPUT_TAB:
 						keyboard_special=PKEY_TAB;
 						break;
 					case KEY_INPUT_CAPSLOCK:
 						keyboard_special=PKEY_CAPS;
+						kbd_capslock_flag=(kbd_capslock_flag+1)%2;
 						break;
 					case KEY_INPUT_UP:
 						button_state|=1;

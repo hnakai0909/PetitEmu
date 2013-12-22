@@ -22,6 +22,8 @@ bool inrange(int arg,int min,int max);
 //argをmin<=x<=maxに制限した値を返す
 int limitrange(int arg,int min,int max);
 
+int isdigits(char* arg);
+
 //その文字列は数値リテラルか(簡易判定)
 int isintliteral(char* arg);
 

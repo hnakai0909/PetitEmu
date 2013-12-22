@@ -625,6 +625,7 @@ int EvalFormula(const int arg,const int argcount){
 			if(argcount!=0)return ERR_SYNTAX_ERROR;
 			if(argtypes[0]!=ATYPE_VOID)return ERR_TYPE_MISMATCH;
 			tmpint=CheckSoundMem(SHandleBGM);
+			if(tmpint==-1)tmpint=0;
 			errtmp=PushCalcStack(TYPE_INT_LIT,tmpint*4096,"",0);
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
 			break;
@@ -1344,7 +1345,7 @@ void UpdateSystemVariable(void){
 	sprintf(tmpstr,"%02d:%02d:%02d",nowtime2->tm_hour,nowtime2->tm_min,nowtime2->tm_sec);
 	strcpy(Psys_TIME,tmpstr);
 	memset(tmpstr,0x00,sizeof(tmpstr));
-	sprintf(tmpstr,"%02d/%02d/%02d",nowtime2->tm_year%100,nowtime2->tm_mon+1,nowtime2->tm_mday);
+	sprintf(tmpstr,"%04d/%02d/%02d",nowtime2->tm_year+1900,nowtime2->tm_mon+1,nowtime2->tm_mday);
 	strcpy(Psys_DATE,tmpstr);
 	//Psys_FREEMEM;
 	Psys_MAINCNTL=(maincount%524288)*4096;
