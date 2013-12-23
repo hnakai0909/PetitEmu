@@ -689,7 +689,7 @@ void RunInteractive(char* input){
 	TranslateRaw2Code((unsigned char*)input,codedata,&codelen);
 	runmode=RMD_LINE;
 	if(Psys_CSRX!=0)Print2Console("",0);
-	errtmp=Interpretation(codedata,codelen,true,&runflag);
+	errtmp=Interpret(codedata,codelen,true,&runflag);
 	ClearKeyBuffer();
 	runmode=RMD_STOP;
 	if(runflag==1){
@@ -774,7 +774,7 @@ int RunProgram(void){
 	TranslateRaw2Code(source_ptr,translated_source,&srclen);
 	errtmp=ResistLabel(translated_source);
 	if(errtmp!=ERR_NO_ERROR)return errtmp;
-	return Interpretation(translated_source,srclen,false,&dummy);
+	return Interpret(translated_source,srclen,false,&dummy);
 }
 
 int ResistLabel(uint16_t* input){
@@ -854,7 +854,7 @@ int ReadSeekNext(void){
 	return ERR_NO_ERROR;
 }
 
-int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
+int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 	uint16_t *tmppos;
 	const uint16_t *srcend=input+srclen;
 	uint32_t tmpline=0;

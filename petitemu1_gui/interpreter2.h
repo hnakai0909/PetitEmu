@@ -93,7 +93,7 @@ int ReadGotoLine(uint16_t *input,unsigned int line);
 int ReadSeekNext(void);
 
 //インタプリタ本体
-int Interpretation(uint16_t* input,int srclen,bool interactive_flag,int* runflag);
+int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag);
 
 //新変数を登録
 int NewVar(char* name);
