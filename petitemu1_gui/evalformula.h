@@ -76,15 +76,17 @@ struct Dimention {
 	int	indexmax2;
 	bool isStr;
 };
-
+struct ConsoleBuffer {
+	char chr;
+	uint8_t color;
+};
 /*===グローバル変数宣言===*/
 extern bool log_en;
 extern int log_en2;
 extern struct VARIABLE Variable[VAR_MAX];
 extern struct OP_S op_s[OP_S_MAX];//演算子スタック
 extern struct CalcStack calc_s[CALC_S_MAX];//計算スタック
-extern char consolecharbuf[32][24];
-extern char consolecolorbuf[32][24];
+extern struct ConsoleBuffer con_buf[32][24];//コンソールバッファ
 
 //プチコンシステム変数
 extern int32_t Psys_VERSION;
@@ -114,6 +116,7 @@ extern char Psys_TIME[STR_LEN_MAX];
 extern char Psys_DATE[STR_LEN_MAX];
 extern char Psys_MEM[STR_LEN_MAX];
 
+extern char conslogbuf[768];//デバッグ用ログバッファ
 extern int consolecolor;//コンソール文字色
 extern int SHandleBEEP[70];//BEEP音声データハンドル
 extern int SHandleBGM;//BGM音声データハンドル

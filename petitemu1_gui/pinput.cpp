@@ -55,116 +55,116 @@ void CheckPanel(void){
 	GetMousePoint(&MouseX,&MouseY);
 	if((MouseY>=192)&&(mouseinput)){
 		switch(panelmode){
-			case PNLMD_OFF:
-				break;
-			case PNLMD_PANEL:
-				if(MouseY>=484){
-					tmp2=KeyboardWhichKey(MouseX,MouseY-192,&type,&code);
-				}
-				//未実装
-				break;
-			case PNLMD_KYA:case PNLMD_KYM:case PNLMD_KYK:
+		case PNLMD_OFF:
+			break;
+		case PNLMD_PANEL:
+			if(MouseY>=484){
 				tmp2=KeyboardWhichKey(MouseX,MouseY-192,&type,&code);
-				if(mousetime==1){
-					type_clickstart=type;
-					code_clickstart=code;
-				}
-				if((type_clickstart!=type)||(code_clickstart!=code))mousetime=-1;
-				if((mousetime==1)||(mousetime==KEY_TIME_TO_RENSYA)){
-					if(tmp2){
-						switch(type){
-							case KT_NO:
-								break;
-							case KT_FUNCKEY:
-								for(i=0;(i<STR_LEN_MAX)&&(FuncKeyStr[code][i]!=0);i++){
-									WriteKeyBuffer(FuncKeyStr[code][i]);
-								}
-								break;
-							case KT_CHAR:
-								tmpc=Keychar2Char(code,&tmp);
-								if(tmpc==0)break;
-								WriteKeyBuffer(tmpc);
-								if(tmp==DAKU_DAKU)WriteKeyBuffer(0xDE);//濁点プッシュ
-								if(tmp==DAKU_HAN)WriteKeyBuffer(0xDF);//半濁点プッシュ
-								break;
-							case KT_SYSTEM:
-								keyboard_special=code;
-								switch(code){
-									case PKEY_ESC:
-										break;
-									case PKEY_BS:
-										break;
-									case PKEY_TAB:
-										//本来はTABSTEP・現在の文字位置に依存する
-										WriteKeyBuffer(' ');
-										break;
-									case PKEY_SHIFT:
-										kbd_shift_flag=(kbd_shift_flag+1)%2;
-										break;
-									case PKEY_ENTER:
-										break;
-									case PKEY_CAPS:
-										break;
-									case PKEY_MODE_A:
-										panelmode=PNLMD_KYA;
-										kbd_shift_flag=0;
-										//CAPS LOCK はずす
-										break;
-									case PKEY_MODE_G:
-										panelmode=PNLMD_KYM;
-										kbd_shift_flag=0;
-										//CAPS LOCK はずす
-										break;
-									case PKEY_MODE_K:
-										panelmode=PNLMD_KYK;
-										kbd_shift_flag=0;
-										//CAPS LOCK はずす
-										break;
-									case PKEY_INS:
-										kbd_insert_flag=(kbd_insert_flag+1)%2;
-										break;
-									case PKEY_DEL:
-										break;
-									case PKEY_SEARCH:
-										//無印(初代)時代では未実装なのでなにもしない
-										break;
-									case PKEY_EXIT:
-										break;
-									case PKEY_HELP:
-										break;
-									case PKEY_RUN:
-										breakflag=1;
-										break;
-									case PKEY_EDIT:
-										break;
-									case PKEY_ICON_UP:
-										break;
-									case PKEY_ICON_DOWN:
-										break;
-									default:
-										break;
-								}
-								break;
-							case KT_ICON:
-								break;
-							default:
-								break;
+			}
+			//未実装
+			break;
+		case PNLMD_KYA:case PNLMD_KYM:case PNLMD_KYK:
+			tmp2=KeyboardWhichKey(MouseX,MouseY-192,&type,&code);
+			if(mousetime==1){
+				type_clickstart=type;
+				code_clickstart=code;
+			}
+			if((type_clickstart!=type)||(code_clickstart!=code))mousetime=-1;
+			if((mousetime==1)||(mousetime==KEY_TIME_TO_RENSYA)){
+				if(tmp2){
+					switch(type){
+					case KT_NO:
+						break;
+					case KT_FUNCKEY:
+						for(i=0;(i<STR_LEN_MAX)&&(FuncKeyStr[code][i]!=0);i++){
+							WriteKeyBuffer(FuncKeyStr[code][i]);
 						}
-						if((type==KT_FUNCKEY)||(type==KT_CHAR)||((type==KT_SYSTEM)&&(
-							(code==PKEY_ESC)||(code==PKEY_BS)||(code==PKEY_TAB)||(code==PKEY_SHIFT)||(code==PKEY_ENTER)
-							||(code==PKEY_CAPS)||(code==PKEY_MODE_A)||(code==PKEY_MODE_G)||(code==PKEY_MODE_K)
-							||(code==PKEY_INS)||(code==PKEY_DEL)||(code==PKEY_SEARCH)
+						break;
+					case KT_CHAR:
+						tmpc=Keychar2Char(code,&tmp);
+						if(tmpc==0)break;
+						WriteKeyBuffer(tmpc);
+						if(tmp==DAKU_DAKU)WriteKeyBuffer(0xDE);//濁点プッシュ
+						if(tmp==DAKU_HAN)WriteKeyBuffer(0xDF);//半濁点プッシュ
+						break;
+					case KT_SYSTEM:
+						keyboard_special=code;
+						switch(code){
+						case PKEY_ESC:
+							break;
+						case PKEY_BS:
+							break;
+						case PKEY_TAB:
+							//本来はTABSTEP・現在の文字位置に依存する
+							WriteKeyBuffer(' ');
+							break;
+						case PKEY_SHIFT:
+							kbd_shift_flag=(kbd_shift_flag+1)%2;
+							break;
+						case PKEY_ENTER:
+							break;
+						case PKEY_CAPS:
+							break;
+						case PKEY_MODE_A:
+							panelmode=PNLMD_KYA;
+							kbd_shift_flag=0;
+							//CAPS LOCK はずす
+							break;
+						case PKEY_MODE_G:
+							panelmode=PNLMD_KYM;
+							kbd_shift_flag=0;
+							//CAPS LOCK はずす
+							break;
+						case PKEY_MODE_K:
+							panelmode=PNLMD_KYK;
+							kbd_shift_flag=0;
+							//CAPS LOCK はずす
+							break;
+						case PKEY_INS:
+							kbd_insert_flag=(kbd_insert_flag+1)%2;
+							break;
+						case PKEY_DEL:
+							break;
+						case PKEY_SEARCH:
+							//無印(初代)時代では未実装なのでなにもしない
+							break;
+						case PKEY_EXIT:
+							break;
+						case PKEY_HELP:
+							break;
+						case PKEY_RUN:
+							breakflag=1;
+							break;
+						case PKEY_EDIT:
+							break;
+						case PKEY_ICON_UP:
+							break;
+						case PKEY_ICON_DOWN:
+							break;
+						default:
+							break;
+						}
+						break;
+					case KT_ICON:
+						break;
+					default:
+						break;
+					}
+					if((type==KT_FUNCKEY)||(type==KT_CHAR)||((type==KT_SYSTEM)&&(
+						(code==PKEY_ESC)||(code==PKEY_BS)||(code==PKEY_TAB)||(code==PKEY_SHIFT)||(code==PKEY_ENTER)
+						||(code==PKEY_CAPS)||(code==PKEY_MODE_A)||(code==PKEY_MODE_G)||(code==PKEY_MODE_K)
+						||(code==PKEY_INS)||(code==PKEY_DEL)||(code==PKEY_SEARCH)
 						))){
 							if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
-						}
 					}
 				}
-				break;
-			case PNLMD_DIALOG:
-				//MouseX MouseY
-				break;
-			default:
-				break;
+			}
+			break;
+		case PNLMD_DIALOG:
+			//MouseX MouseY
+			break;
+		default:
+			break;
 		}
 	}
 
@@ -207,57 +207,57 @@ bool KeyboardWhichKey(int x,int y,int* type,int* code){
 		}
 	}else if(inrange(y,48,143)){
 		switch(y/24){
-			case 2:
-				if(inrange(x,0,23)){
-					*type=KT_SYSTEM;
-					*code=PKEY_ESC;
-					return true;
-				}else if(inrange(x,232,255)){
-					*type=KT_SYSTEM;
-					*code=PKEY_BS;
-					return true;
-				}else if(inrange((x-24)/16,0,12)){
-					*type=KT_CHAR;
-					*code=(x-24)/16+2;
-					return true;
-				}
-				break;
-			case 3:
-				if(inrange(x/16,0,15)){
-					*type=KT_CHAR;
-					*code=x/16+16;
-					return true;
-				}
-				break;
-			case 4:
-				if(inrange(x,0,23)){
-					*type=KT_SYSTEM;
-					*code=PKEY_TAB;
-					return true;
-				}else if(inrange((x-24)/16,0,13)){
-					*type=KT_CHAR;
-					*code=(x-24)/16+33;
-					return true;
-				}
-				break;
-			case 5:
-				if(inrange(x,0,31)){
-					*type=KT_SYSTEM;
-					*code=PKEY_SHIFT;
-					return true;
-				}else if(inrange(x,224,255)){
-					*type=KT_SYSTEM;
-					*code=PKEY_ENTER;
-					return true;
-				}else if(inrange(x/16,2,13)){
-					*type=KT_CHAR;
-					*code=x/16+46;
-					return true;
-				}
-				break;
-			default:
-				return 0;
-				break;
+		case 2:
+			if(inrange(x,0,23)){
+				*type=KT_SYSTEM;
+				*code=PKEY_ESC;
+				return true;
+			}else if(inrange(x,232,255)){
+				*type=KT_SYSTEM;
+				*code=PKEY_BS;
+				return true;
+			}else if(inrange((x-24)/16,0,12)){
+				*type=KT_CHAR;
+				*code=(x-24)/16+2;
+				return true;
+			}
+			break;
+		case 3:
+			if(inrange(x/16,0,15)){
+				*type=KT_CHAR;
+				*code=x/16+16;
+				return true;
+			}
+			break;
+		case 4:
+			if(inrange(x,0,23)){
+				*type=KT_SYSTEM;
+				*code=PKEY_TAB;
+				return true;
+			}else if(inrange((x-24)/16,0,13)){
+				*type=KT_CHAR;
+				*code=(x-24)/16+33;
+				return true;
+			}
+			break;
+		case 5:
+			if(inrange(x,0,31)){
+				*type=KT_SYSTEM;
+				*code=PKEY_SHIFT;
+				return true;
+			}else if(inrange(x,224,255)){
+				*type=KT_SYSTEM;
+				*code=PKEY_ENTER;
+				return true;
+			}else if(inrange(x/16,2,13)){
+				*type=KT_CHAR;
+				*code=x/16+46;
+				return true;
+			}
+			break;
+		default:
+			return 0;
+			break;
 		}
 	}else if(inrange(y,144,159)){
 		if(inrange(x,0,15)){
@@ -315,7 +315,7 @@ bool KeyboardWhichKey(int x,int y,int* type,int* code){
 			*code=(x-160)/24+1;
 			return true;
 		}
-	return false;
+		return false;
 	}
 	return false;
 }
@@ -380,71 +380,71 @@ void CheckKey(void){
 			if((KeyCheckTimeBuf[Table1_2[i]]==0)||(KeyCheckTimeBuf[Table1_2[i]]==KEY_TIME_TO_RENSYA)){
 				switch(Table1_2[i]){
 					/*
-					KEY_INPUT_PGUP,KEY_INPUT_PGDN,KEY_INPUT_HOME,KEY_INPUT_END,
+					TODO:KEY_INPUT_PGUP,KEY_INPUT_PGDN,KEY_INPUT_HOME,KEY_INPUT_END
 					*/
-					case KEY_INPUT_ESCAPE:
-						breakflag=1;
-						keyboard_special=PKEY_ESC;
-						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
-						break;
-					case KEY_INPUT_INSERT:
-						kbd_insert_flag=(kbd_insert_flag+1)%2;
-						keyboard_special=PKEY_INS;
-						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
-						break;
-					case KEY_INPUT_DELETE:
-						keyboard_special=PKEY_DEL;
-						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
-						break;
-					case KEY_INPUT_BACK:
-						keyboard_special=PKEY_BS;
-						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
-						break;
-					case KEY_INPUT_TAB:
-						keyboard_special=PKEY_TAB;
-						break;
-					case KEY_INPUT_CAPSLOCK:
-						keyboard_special=PKEY_CAPS;
-						kbd_capslock_flag=(kbd_capslock_flag+1)%2;
-						break;
-					case KEY_INPUT_UP:
-						button_state|=1;
-						break;
-					case KEY_INPUT_DOWN:
-						button_state|=2;
-						break;
-					case KEY_INPUT_LEFT:
-						button_state|=4;
-						break;
-					case KEY_INPUT_RIGHT:
-						button_state|=8;
-						break;
-					case KEY_INPUT_F1:
-						for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[0][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[0][j]);
-						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
-						break;
-					case KEY_INPUT_F2:
-						for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[1][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[1][j]);
-						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
-						break;
-					case KEY_INPUT_F3:
-						for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[2][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[2][j]);
-						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
-						break;
-					case KEY_INPUT_F4:
-						for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[3][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[3][j]);
-						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
-						break;
-					case KEY_INPUT_F5:
-						for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[4][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[4][j]);
-						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
-						break;
-					case KEY_INPUT_RETURN:
-						keyboard_special=PKEY_ENTER;
-						if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
-						break;
-					default:
-						break;
+				case KEY_INPUT_ESCAPE:
+					breakflag=1;
+					keyboard_special=PKEY_ESC;
+					if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+					break;
+				case KEY_INPUT_INSERT:
+					kbd_insert_flag=(kbd_insert_flag+1)%2;
+					keyboard_special=PKEY_INS;
+					if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+					break;
+				case KEY_INPUT_DELETE:
+					keyboard_special=PKEY_DEL;
+					if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+					break;
+				case KEY_INPUT_BACK:
+					keyboard_special=PKEY_BS;
+					if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+					break;
+				case KEY_INPUT_TAB:
+					keyboard_special=PKEY_TAB;
+					break;
+				case KEY_INPUT_CAPSLOCK:
+					keyboard_special=PKEY_CAPS;
+					kbd_capslock_flag=(kbd_capslock_flag+1)%2;
+					break;
+				case KEY_INPUT_UP:
+					button_state|=1;
+					break;
+				case KEY_INPUT_DOWN:
+					button_state|=2;
+					break;
+				case KEY_INPUT_LEFT:
+					button_state|=4;
+					break;
+				case KEY_INPUT_RIGHT:
+					button_state|=8;
+					break;
+				case KEY_INPUT_F1:
+					for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[0][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[0][j]);
+					if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+					break;
+				case KEY_INPUT_F2:
+					for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[1][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[1][j]);
+					if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+					break;
+				case KEY_INPUT_F3:
+					for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[2][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[2][j]);
+					if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+					break;
+				case KEY_INPUT_F4:
+					for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[3][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[3][j]);
+					if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+					break;
+				case KEY_INPUT_F5:
+					for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[4][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[4][j]);
+					if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+					break;
+				case KEY_INPUT_RETURN:
+					keyboard_special=PKEY_ENTER;
+					if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
+					break;
+				default:
+					break;
 				}
 			}
 			KeyCheckTimeBuf[Table1_2[i]]++;
@@ -471,27 +471,27 @@ unsigned char Keychar2Char(int code,int* daku_flag){
 	for(i=0;i<56;i++){
 		if(code==Table1[i]){
 			switch(panelmode){
-				case PNLMD_KYA:
-					if(kbd_shift_flag){
-						return KeyMap_A_S[i];
-					}else{
-						return KeyMap_A[i];
-					}
-				case PNLMD_KYM:
-					if(kbd_shift_flag){
-						return KeyMap_G_S[i];
-					}else{
-						return KeyMap_G[i];
-					}
-				case PNLMD_KYK:
-					if(kbd_shift_flag){
-						*daku_flag=KeyMap_K_S_DAKU[i];
-						return KeyMap_K_S[i];
-					}else{
-						return KeyMap_K[i];
-					}
-				default:
-					return 0;
+			case PNLMD_KYA:
+				if(kbd_shift_flag){
+					return KeyMap_A_S[i];
+				}else{
+					return KeyMap_A[i];
+				}
+			case PNLMD_KYM:
+				if(kbd_shift_flag){
+					return KeyMap_G_S[i];
+				}else{
+					return KeyMap_G[i];
+				}
+			case PNLMD_KYK:
+				if(kbd_shift_flag){
+					*daku_flag=KeyMap_K_S_DAKU[i];
+					return KeyMap_K_S[i];
+				}else{
+					return KeyMap_K[i];
+				}
+			default:
+				return 0;
 			}
 		}
 	}
@@ -511,30 +511,32 @@ void InputLine(char* arg){
 		cursol_blink_timer=(cursol_blink_timer+1)%60;
 		WaitVSync(1);
 		tmpc=0;
-		//printf("%d\n",keyboard_special);
 		if(keyboard_special==PKEY_ENTER)break;
 		if(keyboard_special==PKEY_BS){
 			if(cursol>0){
 				for(i=cursol-1;i<31;i++){
-					consolecharbuf[i][Psys_CSRY]=consolecharbuf[i+1][Psys_CSRY];
+					con_buf[i][Psys_CSRY]=con_buf[i+1][Psys_CSRY];
 				}
-				consolecharbuf[31][Psys_CSRY]=0;
+				con_buf[31][Psys_CSRY].chr=0;
+				con_buf[31][Psys_CSRY].color=0;
 				cursol--;
 			}
 		}
 		if(keyboard_special==PKEY_DEL){
 			for(i=cursol;i<31;i++){
-				consolecharbuf[i][Psys_CSRY]=consolecharbuf[i+1][Psys_CSRY];
+				con_buf[i][Psys_CSRY]=con_buf[i+1][Psys_CSRY];
 			}
-			consolecharbuf[31][Psys_CSRY]=0;
+			con_buf[31][Psys_CSRY].chr=0;
+			con_buf[31][Psys_CSRY].color=0;
 		}
 		if(ReadKeyBuffer(&tmpc)){
-			if((kbd_insert_flag)&&(consolecharbuf[31][Psys_CSRY]==0)){
+			if((kbd_insert_flag)&&(con_buf[31][Psys_CSRY].chr==0)){
 				for(i=31;i>cursol;i--){
-					consolecharbuf[i][Psys_CSRY]=consolecharbuf[i-1][Psys_CSRY];
+					con_buf[i][Psys_CSRY]=con_buf[i-1][Psys_CSRY];
 				}
 			}
-			consolecharbuf[cursol][Psys_CSRY]=tmpc;
+			con_buf[cursol][Psys_CSRY].chr=tmpc;
+			con_buf[cursol][Psys_CSRY].color=consolecolor;
 			cursol++;
 		}
 		if(button_state&0x0004)cursol--;
@@ -543,10 +545,10 @@ void InputLine(char* arg){
 	}
 	if(breakflag==1 && runmode==RMD_PRG)return;
 	for(i=0;i<32;i++){
-		if(consolecharbuf[i][Psys_CSRY]!=0)break;
+		if(con_buf[i][Psys_CSRY].chr!=0)break;
 	}
 	for(j=0;(j+i)<32;j++){
-		arg[j]=consolecharbuf[j+i][Psys_CSRY];
+		arg[j]=con_buf[j+i][Psys_CSRY].chr;
 	}
 	for(i=32-i;i<=32;i++){
 		arg[i]=0;	

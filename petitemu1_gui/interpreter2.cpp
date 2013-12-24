@@ -970,7 +970,6 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 						lastprintmode=0;
 						srcpos++;
 						tmpint=1;
-						//if(isInstruction(*srcpos))return ERR_SYNTAX_ERROR;
 						break;
 					}
 					if(tmpint==1)break;
@@ -1221,8 +1220,8 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 						if(
 							inrange(tmpstr[0],'0','9')&&inrange(tmpstr[1],'0','9')&&
 							inrange(tmpstr[2],'0','9')&&inrange(tmpstr[3],'0','9')&&(tmpstr[4]=='/')
-						){
-							tmpint=((tmpstr[0]-'0')*1000+(tmpstr[1]-'0')*100+(tmpstr[2]-'0')*10+(tmpstr[3]-'0'))*4096;
+							){
+								tmpint=((tmpstr[0]-'0')*1000+(tmpstr[1]-'0')*100+(tmpstr[2]-'0')*10+(tmpstr[3]-'0'))*4096;
 						}else{
 							return ERR_SYNTAX_ERROR;
 						}
@@ -1801,7 +1800,6 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 			}
 		}else{
 			//Char
-
 			switch(state){
 			case ST_LINE_BEGIN:
 				if(c=='\''){

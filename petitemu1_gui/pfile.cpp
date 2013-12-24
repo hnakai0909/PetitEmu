@@ -12,7 +12,7 @@ extern "C"{
 
 int LoadPResource(char restype[6],char filename[8]){
 	FILE *fp;
-    int code_size=0,errtmp=ERR_NO_ERROR;
+	int code_size=0,errtmp=ERR_NO_ERROR;
 	fpos_t filesize;
 	char tmpstr[STR_LEN_MAX];
 	unsigned char *tmpptr;
@@ -38,7 +38,7 @@ int LoadPResource(char restype[6],char filename[8]){
 	}
 	fread(source_ptr,sizeof(unsigned char),code_size,fp);
 	source_ptr[code_size]=0x00;
-    fclose(fp);
+	fclose(fp);
 	printf("Load OK.\n");
 	//TODO:ダイアログを表示
 	return ERR_NO_ERROR;

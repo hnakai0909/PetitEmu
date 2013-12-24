@@ -7,8 +7,6 @@
 
 /*===グローバル変数定義===*/
 
-struct VARIABLE Variable[VAR_MAX];
-
 bool log_en=false;
 int log_en2=false;
 
@@ -39,14 +37,15 @@ char Psys_TIME[STR_LEN_MAX];
 char Psys_DATE[STR_LEN_MAX];
 char Psys_MEM[STR_LEN_MAX];
 
-int consolecolor;
-char consolecharbuf[32][24];
-char consolecolorbuf[32][24];
-int SHandleBEEP[70];
-int SHandleBGM;
-
+struct ConsoleBuffer con_buf[32][24];
 struct OP_S op_s[OP_S_MAX];//演算子スタック
 struct CalcStack calc_s[CALC_S_MAX];//計算スタック
+struct VARIABLE Variable[VAR_MAX];
+
+char conslogbuf[768];
+int consolecolor;
+int SHandleBEEP[70];
+int SHandleBGM;
 
 unsigned int op_sl;//スタックの現在の深さ
 unsigned int calc_sl;//スタックの現在の深さ
@@ -388,7 +387,7 @@ int EvalFormula(const int arg,const int argcount){
 			if(argcount<2)return ERR_MISSING_OPERAND;
 			if((argtypes[1]==ATYPE_INT)&&(argtypes[0]==ATYPE_INT)){
 				tmpint64=tmpints[1]+tmpints[0];
-				if((tmpint64>2147483647 || tmpint64<-2147483647))return ERR_OVERFLOW;
+				if((tmpint64>_I32_MAX || tmpint64<-_I32_MAX))return ERR_OVERFLOW;
 				errtmp=PushCalcStack(TYPE_INT_LIT,(int32_t)tmpint64,"",0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else if((argtypes[1]==ATYPE_STR)&&(argtypes[0]==ATYPE_STR)){
@@ -409,7 +408,7 @@ int EvalFormula(const int arg,const int argcount){
 			if(argcount<2)return ERR_MISSING_OPERAND;
 			if((argtypes[1]==ATYPE_INT)&&(argtypes[0]==ATYPE_INT)){
 				tmpint64=(int64_t)(((double)((double)tmpints[1]/4096.0)*(double)((double)tmpints[0]/4096.0))*4096);
-				if((tmpint64>2147483647 || tmpint64<-2147483647)){
+				if((tmpint64>_I32_MAX || tmpint64<-_I32_MAX)){
 					return ERR_OVERFLOW;
 				}
 				errtmp=PushCalcStack(TYPE_INT_LIT,(int32_t)tmpint64,"",0);
@@ -424,7 +423,7 @@ int EvalFormula(const int arg,const int argcount){
 			if(tmpints[0]==0)return ERR_DIVISION_BY_ZERO;
 			if((argtypes[1]==ATYPE_INT)&&(argtypes[0]==ATYPE_INT)){
 				tmpint64=(int64_t)(((double)((double)tmpints[1]/4096.0)/(double)((double)tmpints[0]/4096.0))*4096);
-				if((tmpint64>2147483647 || tmpint64<-2147483647)){
+				if((tmpint64>_I32_MAX || tmpint64<-_I32_MAX)){
 					return ERR_OVERFLOW;
 				}
 				errtmp=PushCalcStack(TYPE_INT_LIT,(int32_t)tmpint64,"",0);
@@ -439,7 +438,7 @@ int EvalFormula(const int arg,const int argcount){
 			if(tmpints[0]==0)return ERR_DIVISION_BY_ZERO;
 			if((argtypes[1]==ATYPE_INT)&&(argtypes[0]==ATYPE_INT)){
 				tmpint64=(int64_t)(fmod((double)((double)tmpints[1]/4096.0),(double)((double)tmpints[0]/4096.0))*4096);
-				if((tmpint64>2147483647 || tmpint64<-2147483647)){
+				if((tmpint64>_I32_MAX || tmpint64<-_I32_MAX)){
 					return ERR_OVERFLOW;
 				}
 				errtmp=PushCalcStack(TYPE_INT_LIT,(int32_t)tmpint64,"",0);
@@ -462,7 +461,7 @@ int EvalFormula(const int arg,const int argcount){
 			if(argcount<2)return ERR_MISSING_OPERAND;
 			if((argtypes[1]==ATYPE_INT)&&(argtypes[0]==ATYPE_INT)){
 				tmpint64=tmpints[1]-tmpints[0];
-				if((tmpint64>2147483647 || tmpint64<-2147483647)){
+				if((tmpint64>_I32_MAX || tmpint64<-_I32_MAX)){
 					return ERR_OVERFLOW;
 				}
 				errtmp=PushCalcStack(TYPE_INT_LIT,(int32_t)tmpint64,"",0);
@@ -651,7 +650,7 @@ int EvalFormula(const int arg,const int argcount){
 			if(argtypes[1]!=ATYPE_INT || argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
 			tmpints[1]=FloorInt(tmpints[1]);tmpints[0]=FloorInt(tmpints[0]);
 			if(tmpints[1]>=0 && tmpints[1]<=31 && tmpints[0]>=0 && tmpints[0]<=23){
-				tmpint=consolecharbuf[tmpints[1]][tmpints[0]];
+				tmpint=con_buf[tmpints[1]][tmpints[0]].chr;
 				if(tmpint<0)tmpint+=256;
 				errtmp=PushCalcStack(TYPE_INT_LIT,tmpint*4096,"",0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
@@ -826,9 +825,9 @@ int EvalFormula(const int arg,const int argcount){
 						i--;
 					}
 					p+=tmp;
-					//四捨五入的な効果があると期待
+					//四捨五入的な効果があることを期待
 					//切り捨てられるものに
-					//最小分解能の1/4096の1/2を足す
+					//最小分解能である1/4096の1/2=1/8096を足す
 					tmpw+=(1.0/8192.0);
 					tmpw*=4096.0;
 					tmpint+=(int)tmpw;
@@ -910,7 +909,7 @@ int EvalFormula(const int arg,const int argcount){
 			if(argtypes[2]!=ATYPE_STR || argtypes[1]!=ATYPE_INT || argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
 			tmpints[1]=FloorInt(tmpints[1]);
 			tmpints[0]=FloorInt(tmpints[0]);
-			//failsafeしてません　#しろ
+			//TODO:文字列長の調査によるメモリリーク対策
 			if(tmpints[1]<0)return ERR_OUT_OF_RANGE;
 			if(tmpints[0]<0)return ERR_OUT_OF_RANGE;
 			memset(tmpstr,0x00,sizeof(tmpstr));
@@ -931,8 +930,7 @@ int EvalFormula(const int arg,const int argcount){
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
 			break;
 		case TOKEN_BEEP:
-			//引数省略可
-			//BEEP 音色、音高、音量、パン
+			//音色,音高,音量,パン
 			switch(argcount){
 				case 0:
 					SetFrequencySoundMem(44100,SHandleBEEP[0]);
@@ -1023,8 +1021,7 @@ int EvalFormula(const int arg,const int argcount){
 			if(argcount>0)return ERR_SYNTAX_ERROR;
 			consolecolor=0;
 			Psys_CSRX=0;Psys_CSRY=0;
-			memset(consolecharbuf,0x00,sizeof(consolecharbuf));
-			memset(consolecolorbuf,0x00,sizeof(consolecolorbuf));
+			memset(con_buf,0x00,sizeof(con_buf));
 			break;
 		case TOKEN_LOCATE:
 			//範囲外でも受け付ける
@@ -1347,7 +1344,7 @@ void UpdateSystemVariable(void){
 	memset(tmpstr,0x00,sizeof(tmpstr));
 	sprintf(tmpstr,"%04d/%02d/%02d",nowtime2->tm_year+1900,nowtime2->tm_mon+1,nowtime2->tm_mday);
 	strcpy(Psys_DATE,tmpstr);
-	//Psys_FREEMEM;
+	//TODO:Psys_FREEMEM
 	Psys_MAINCNTL=(maincount%524288)*4096;
 	Psys_MAINCNTH=(maincount/524288)*4096;
 	if(runmode!=RMD_PRG)Psys_ICONPAGE=0x00000000;

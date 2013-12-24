@@ -74,8 +74,7 @@ int PSysInit(void){
 	read_srcpos=0;
 	labelcount=0;
 	ClearDim();
-	memset(consolecharbuf,0x00,sizeof(consolecharbuf));
-	memset(consolecolorbuf,0x00,sizeof(consolecolorbuf));
+	memset(con_buf,0x00,sizeof(con_buf));
 	return true;
 }
 

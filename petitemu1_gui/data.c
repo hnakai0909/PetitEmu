@@ -92,21 +92,21 @@ char* TokenCode2Str(uint16_t arg){
 
 int FontTable(const unsigned char arg,char* arg2){
 	const char* table1[]={ "　","А","Б","В","Г","Д","Е","Ё","Ж","З","И","Й","К","Л","М","Н",
-							"♪","О","н","П","Р","С","Т","У","Ф","Х","◎","Ц","→","←","↑","↓",
-							"　","！","”","＃","＄","％","＆","′","（","）","＊","＋","，","－","．","／",
-							"０","１","２","３","４","５","６","７","８","９","：","；","＜","＝","＞","？",
-							"＠","Ａ","Ｂ","Ｃ","Ｄ","Ｅ","Ｆ","Ｇ","Ｈ","Ｉ","Ｊ","Ｋ","Ｌ","Ｍ","Ｎ","Ｏ",
-							"Ｐ","Ｑ","Ｒ","Ｓ","Ｔ","Ｕ","Ｖ","Ｗ","Ｘ","Ｙ","Ｚ","［","￥","］","＾","＿",
-							"｀","ａ","ｂ","ｃ","ｄ","ｅ","ｆ","ｇ","ｈ","ｉ","ｊ","ｋ","ｌ","ｍ","ｎ","ｏ",
-							"ｐ","ｑ","ｒ","ｓ","ｔ","ｕ","ｖ","ｗ","ｘ","ｙ","ｚ","｛","￤","｝","～","＼",
-							"◇","━","┃","┏","┓","┛","┗","┣","┳","┫","┻","╋","┠","┯","┨","┷",
-							"┴","┬","├","┼","┤","─","│","┿","┌","┐","└","┘","┝","┰","┥","┸",
-							"―","。","「","」","、","・","ヲ","ァ","ィ","ゥ","ェ","ォ","ャ","ュ","ョ","ッ",
-							"ー","ア","イ","ウ","エ","オ","カ","キ","ク","ケ","コ","サ","シ","ス","セ","ソ",
-							"タ","チ","ツ","テ","ト","ナ","ニ","ヌ","ネ","ノ","ハ","ヒ","フ","ヘ","ホ","マ",
-							"ミ","ム","メ","モ","ヤ","ユ","ヨ","ラ","リ","ル","レ","ロ","ワ","ン","゛","゜",
-							"■","●","▲","▼","□","○","△","▽","Ч","Ш","Щ","Ъ","Ы","Ь","Э","Ю",
-							"Я","а","б","в","г","д","е","ё","ж","з","и","й","к","л","м","╂"};
+		"♪","О","н","П","Р","С","Т","У","Ф","Х","◎","Ц","→","←","↑","↓",
+		"　","！","”","＃","＄","％","＆","′","（","）","＊","＋","，","－","．","／",
+		"０","１","２","３","４","５","６","７","８","９","：","；","＜","＝","＞","？",
+		"＠","Ａ","Ｂ","Ｃ","Ｄ","Ｅ","Ｆ","Ｇ","Ｈ","Ｉ","Ｊ","Ｋ","Ｌ","Ｍ","Ｎ","Ｏ",
+		"Ｐ","Ｑ","Ｒ","Ｓ","Ｔ","Ｕ","Ｖ","Ｗ","Ｘ","Ｙ","Ｚ","［","￥","］","＾","＿",
+		"｀","ａ","ｂ","ｃ","ｄ","ｅ","ｆ","ｇ","ｈ","ｉ","ｊ","ｋ","ｌ","ｍ","ｎ","ｏ",
+		"ｐ","ｑ","ｒ","ｓ","ｔ","ｕ","ｖ","ｗ","ｘ","ｙ","ｚ","｛","￤","｝","～","＼",
+		"◇","━","┃","┏","┓","┛","┗","┣","┳","┫","┻","╋","┠","┯","┨","┷",
+		"┴","┬","├","┼","┤","─","│","┿","┌","┐","└","┘","┝","┰","┥","┸",
+		"―","。","「","」","、","・","ヲ","ァ","ィ","ゥ","ェ","ォ","ャ","ュ","ョ","ッ",
+		"ー","ア","イ","ウ","エ","オ","カ","キ","ク","ケ","コ","サ","シ","ス","セ","ソ",
+		"タ","チ","ツ","テ","ト","ナ","ニ","ヌ","ネ","ノ","ハ","ヒ","フ","ヘ","ホ","マ",
+		"ミ","ム","メ","モ","ヤ","ユ","ヨ","ラ","リ","ル","レ","ロ","ワ","ン","゛","゜",
+		"■","●","▲","▼","□","○","△","▽","Ч","Ш","Щ","Ъ","Ы","Ь","Э","Ю",
+		"Я","а","б","в","г","д","е","ё","ж","з","и","й","к","л","м","╂"};
 	memset(arg2,0x00,sizeof(arg2));
 	strcpy(arg2,table1[arg]);
 	return 0;
@@ -158,7 +158,7 @@ int isOperator(const uint16_t arg){
 		(arg==TOKEN_NOT)||(arg==TOKEN_AND)||(arg==TOKEN_OR)||(arg==TOKEN_XOR)||
 		(arg==OP_MINUSSIGN)||(arg==OP_SHONARI_EQUAL)||(arg==OP_DAINARI_EQUAL)||(arg==OP_EQUAL)||
 		(arg==OP_NOTEQUAL)
-	)return true;
+		)return true;
 	return false;
 }
 
@@ -166,13 +166,13 @@ int GetSystemVariableType(const int arg){
 	if(
 		inrange(arg,TOKEN_TRUE,TOKEN_RESULT)||(arg==TOKEN_MAINCNTL)||(arg==TOKEN_MAINCNTH)||
 		(arg==TOKEN_FREEMEM)||(arg==TOKEN_FREEVAR)
-	)return 1;//int,R
+		)return 1;//int,R
 	if(
 		inrange(arg,TOKEN_ICONPUSE,TOKEN_ICONPMAX)||(arg==TOKEN_TABSTEP)||(arg==TOKEN_SYSBEEP)
-	)return 2;//int,R/W
+		)return 2;//int,R/W
 	if(
 		(arg==TOKEN_DATE)||(arg==TOKEN_TIME)
-	)return 3;//str,R
+		)return 3;//str,R
 	if(arg==TOKEN_MEM)return 4;//str,R/W
 	return 0;
 }
@@ -182,8 +182,8 @@ int GetFunctionType(const int arg){
 	if(
 		(arg==TOKEN_ASC)||(arg==TOKEN_VAL)||(arg==TOKEN_LEN)||
 		inrange(arg,TOKEN_RND,TOKEN_BUTTON)||inrange(arg,TOKEN_CHKCHR,TOKEN_SPCHK)
-	){
-		return 1;//int
+		){
+			return 1;//int
 	}else {
 		return 2;//str
 	}
@@ -208,7 +208,7 @@ bool isInstruction(const int arg){
 bool isNoArgInstruction(const int arg){
 	if(
 		(arg==TOKEN_CLEAR)||(arg==TOKEN_CLS)||(arg==TOKEN_BGMSTOP)
-	)return true;
+		)return true;
 	return false;
 }
 
@@ -233,30 +233,30 @@ bool isLoop(const char arg){
 
 int GetOperatorPriority(const int arg){
 	switch(Code2Char(arg)){
-		case '(':case ')':case '[':case ']':
-			return 1;
-		case '*':case '/':case '%':
-			return 4;
-		case '+':case '-':
-			return 5;
-		case '<':case '>':
+	case '(':case ')':case '[':case ']':
+		return 1;
+	case '*':case '/':case '%':
+		return 4;
+	case '+':case '-':
+		return 5;
+	case '<':case '>':
+		return 6;
+	case '=':
+		return 10;
+	default:
+		switch(arg){
+		case TOKEN_NOT:case OP_MINUSSIGN:
+			return 2;
+		case OP_SHONARI_EQUAL:case OP_DAINARI_EQUAL:
 			return 6;
-		case '=':
-			return 10;
+		case OP_EQUAL:case OP_NOTEQUAL:
+			return 7;
+		case TOKEN_AND:case TOKEN_OR:case TOKEN_XOR:
+			return 8;
 		default:
-			switch(arg){
-				case TOKEN_NOT:case OP_MINUSSIGN:
-					return 2;
-				case OP_SHONARI_EQUAL:case OP_DAINARI_EQUAL:
-					return 6;
-				case OP_EQUAL:case OP_NOTEQUAL:
-					return 7;
-				case TOKEN_AND:case TOKEN_OR:case TOKEN_XOR:
-					return 8;
-				default:
-					return -1;
-			}
-			
+			return -1;
+		}
+
 	}
 	return -1;
 }

@@ -1,7 +1,7 @@
 ﻿#include "petitemu.h"
 
 int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
-			 LPSTR lpCmdLine, int nCmdShow )
+	LPSTR lpCmdLine, int nCmdShow )
 {
 	char inputline[64];
 	memset(inputline,0x00,sizeof(inputline));

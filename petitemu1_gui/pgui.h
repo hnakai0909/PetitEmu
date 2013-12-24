@@ -60,6 +60,9 @@ void ScrollConsole(void);
 //起動時の文章をコンソールバッファに追加
 void PutStartMessage(void);
 
+//デバッグ画面を処理
+void ProcessDebugScreen(void);
+
 //デバッグ画面を描画
 void DrawDebugScreen(void);
 
