@@ -11,7 +11,7 @@ int GrHandle[10];
 extern "C" bool ProcessFrame(void){
 	int tmp=0;
 	static int count=GetNowCount();
-	ProcessDebugScreen();
+	if(log_en3)ProcessDebugScreen();
 	if((GetNowCount()-count)<16)return true;
 	count=GetNowCount();
 	UpdateSystemVariable();
@@ -36,7 +36,6 @@ extern "C" bool ProcessFrame(void){
 	default:
 		break;
 	}
-	ProcessDebugScreen();
 
 	//描画
 	ClearDrawScreen();
@@ -63,7 +62,7 @@ extern "C" bool ProcessFrame(void){
 		break;
 	}
 	DrawConsole();
-	DrawDebugScreen();
+	if(log_en3)DrawDebugScreen();
 	//ScreenFlip();
 	return true;
 }

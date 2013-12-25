@@ -9,6 +9,7 @@
 
 bool log_en=false;
 int log_en2=false;
+int log_en3=false;
 
 int32_t Psys_VERSION=0x1020000;//ver 1.2
 int32_t Psys_TRUE=0x00001000;

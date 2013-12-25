@@ -83,6 +83,7 @@ struct ConsoleBuffer {
 /*===グローバル変数宣言===*/
 extern bool log_en;
 extern int log_en2;
+extern int log_en3;
 extern struct VARIABLE Variable[VAR_MAX];
 extern struct OP_S op_s[OP_S_MAX];//演算子スタック
 extern struct CalcStack calc_s[CALC_S_MAX];//計算スタック
