@@ -83,7 +83,7 @@ int SystemInit(void){
 	InitSound();
 	if(!PSysInit())return false;
     srand((unsigned) time(NULL));
-	ChangeFont(FONT_PETITCOM);
+	ChangeFont(FONT_PETITCOM,DX_CHARSET_DEFAULT);
 	SetFontSize(8);
 	SetFontThickness(5);
 	return true;
