@@ -157,6 +157,7 @@ uint16_t* ForJump(uint16_t* p,int* errtmp){
 uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 	char tmpstr[STR_LEN_MAX],tmpstr2[512];
 	char tmpstr_p=0;
+	st str={0,""};
 	uint16_t *pbegin=p;
 	int cnt=0,tmp=0,beforetokentype=0,nest_depth=0;
 	char argcount[100],brackettype[100];

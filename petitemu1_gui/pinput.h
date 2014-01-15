@@ -30,7 +30,7 @@ void CheckPanel(void);
 void CheckJoypad(void);
 
 //コンソールから一行入力
-void InputLine(char* arg);
+void InputLine(st *str);
 
 //タッチ座標からキー特定
 bool KeyboardWhichKey(int x,int y,int* type,int* code);

@@ -34,10 +34,10 @@ uint16_t Char2Code(unsigned char arg){
 	return dictAry[arg];
 }
 
-bool Str2TokenCode(char* arg,uint16_t* arg2){
+bool Str2TokenCode(st str,uint16_t* arg2){
 	int i;
 	for(i=0;TokenConvTable_Code[i]!=0x00;i++){
-		if(strcmp(arg,TokenConvTable_Str[i])==0){
+		if(strcmp(str.s,TokenConvTable_Str[i])==0){
 			*arg2=TokenConvTable_Code[i];
 			return true;
 		}
@@ -77,17 +77,19 @@ unsigned char Code2Char(uint16_t arg){
 	return 0x00;
 }
 
-char* TokenCode2Str(uint16_t arg){
+st TokenCode2Str(uint16_t arg){
 	int i;
-	char arg2[256];
-	memset(arg2,0x00,sizeof(arg2));
+	st str;
+	str.len=0;
+	memset(str.s,0x00,sizeof(str.s));
 	for(i=0;TokenConvTable_Code[i]!=0x00;i++){
 		if(arg==TokenConvTable_Code[i]){
-			strcpy(arg2,TokenConvTable_Str[i]);
-			return arg2;
+			strcpy(str.s,TokenConvTable_Str[i]);
+			str.len=strlen(TokenConvTable_Str[i]);
+			return str;
 		}
 	}
-	return "";
+	return str;
 };
 
 int FontTable(const unsigned char arg,char* arg2){
@@ -121,7 +123,10 @@ unsigned int GetOperatorArgCount(const uint16_t arg){
 	return 2;
 }
 
-char* GetErrorMessage(const char arg){
+st GetErrorMessage(const char arg){
+	st str;
+	memset(str.s,0x00,sizeof(str.s));
+	str.len=0;
 	static char *errmesstr[]={
 		"Undefined Error",
 		"Syntax error",
@@ -147,7 +152,9 @@ char* GetErrorMessage(const char arg){
 		"FOR without NEXT",
 		NULL
 	};
-	return errmesstr[arg];
+	strcpy(str.s,errmesstr[arg]);
+	str.len=strlen(errmesstr[arg]);
+	return str;
 }
 
 int isOperator(const uint16_t arg){
@@ -231,7 +238,7 @@ bool isLoop(const char arg){
 	return true;
 }
 
-int GetOperatorPriority(const int arg){
+int GetOperatorPriority(const uint16_t arg){
 	switch(Code2Char(arg)){
 	case '(':case ')':case '[':case ']':
 		return 1;
@@ -261,7 +268,7 @@ int GetOperatorPriority(const int arg){
 	return -1;
 }
 
-bool isOperatorLeftAssoc(const int arg){
+bool isOperatorLeftAssoc(const uint16_t arg){
 	if((Code2Char(arg)=='=')||(arg==OP_MINUSSIGN)||(arg==TOKEN_NOT))return false;
 	return true;
 }

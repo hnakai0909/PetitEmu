@@ -34,9 +34,9 @@ int32_t Psys_ICONPMAX;
 int32_t Psys_FUNCNO;
 int32_t Psys_FREEVAR;
 int32_t Psys_SYSBEEP=0x00001000;
-char Psys_TIME[STR_LEN_MAX];
-char Psys_DATE[STR_LEN_MAX];
-char Psys_MEM[STR_LEN_MAX];
+st Psys_TIME;
+st Psys_DATE;
+st Psys_MEM;
 
 struct ConsoleBuffer con_buf[32][24];
 struct OP_S op_s[OP_S_MAX];//演算子スタック
@@ -70,7 +70,7 @@ bool kbd_insert_flag;
 int button_state;
 enum PanelMode panelmode;
 enum RunMode runmode;
-unsigned char FuncKeyStr[5][STR_LEN_MAX]={"FILES","LOAD\"","SAVE\"","CONT","RUN"};
+st FuncKeyStr[5]={5,"FILES",5,"LOAD\"",5,"SAVE\"",4,"CONT",3,"RUN"};
 unsigned char keybuffer[KEYBUFFER_MAX];
 int keybuffer_qhead;//読む位置(キュー先頭)
 int keybuffer_qtail;//書く位置(キュー末尾)
@@ -1341,10 +1341,10 @@ void UpdateSystemVariable(void){
 	maincount=(GetNowCount()-maincount_start)*3/50;
 	memset(tmpstr,0x00,sizeof(tmpstr));
 	sprintf(tmpstr,"%02d:%02d:%02d",nowtime2->tm_hour,nowtime2->tm_min,nowtime2->tm_sec);
-	strcpy(Psys_TIME,tmpstr);
+	mystrcpy2(&Psys_TIME,tmpstr);
 	memset(tmpstr,0x00,sizeof(tmpstr));
 	sprintf(tmpstr,"%04d/%02d/%02d",nowtime2->tm_year+1900,nowtime2->tm_mon+1,nowtime2->tm_mday);
-	strcpy(Psys_DATE,tmpstr);
+	mystrcpy2(&Psys_DATE,tmpstr);
 	//TODO:Psys_FREEMEM
 	Psys_MAINCNTL=(maincount%524288)*4096;
 	Psys_MAINCNTH=(maincount/524288)*4096;
@@ -1376,7 +1376,7 @@ void InitSystemVariable(void){
 	Psys_FUNCNO=0x00000000;
 	Psys_FREEVAR=VAR_MAX*4096;
 	Psys_SYSBEEP=0x00001000;
-	memset(Psys_TIME,0x00,sizeof(Psys_TIME));
-	memset(Psys_DATE,0x00,sizeof(Psys_DATE));
-	memset(Psys_MEM,0x00,sizeof(Psys_MEM));
+	mystrclear(&Psys_TIME);
+	mystrclear(&Psys_DATE);
+	mystrclear(&Psys_MEM);
 }

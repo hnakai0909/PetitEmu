@@ -498,11 +498,11 @@ unsigned char Keychar2Char(int code,int* daku_flag){
 	return 0;
 }
 
-void InputLine(char* arg){
+void InputLine(st* str){
 	int i=0,j=0,cursol=0;
 	int cursol_blink_timer=0;
 	unsigned char tmpc=0;
-	memset(arg,0x00,32+1);
+	mystrclear(str);
 	while(ProcessFrame()){
 		if(breakflag==1 && runmode==RMD_PRG)break;
 		if(cursol_blink_timer<30){
@@ -548,10 +548,10 @@ void InputLine(char* arg){
 		if(con_buf[i][Psys_CSRY].chr!=0)break;
 	}
 	for(j=0;(j+i)<32;j++){
-		arg[j]=con_buf[j+i][Psys_CSRY].chr;
+		(*str).s[j]=con_buf[j+i][Psys_CSRY].chr;
 	}
 	for(i=32-i;i<=32;i++){
-		arg[i]=0;	
+		(*str).s[i]=0;	
 	}
 	Print2Console("",0);
 	return;

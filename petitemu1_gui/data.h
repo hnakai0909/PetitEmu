@@ -439,7 +439,7 @@ bool Str2TokenCode(char* arg,uint16_t* arg2);
 unsigned char Code2Char(uint16_t arg);
 
 //内部コードからテキストデータ(1トークン)に変換
-char* TokenCode2Str(uint16_t arg);
+st TokenCode2Str(uint16_t arg);
 
 //1バイト文字からプチコンフォント用文字へ
 int FontTable(const unsigned char arg,char* arg2);
@@ -451,7 +451,7 @@ bool isBin(const char arg);
 unsigned int GetOperatorArgCount(const uint16_t arg);
 
 //エラーメッセージ一覧
-char* GetErrorMessage(const char arg);
+st GetErrorMessage(const char arg);
 
 //演算子トークンか
 int isOperator(const uint16_t arg);
@@ -484,10 +484,10 @@ int GetLoopPos(const char arg);
 bool isLoop(const char arg);
 
 //演算子の優先順位
-int GetOperatorPriority(const int arg);
+int GetOperatorPriority(const uint16_t arg);
 
 //左結合性か
-bool isOperatorLeftAssoc(const int arg);
+bool isOperatorLeftAssoc(const uint16_t arg);
 
 #ifdef __cplusplus
 }

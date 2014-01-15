@@ -3,8 +3,7 @@
 int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	LPSTR lpCmdLine, int nCmdShow )
 {
-	char inputline[64];
-	memset(inputline,0x00,sizeof(inputline));
+	st inputline={0,""};
 	if(!InitWindow())return -1;
 	SetAlwaysRunFlag(TRUE);
 	AllocConsole();
@@ -18,11 +17,11 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	ShowWindow(GetMainWindowHandle(),SW_SHOW);
 	SetAlwaysRunFlag(FALSE);
 	ShowWindow(GetMainWindowHandle(),SW_SHOW);
-	while(strcmp(inputline,"EXIT")!=0){
+	while(strcmp(inputline.s,"EXIT")!=0){
 		puts(">");
-		InputLine(inputline);
+		InputLine(&inputline);
 		printf("%s\n",inputline);
-		if(strcmp(inputline,"")!=0){
+		if(strcmp(inputline.s,"")!=0){
 			RunInteractive(inputline);
 			ProcessFrame();
 		}

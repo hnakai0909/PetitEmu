@@ -6,6 +6,7 @@
 #define MYUTIL_H_INCLUDED
 
 #include <ctype.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,6 +15,11 @@ extern "C" {
 #ifndef bool
 #define bool int
 #endif
+
+struct st{
+	unsigned int len;
+	unsigned char s[256];
+};
 
 /*===関数プロトタイプ宣言===*/
 //min<=arg<=maxか判定
@@ -29,6 +35,12 @@ int isintliteral(char* arg);
 
 char hex2int(const char arg);
 char dec2int(const char arg);
+
+st str2mystr(char arg);
+void mystrcpy(st *str1,st str2);
+bool mystrcpy2(st *str1,char arg[256]);
+bool mystrcat(st *str1,st str2);
+void mystrclear(st *str);
 
 #ifdef __cplusplus
 }

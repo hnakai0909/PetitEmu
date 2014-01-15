@@ -113,9 +113,9 @@ extern int32_t Psys_ICONPMAX;
 extern int32_t Psys_FUNCNO;
 extern int32_t Psys_FREEVAR;
 extern int32_t Psys_SYSBEEP;
-extern char Psys_TIME[STR_LEN_MAX];
-extern char Psys_DATE[STR_LEN_MAX];
-extern char Psys_MEM[STR_LEN_MAX];
+extern st Psys_TIME;
+extern st Psys_DATE;
+extern st Psys_MEM;
 
 extern char conslogbuf[768];//デバッグ用ログバッファ
 extern int consolecolor;//コンソール文字色
@@ -129,7 +129,7 @@ extern bool kbd_insert_flag;//キーボード挿入(true)/上書き(false)モー
 extern int button_state;//ボタン状態(各ビットに格納)
 extern enum PanelMode panelmode;//下画面の表示
 extern enum RunMode runmode;//実行モード
-extern unsigned char FuncKeyStr[5][STR_LEN_MAX];//ファンクションキー文字列
+extern st FuncKeyStr[5];//ファンクションキー文字列
 extern int error_occured_token;//エラー発生トークン
 //BG用各種状態変数(未使用)
 extern struct BGDATA BGData[2][2][64][64];
