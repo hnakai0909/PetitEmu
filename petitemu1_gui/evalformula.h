@@ -38,7 +38,7 @@ struct VARIABLE {
 	char name[9];
 	char *address;
 	int32_t value;
-	char string[STR_LEN_MAX];
+	st string;
 };
 struct OP_S{
 	int op;
@@ -51,7 +51,7 @@ struct CalcStack {
 	//3 str 1Dor2D
 	char type;
 	int32_t value;
-	char string[STR_LEN_MAX];
+	st string;
 	int argcount;
 };
 struct BGDATA{
@@ -174,9 +174,9 @@ int PushOpStack(uint16_t op,int argcount);
 int PopOpStack(uint16_t* op,int* argcount);
 
 //計算スタック操作関数
-int PushCalcStack(int type,int32_t value,char* str,int argc);
+int PushCalcStack(int type,int32_t value,st str,int argc);
 bool PopCalcStack_int(int32_t* arg);
-bool PopCalcStack_str(char* arg);
+bool PopCalcStack_str(st* str);
 bool PopCalcStack_var(int* arg);
 bool PopCalcStack_intptr(int* arg);
 bool PopCalcStack_strptr(int* arg);
@@ -193,7 +193,7 @@ int EvalFormula(const int arg,const int argcount);
 
 //システム変数のポインタを渡す(数値型/文字列型)
 int* GetSystemVariableIntPtr(uint16_t arg);
-char* GetSystemVariableStrPtr(uint16_t arg);
+st* GetSystemVariableStrPtr(uint16_t arg);
 
 //システム変数の値の範囲を制限
 void SystemVariableLimitValue(void);

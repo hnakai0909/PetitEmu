@@ -16,10 +16,12 @@ extern "C" {
 #define bool int
 #endif
 
-struct st{
+#define MYSTR_NULL (str2mystr2(""))
+
+typedef struct{
 	unsigned int len;
 	unsigned char s[256];
-};
+} st;
 
 /*===関数プロトタイプ宣言===*/
 //min<=arg<=maxか判定
@@ -36,11 +38,13 @@ int isintliteral(char* arg);
 char hex2int(const char arg);
 char dec2int(const char arg);
 
-st str2mystr(char arg);
-void mystrcpy(st *str1,st str2);
+st str2mystr(unsigned char arg[256]);
+st str2mystr2(char arg[256]);
 bool mystrcpy2(st *str1,char arg[256]);
 bool mystrcat(st *str1,st str2);
+int mystrcmp(st str1,st str2);
 void mystrclear(st *str);
+unsigned int my_strlen(unsigned char arg[256]);
 
 #ifdef __cplusplus
 }

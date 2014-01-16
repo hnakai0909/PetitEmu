@@ -48,25 +48,27 @@ char dec2int(const char arg){
 		return arg-'0';
 	return -1;
 }
-
-st str2mystr(char* arg){
+st str2mystr(unsigned char arg[256]){
+	st str={0,""};
+	unsigned int length=my_strlen(arg);
+	if(length>256)return str;
+	str.len=length;
+	memcpy(str.s,arg,256);
+	return str;
+}
+st str2mystr2(char arg[256]){
 	st str={0,""};
 	unsigned int length=strlen(arg);
 	if(length>256)return str;
 	str.len=length;
-	strcpy(str.s,arg);	
+	memcpy(str.s,arg,256);
 	return str;
-}
-void mystrcpy(st *str1,st str2){
-	memcpy(str1->s,str2.s,256);
-	str1->len=str2.len;
-	return;
 }
 bool mystrcpy2(st *str1,char arg[256]){
 	unsigned int length=strlen(arg);
 	if(length>256)return false;
-	strcpy(str1->s,arg);
-	str1->len=strlen(arg);
+	memcpy(str1->s,arg,256);
+	str1->len=length;
 	return true;
 }
 bool mystrcat(st *str1,st str2){
@@ -75,7 +77,21 @@ bool mystrcat(st *str1,st str2){
 	str1->len+=str2.len;
 	return true;
 }
+int mystrcmp(st str1,st str2){
+	int i=0;
+	if(str1.len==str2.len)return 0;
+	for(;(str1.s[i]==str2.s[i])&&(i<str1.len)&&(i<str2.len);i++)
+	return (str2.s[i]-str1.s[i]);
+}
 void mystrclear(st *str){
 	memset(str,0x00,sizeof(str));
 	return;
+}
+//NOT mystr_len BUT my_strlen
+unsigned int my_strlen(unsigned char arg[256]){
+	unsigned int i=0;
+	for(i=0;i<256;i++){
+		if(arg[i]==0)return i;
+	}
+	return 256;
 }

@@ -124,9 +124,7 @@ unsigned int GetOperatorArgCount(const uint16_t arg){
 }
 
 st GetErrorMessage(const char arg){
-	st str;
-	memset(str.s,0x00,sizeof(str.s));
-	str.len=0;
+	st str={0,""};
 	static char *errmesstr[]={
 		"Undefined Error",
 		"Syntax error",

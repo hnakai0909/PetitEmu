@@ -433,7 +433,7 @@ static const unsigned char KeyMap_K_S_DAKU[256]={
 uint16_t Char2Code(unsigned char arg);
 
 //テキストデータ(1トークン)を内部コードに変換
-bool Str2TokenCode(char* arg,uint16_t* arg2);
+bool Str2TokenCode(st str,uint16_t* arg2);
 
 //内部コードからテキストデータ(1文字)に変換
 unsigned char Code2Char(uint16_t arg);

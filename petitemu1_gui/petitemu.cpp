@@ -17,11 +17,11 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	ShowWindow(GetMainWindowHandle(),SW_SHOW);
 	SetAlwaysRunFlag(FALSE);
 	ShowWindow(GetMainWindowHandle(),SW_SHOW);
-	while(strcmp(inputline.s,"EXIT")!=0){
+	while(mystrcmp(inputline,str2mystr2("EXIT"))!=0){
 		puts(">");
 		InputLine(&inputline);
-		printf("%s\n",inputline);
-		if(strcmp(inputline.s,"")!=0){
+		printf("%s\n",inputline.s);
+		if(mystrcmp(inputline,MYSTR_NULL)!=0){
 			RunInteractive(inputline);
 			ProcessFrame();
 		}

@@ -76,8 +76,8 @@ void CheckPanel(void){
 					case KT_NO:
 						break;
 					case KT_FUNCKEY:
-						for(i=0;(i<STR_LEN_MAX)&&(FuncKeyStr[code][i]!=0);i++){
-							WriteKeyBuffer(FuncKeyStr[code][i]);
+						for(i=0;i<FuncKeyStr[code].len;i++){
+							WriteKeyBuffer(FuncKeyStr[code].s[i]);
 						}
 						break;
 					case KT_CHAR:
@@ -420,23 +420,23 @@ void CheckKey(void){
 					button_state|=8;
 					break;
 				case KEY_INPUT_F1:
-					for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[0][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[0][j]);
+					for(j=0;j<FuncKeyStr[0].len;j++)WriteKeyBuffer(FuncKeyStr[0].s[j]);
 					if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
 					break;
 				case KEY_INPUT_F2:
-					for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[1][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[1][j]);
+					for(j=0;j<FuncKeyStr[1].len;j++)WriteKeyBuffer(FuncKeyStr[1].s[j]);
 					if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
 					break;
 				case KEY_INPUT_F3:
-					for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[2][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[2][j]);
+					for(j=0;j<FuncKeyStr[2].len;j++)WriteKeyBuffer(FuncKeyStr[2].s[j]);
 					if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
 					break;
 				case KEY_INPUT_F4:
-					for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[3][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[3][j]);
+					for(j=0;j<FuncKeyStr[3].len;j++)WriteKeyBuffer(FuncKeyStr[3].s[j]);
 					if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
 					break;
 				case KEY_INPUT_F5:
-					for(j=0;(j<STR_LEN_MAX)&&(FuncKeyStr[4][j]!=0);j++)WriteKeyBuffer(FuncKeyStr[4][j]);
+					for(j=0;j<FuncKeyStr[4].len;j++)WriteKeyBuffer(FuncKeyStr[4].s[j]);
 					if(Psys_SYSBEEP==0x00001000)PlaySoundMem(SHandleBEEP[9],DX_PLAYTYPE_BACK);
 					break;
 				case KEY_INPUT_RETURN:

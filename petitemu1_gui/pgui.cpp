@@ -148,11 +148,11 @@ void DrawFuncKey(void){
 	char tmpstr[STR_LEN_MAX];
 	memset(tmpstr,0x00,sizeof(tmpstr));
 	for(i=0;i<5;i++){
-		for(j=0;(j<4)&&(FuncKeyStr[i][j]!=0);j++){
-			FontTable(FuncKeyStr[i][j],tmpstr);
+		for(j=0;(j<4)&&(j<FuncKeyStr[i].len);j++){
+			FontTable(FuncKeyStr[i].s[j],tmpstr);
 			DrawString(i*48+j*8+8,192,tmpstr,GetColor(255,255,255));
 		}
-		if(FuncKeyStr[i][4]!=0){
+		if(FuncKeyStr[i].len>4){
 			FontTable('.',tmpstr);
 			DrawString(i*48+40,192,tmpstr,GetColor(255,255,255));
 		}

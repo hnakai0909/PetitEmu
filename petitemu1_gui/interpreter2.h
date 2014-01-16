@@ -69,13 +69,13 @@ uint16_t* ForJump(uint16_t* p,int* errtmp);
 uint16_t* ReadFormula(uint16_t* p,int* errtmp);
 
 //1バイト文字列から内部コード列に変換
-void TranslateRaw2Code(unsigned char* input,uint16_t* output,int* outlen);
+void TranslateRaw2Code(st input,uint16_t* output,int* outlen);
 
 //内部コード列から1バイト文字列に変換
 void TranslateCode2Raw(uint16_t* input,unsigned char* output);
 
 //コンソールに入力された文字列を実行
-void RunInteractive(char* input);
+void RunInteractive(st input);
 
 //プログラムソースから実行
 int RunProgram(void);
