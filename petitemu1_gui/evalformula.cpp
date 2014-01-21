@@ -390,14 +390,10 @@ int EvalFormula(const int arg,const int argcount){
 				errtmp=PushCalcStack(TYPE_INT_LIT,(int32_t)tmpint64,MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else if((argtypes[1]==ATYPE_STR)&&(argtypes[0]==ATYPE_STR)){
-				if((strlen(tmpstrs[1])+strlen(tmpstrs[0]))>STR_LEN_MAX){
-					return ERR_STRING_TOO_LONG;
-				}else{
-					strcpy(tmpstr,tmpstrs[1]);
-					strcat(tmpstr,tmpstrs[0]);
-					errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
-					if(errtmp!=ERR_NO_ERROR)return errtmp;
-				}
+				tmpstr=tmpstrs[1];
+				if(!mystrcat(&tmpstr,tmpstrs[0]))return ERR_STRING_TOO_LONG;
+				errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else{
 				return ERR_TYPE_MISMATCH;
 			}
@@ -476,7 +472,7 @@ int EvalFormula(const int arg,const int argcount){
 				errtmp=PushCalcStack(TYPE_INT_LIT,(tmpints[1]<tmpints[0])*4096,MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;		
 			}else if((argtypes[1]==ATYPE_STR)&&(argtypes[0]==ATYPE_STR)){
-				errtmp=PushCalcStack(TYPE_INT_LIT,(strcmp(tmpstrs[1],tmpstrs[0])<0)*4096,MYSTR_NULL,0);
+				errtmp=PushCalcStack(TYPE_INT_LIT,(mystrcmp(tmpstrs[1],tmpstrs[0])<0)*4096,MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else{	
 				return ERR_TYPE_MISMATCH;
@@ -489,7 +485,7 @@ int EvalFormula(const int arg,const int argcount){
 				errtmp=PushCalcStack(TYPE_INT_LIT,(tmpints[1]>tmpints[0])*4096,MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;		
 			}else if((argtypes[1]==ATYPE_STR)&&(argtypes[0]==ATYPE_STR)){
-				errtmp=PushCalcStack(TYPE_INT_LIT,(strcmp(tmpstrs[1],tmpstrs[0])>0)*4096,MYSTR_NULL,0);
+				errtmp=PushCalcStack(TYPE_INT_LIT,(mystrcmp(tmpstrs[1],tmpstrs[0])>0)*4096,MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else{	
 				return ERR_TYPE_MISMATCH;
@@ -502,7 +498,7 @@ int EvalFormula(const int arg,const int argcount){
 				errtmp=PushCalcStack(TYPE_INT_LIT,(tmpints[1]<=tmpints[0])*4096,MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;		
 			}else if((argtypes[1]==ATYPE_STR)&&(argtypes[0]==ATYPE_STR)){
-				errtmp=PushCalcStack(TYPE_INT_LIT,(strcmp(tmpstrs[1],tmpstrs[0])<=0)*4096,MYSTR_NULL,0);
+				errtmp=PushCalcStack(TYPE_INT_LIT,(mystrcmp(tmpstrs[1],tmpstrs[0])<=0)*4096,MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else{	
 				return ERR_TYPE_MISMATCH;
@@ -515,7 +511,7 @@ int EvalFormula(const int arg,const int argcount){
 				errtmp=PushCalcStack(TYPE_INT_LIT,(tmpints[1]>=tmpints[0])*4096,MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;		
 			}else if((argtypes[1]==ATYPE_STR)&&(argtypes[0]==ATYPE_STR)){
-				errtmp=PushCalcStack(TYPE_INT_LIT,(strcmp(tmpstrs[1],tmpstrs[0])>=0)*4096,MYSTR_NULL,0);
+				errtmp=PushCalcStack(TYPE_INT_LIT,(mystrcmp(tmpstrs[1],tmpstrs[0])>=0)*4096,MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else{	
 				return ERR_TYPE_MISMATCH;
@@ -528,7 +524,7 @@ int EvalFormula(const int arg,const int argcount){
 				errtmp=PushCalcStack(TYPE_INT_LIT,(tmpints[1]==tmpints[0])*4096,MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;		
 			}else if((argtypes[1]==ATYPE_STR)&&(argtypes[0]==ATYPE_STR)){
-				errtmp=PushCalcStack(TYPE_INT_LIT,(strcmp(tmpstrs[1],tmpstrs[0])==0)*4096,MYSTR_NULL,0);
+				errtmp=PushCalcStack(TYPE_INT_LIT,(mystrcmp(tmpstrs[1],tmpstrs[0])==0)*4096,MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else{	
 				return ERR_TYPE_MISMATCH;
@@ -541,7 +537,7 @@ int EvalFormula(const int arg,const int argcount){
 				errtmp=PushCalcStack(TYPE_INT_LIT,(tmpints[1]!=tmpints[0])*4096,MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;		
 			}else if((argtypes[1]==ATYPE_STR)&&(argtypes[0]==ATYPE_STR)){
-				errtmp=PushCalcStack(TYPE_INT_LIT,(strcmp(tmpstrs[1],tmpstrs[0])!=0)*4096,MYSTR_NULL,0);
+				errtmp=PushCalcStack(TYPE_INT_LIT,(mystrcmp(tmpstrs[1],tmpstrs[0])!=0)*4096,MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else{	
 				return ERR_TYPE_MISMATCH;
@@ -598,7 +594,7 @@ int EvalFormula(const int arg,const int argcount){
 		case TOKEN_ASC:
 			if(argcount!=1)return ERR_SYNTAX_ERROR;
 			if(argtypes[0]==ATYPE_STR){
-				errtmp=PushCalcStack(TYPE_INT_LIT,((tmpstrs[0][0]+256)%256)*4096,MYSTR_NULL,0);
+				errtmp=PushCalcStack(TYPE_INT_LIT,((tmpstrs[0].s[0]+256)%256)*4096,MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else{
 				return ERR_TYPE_MISMATCH;
@@ -712,7 +708,7 @@ int EvalFormula(const int arg,const int argcount){
 		case TOKEN_LEN:
 			if(argcount==1){
 				if(argtypes[0]!=ATYPE_STR)return ERR_TYPE_MISMATCH;
-				errtmp=PushCalcStack(TYPE_INT_LIT,strlen(tmpstrs[0])*4096,MYSTR_NULL,0);
+				errtmp=PushCalcStack(TYPE_INT_LIT,tmpstrs[0].len*4096,MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else if(argcount==0){
 				return ERR_MISSING_OPERAND;
@@ -802,25 +798,25 @@ int EvalFormula(const int arg,const int argcount){
 			if(argcount>1)return ERR_SYNTAX_ERROR;
 			if(argtypes[0]!=ATYPE_STR)return ERR_TYPE_MISMATCH;
 			p=0;
-			if(tmpstrs[0][p]=='-'){tmp=1;p++;}else{tmp=0;}
-			if(isdigit(tmpstrs[0][p])){
+			if(tmpstrs[0].s[p]=='-'){tmp=1;p++;}else{tmp=0;}
+			if(isdigit(tmpstrs[0].s[p])){
 				tmpint=0;
 				i=0;
-				while(isdigit(tmpstrs[0][p])){
+				while(isdigit(tmpstrs[0].s[p])){
 					if(i>=7)return ERR_OVERFLOW;
-					tmpint=(tmpint*10)+(tmpstrs[0][p]-'0');
+					tmpint=(tmpint*10)+(tmpstrs[0].s[p]-'0');
 					p++;i++;
 				}
 				if(tmpint>=524288)return ERR_OVERFLOW;
 				tmpint*=4096;
-				if(tmpstrs[0][p]=='.'){
+				if(tmpstrs[0].s[p]=='.'){
 					p++;
 					tmpw=0;
-					for(i=0;isdigit(tmpstrs[0][p+i])&&(i<=6);i++);
+					for(i=0;isdigit(tmpstrs[0].s[p+i])&&(i<=6);i++);
 					i--;
 					tmp=i;
 					while(i>=0){
-						tmpw=((tmpw+(double)(tmpstrs[0][p+i]-'0'))/10.0);
+						tmpw=((tmpw+(double)(tmpstrs[0].s[p+i]-'0'))/10.0);
 						i--;
 					}
 					p+=tmp;
@@ -830,33 +826,33 @@ int EvalFormula(const int arg,const int argcount){
 					tmpw+=(1.0/8192.0);
 					tmpw*=4096.0;
 					tmpint+=(int)tmpw;
-					for(;isdigit(tmpstrs[0][p]);p++);
+					for(;isdigit(tmpstrs[0].s[p]);p++);
 				}
 				errtmp=PushCalcStack(TYPE_INT_LIT,tmpint*(tmp?(-1):1),MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
-			}else if(tmpstrs[0][p]=='&'){
+			}else if(tmpstrs[0].s[p]=='&'){
 				p++;
-				if(toupper(tmpstrs[0][p])=='H'){
+				if(toupper(tmpstrs[0].s[p])=='H'){
 					p++;
 					tmpint=0;
 					i=0;
-					while(isxdigit(tmpstrs[0][p])){
+					while(isxdigit(tmpstrs[0].s[p])){
 						if(i>=5){
 							return ERR_SYNTAX_ERROR;
 						}
-						tmpint=(tmpint<<4)|((tmpstrs[0][p]<='9')?(tmpstrs[0][p]-'0'):(toupper(tmpstrs[0][p])-'A'+10));
+						tmpint=(tmpint<<4)|((tmpstrs[0].s[p]<='9')?(tmpstrs[0].s[p]-'0'):(toupper(tmpstrs[0].s[p])-'A'+10));
 						p++;i++;
 					}
 					tmpint*=4096;
-				}else if(toupper(tmpstrs[0][p])=='B'){
+				}else if(toupper(tmpstrs[0].s[p])=='B'){
 					p++;
 					tmpint=0;
 					i=0;
-					while(isBin(tmpstrs[0][p])){
+					while(isBin(tmpstrs[0].s[p])){
 						if(i>=20){
 							return ERR_SYNTAX_ERROR;
 						}
-						tmpint=(tmpint<<1)|(tmpstrs[0][p]-'0');
+						tmpint=(tmpint<<1)|(tmpstrs[0].s[p]-'0');
 						p++;i++;
 					}
 					tmpint*=4096;
@@ -875,7 +871,8 @@ int EvalFormula(const int arg,const int argcount){
 			if(argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
 			tmpint=FloorInt(tmpints[0]);
 			if(tmpint<0 || tmpint>255)return ERR_OUT_OF_RANGE;
-			tmpstr[0]=tmpint;
+			tmpstr.s[0]=tmpint;
+			tmpstr.len=1;
 			errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
 			break;
@@ -883,7 +880,6 @@ int EvalFormula(const int arg,const int argcount){
 			if(argcount==0)return ERR_MISSING_OPERAND;
 			if(argcount>1)return ERR_SYNTAX_ERROR;
 			if(argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
-			memset(tmpstr,0x00,sizeof(tmpstr));
 			sprintf(tmpstr,"%05X",FloorInt(tmpints[0]));
 			errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
@@ -893,11 +889,13 @@ int EvalFormula(const int arg,const int argcount){
 			if(argcount>0)return ERR_SYNTAX_ERROR;
 			if(!ReadKeyBuffer(&tmpc)){
 				//キー入力なし
-				tmpstr[0]=0;
+				tmpstr.s[0]=0;
+				tmpstr.len=0;
 				errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else{
-				tmpstr[0]=tmpc;
+				tmpstr.s[0]=tmpc;
+				tmpstr.len=0;
 				errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}
@@ -911,8 +909,7 @@ int EvalFormula(const int arg,const int argcount){
 			//TODO:文字列長の調査によるメモリリーク対策
 			if(tmpints[1]<0)return ERR_OUT_OF_RANGE;
 			if(tmpints[0]<0)return ERR_OUT_OF_RANGE;
-			memset(tmpstr,0x00,sizeof(tmpstr));
-			memcpy(tmpstr,&(tmpstrs[2][tmpints[1]]),tmpints[0]);
+			memcpy(tmpstr.s,&(tmpstrs[2].s[tmpints[1]]),tmpints[0]);
 			errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
 			break;
@@ -921,10 +918,10 @@ int EvalFormula(const int arg,const int argcount){
 			if(argcount>1)return ERR_SYNTAX_ERROR;
 			if(argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
 			sprintf(tmpstr,"%.3f",(double)tmpint/4096.0);
-			for(i=strlen(tmpstr)-1;(i!=0)&&(tmpstr[i]=='0');i--){
-				tmpstr[i]=0;
+			for(i=tmpstr.len-1;(i!=0)&&(tmpstr.s[i]=='0');i--){
+				tmpstr.len--;
 			}
-			if(tmpstr[i]=='.')tmpstr[i]=0;
+			if(tmpstr.s[i]=='.')tmpstr.len--;
 			errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
 			break;
@@ -1034,23 +1031,23 @@ int EvalFormula(const int arg,const int argcount){
 		case TOKEN_PNLTYPE:
 			if(argcount!=1)return ERR_SYNTAX_ERROR;
 			if(argtypes[0]!=ATYPE_STR)return ERR_TYPE_MISMATCH;
-			if(strcmp(tmpstrs[0],"OFF")==0){
+			if(mystrcmp2(tmpstrs[0],"OFF")==0){
 				panelmode=PNLMD_OFF;kbd_shift_flag=0;
 				break;
 			}
-			if(strcmp(tmpstrs[0],"PNL")==0){
+			if(mystrcmp2(tmpstrs[0],"PNL")==0){
 				panelmode=PNLMD_PANEL;kbd_shift_flag=0;
 				break;
 			}
-			if(strcmp(tmpstrs[0],"KYA")==0){
+			if(mystrcmp2(tmpstrs[0],"KYA")==0){
 				panelmode=PNLMD_KYA;kbd_shift_flag=0;
 				break;
 			}
-			if(strcmp(tmpstrs[0],"KYM")==0){
+			if(mystrcmp2(tmpstrs[0],"KYM")==0){
 				panelmode=PNLMD_KYM;kbd_shift_flag=0;
 				break;
 			}
-			if(strcmp(tmpstrs[0],"KYK")==0){
+			if(mystrcmp2(tmpstrs[0],"KYK")==0){
 				panelmode=PNLMD_KYK;kbd_shift_flag=0;
 				break;
 			}
@@ -1137,7 +1134,7 @@ int EvalFormula(const int arg,const int argcount){
 			BGData[bgpage][tmpints[6]][tmpints[5]][tmpints[4]].v_inverse=tmpints[0];
 			break;
 		case TOKEN_DIM:
-			if(!PopCalcStack_str(tmpstr))return ERR_SYNTAX_ERROR;
+			if(!PopCalcStack_str(&tmpstr))return ERR_SYNTAX_ERROR;
 			if(!PopCalcStack_int(&tmpints[2]))return ERR_SYNTAX_ERROR;
 			tmpints[1]=FloorInt(tmpints[1]);tmpints[0]=FloorInt(tmpints[0]);
 			

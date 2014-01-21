@@ -3,17 +3,18 @@
 int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	LPSTR lpCmdLine, int nCmdShow )
 {
+	FILE *tmpfp;
 	st inputline={0,""};
 	if(!InitWindow())return -1;
 	SetAlwaysRunFlag(TRUE);
 	AllocConsole();
-	freopen("CONOUT$","w",stdout);
-	freopen("CONIN$","r",stdin);
+	freopen_s(&tmpfp,"CONOUT$","w",stdout);freopen_s(&tmpfp,"CONIN$","r",stdin);
+	//freopen_s(&tmpfp,"/dev/null","w",stdout);freopen_s(&tmpfp,"/dev/null","r",stdin);
 	SystemInit();
 	PutStartMessage();
 
 	puts("READY");
-	Print2Console("READY",0);
+	Print2Console(str2mystr2("READY"),0);
 	ShowWindow(GetMainWindowHandle(),SW_SHOW);
 	SetAlwaysRunFlag(FALSE);
 	ShowWindow(GetMainWindowHandle(),SW_SHOW);

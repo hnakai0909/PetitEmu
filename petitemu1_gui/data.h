@@ -38,7 +38,8 @@ extern "C" {
 #define OP_S_MAX 128
 #define FORGOSUB_S_MAX 256
 #define KEYBUFFER_MAX 256
-#define LABELSTR_MAX 8
+#define LABELNAME_MAX 8
+#define VARNAME_MAX 8
 #define VAR_MAX 1024
 #define STR_LEN_MAX 256
 #define TYPE_INT_LIT 1

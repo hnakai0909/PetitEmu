@@ -144,7 +144,7 @@ void DrawKeyboard(void){
 }
 
 void DrawFuncKey(void){
-	int i=0,j=0;
+	unsigned int i=0,j=0;
 	char tmpstr[STR_LEN_MAX];
 	memset(tmpstr,0x00,sizeof(tmpstr));
 	for(i=0;i<5;i++){
@@ -228,7 +228,7 @@ void ConsoleClearLine(void){
 	return;
 }
 
-int PutChar2Console(uint16_t arg,int indent_option){
+int PutChar2Console(unsigned char arg,int indent_option){
 	int x=0,y=0;
 	if(Psys_CSRY>=24){
 		ScrollConsole();
@@ -262,10 +262,10 @@ void ScrollConsole(void){
 	return;
 }
 
-int Print2Console(char *string,int indent_option){
-	int i=0;
-	while((string[i]!=0)&&(i<=255)){
-		PutChar2Console(string[i],indent_option);
+int Print2Console(st string,int indent_option){
+	unsigned int i=0;
+	while(i<string.len){
+		PutChar2Console(string.s[i],indent_option);
 		i++;
 	}
 	switch(indent_option){
@@ -302,17 +302,17 @@ int Print2Console(char *string,int indent_option){
 }
 
 void PutStartMessage(void){
-	Print2Console("PetitcomEmulator=PetitEmu",0);
-	Print2Console("Win-Edition ver0.30",0); 
-	Print2Console("supports SMILEBASIC ver1.20",0);
-	Print2Console("Please read Readme.txt .",0);
-	Print2Console("1048576 byte free",0);
-	Print2Console("developed by hnakai",0);
-	Print2Console("",0);
+	Print2Console(str2mystr2("PetitcomEmulator=PetitEmu"),0);
+	Print2Console(str2mystr2("Win-Edition ver0.30"),0); 
+	Print2Console(str2mystr2("supports SMILEBASIC ver1.20"),0);
+	Print2Console(str2mystr2("Please read Readme.txt ."),0);
+	Print2Console(str2mystr2("1048576 byte free"),0);
+	Print2Console(str2mystr2("developed by hnakai"),0);
+	Print2Console(str2mystr2(""),0);
 }
 
 void ProcessDebugScreen(void){
-	int i=0;
+	unsigned int i=0;
 	char tmpstr[256],tmpstr2[256];
 	static int initialized=0,conslogbufp=0;
 	if(runmode==RMD_STOP)return;

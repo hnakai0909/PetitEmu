@@ -39,7 +39,7 @@ struct ForGosubStack{
 	int32_t step;
 };
 struct Label {
-	char name[LABELSTR_MAX];
+	char name[LABELNAME_MAX];
 	int line;
 };
 
@@ -50,7 +50,7 @@ extern unsigned int ForGosub_sl;
 /*===関数プロトタイプ宣言===*/
 
 //変数名を検索し変数IDを返す
-int Str2VarID(const char* arg);
+int Str2VarID(st arg);
 
 //プログラムソースの変数名部分を特定し変数IDを返す(未定義の場合定義)
 uint16_t* GetVarID(uint16_t* p,int* tmpint,int* errtmp);
@@ -69,7 +69,7 @@ uint16_t* ForJump(uint16_t* p,int* errtmp);
 uint16_t* ReadFormula(uint16_t* p,int* errtmp);
 
 //1バイト文字列から内部コード列に変換
-void TranslateRaw2Code(st input,uint16_t* output,int* outlen);
+void TranslateRaw2Code(unsigned char* input,uint16_t* output,int* outlen);
 
 //内部コード列から1バイト文字列に変換
 void TranslateCode2Raw(uint16_t* input,unsigned char* output);
@@ -96,7 +96,7 @@ int ReadSeekNext(void);
 int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag);
 
 //新変数を登録
-int NewVar(char* name);
+int NewVar(st name);
 
 #ifdef __cplusplus
 }

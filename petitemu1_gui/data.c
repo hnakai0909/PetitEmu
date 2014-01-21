@@ -84,8 +84,7 @@ st TokenCode2Str(uint16_t arg){
 	memset(str.s,0x00,sizeof(str.s));
 	for(i=0;TokenConvTable_Code[i]!=0x00;i++){
 		if(arg==TokenConvTable_Code[i]){
-			strcpy(str.s,TokenConvTable_Str[i]);
-			str.len=strlen(TokenConvTable_Str[i]);
+			mystrcpy2(&str,TokenConvTable_Str[i]);
 			return str;
 		}
 	}
@@ -150,8 +149,7 @@ st GetErrorMessage(const char arg){
 		"FOR without NEXT",
 		NULL
 	};
-	strcpy(str.s,errmesstr[arg]);
-	str.len=strlen(errmesstr[arg]);
+	mystrcpy2(&str,errmesstr[arg]);
 	return str;
 }
 

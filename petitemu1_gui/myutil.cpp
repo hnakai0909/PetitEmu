@@ -15,7 +15,7 @@ int limitrange(int arg,int min,int max){
 }
 
 int isdigits(st str){
-	int i=0;
+	unsigned int i=0;
 	if(str.s[i]==0)return false;
 	for(i=0;(i<str.len);i++){
 		if(!isdigit(str.s[i]))return false;
@@ -24,7 +24,7 @@ int isdigits(st str){
 }
 
 int isintliteral(st str){
-	int i=0,flag=0;
+	unsigned int i=0,flag=0;
 	if(str.s[i]==0)return false;
 	for(i=0;(i<str.len);i++){
 		if(!(isdigit(str.s[i])||((str.s[i]=='-')&&(i==0))||((str.s[i]=='.')&&(flag==0))))return false;
@@ -78,10 +78,16 @@ bool mystrcat(st *str1,st str2){
 	return true;
 }
 int mystrcmp(st str1,st str2){
-	int i=0;
+	unsigned int i=0;
 	if(str1.len==str2.len)return 0;
 	for(;(str1.s[i]==str2.s[i])&&(i<str1.len)&&(i<str2.len);i++)
 	return (str2.s[i]-str1.s[i]);
+}
+int mystrcmp2(st str1,char arg[256]){
+	unsigned int i=0;
+	if(str1.len==strlen(arg))return 0;
+	for(;(str1.s[i]==arg[i])&&(i<str1.len)&&(i<strlen(arg));i++)
+	return (arg[i]-str1.s[i]);
 }
 void mystrclear(st *str){
 	memset(str,0x00,sizeof(str));

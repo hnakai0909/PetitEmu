@@ -35,7 +35,7 @@ enum RunMode{
 struct VARIABLE {
 	bool isDim;
 	bool isStr;
-	char name[9];
+	st name;
 	char *address;
 	int32_t value;
 	st string;

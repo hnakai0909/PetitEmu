@@ -37,7 +37,8 @@ bool ReadKeyBuffer(unsigned char* arg){
 }
 
 void CheckPanel(void){
-	int MouseX,MouseY,type,code,mouseinput,tmp,tmp2,i;
+	int MouseX,MouseY,type,code,mouseinput,tmp,tmp2;
+	unsigned int i;
 	unsigned char tmpc=0;
 	static int mousetime=0,type_clickstart=0,code_clickstart=0;
 	mouseinput=!!(GetMouseInput()&MOUSE_INPUT_LEFT);
@@ -324,7 +325,7 @@ void CheckKey(void){
 	char KeyCheckSTBuf[256];
 	static char KeyCheckTimeBuf[256];
 	bool ShiftFlag=0;
-	int i=0,j=0,type=0,code=0;
+	unsigned int i=0,j=0,type=0,code=0;
 	int Table1_1[256]={
 		KEY_INPUT_1,KEY_INPUT_2,KEY_INPUT_3,KEY_INPUT_4,KEY_INPUT_5,KEY_INPUT_6,KEY_INPUT_7,KEY_INPUT_8,KEY_INPUT_9,KEY_INPUT_0,
 		KEY_INPUT_MINUS,KEY_INPUT_PREVTRACK,KEY_INPUT_YEN,
@@ -553,6 +554,6 @@ void InputLine(st* str){
 	for(i=32-i;i<=32;i++){
 		(*str).s[i]=0;	
 	}
-	Print2Console("",0);
+	Print2Console(MYSTR_NULL,0);
 	return;
 }

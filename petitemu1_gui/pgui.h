@@ -49,10 +49,10 @@ void DrawBGChip(int page,int layer,int ofsx_1,int ofsx_2,int ofsy_1,int ofsy_2);
 void ConsoleClearLine(void);
 
 //コンソールバッファに1文字追加
-int PutChar2Console(uint16_t arg,int indent_option);
+int PutChar2Console(unsigned char arg,int indent_option);
 
 //コンソールバッファに文字列追加
-int Print2Console(char *string,int indent_option);
+int Print2Console(st string,int indent_option);
 
 //コンソールスクロール(バッファを操作)
 void ScrollConsole(void);

@@ -43,6 +43,7 @@ st str2mystr2(char arg[256]);
 bool mystrcpy2(st *str1,char arg[256]);
 bool mystrcat(st *str1,st str2);
 int mystrcmp(st str1,st str2);
+int mystrcmp2(st str1,char arg[256]);
 void mystrclear(st *str);
 unsigned int my_strlen(unsigned char arg[256]);
 

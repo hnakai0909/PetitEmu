@@ -18,7 +18,7 @@ int LoadPResource(char restype[6],char filename[8]){
 	unsigned char *tmpptr;
 
 	memset(tmpstr,0x00,sizeof(tmpstr));
-	sprintf(tmpstr,"DATA/%s/%s.txt",filename,restype);
+	sprintf_s(tmpstr,STR_LEN_MAX,"DATA/%s/%s.txt",filename,restype);
 	printf("LOAD:%s\n",tmpstr);
 	fp=fopen(tmpstr,"rb");
 	if(fp==NULL){
