@@ -108,8 +108,8 @@ int FontTable(const unsigned char arg,char* arg2){
 		"ミ","ム","メ","モ","ヤ","ユ","ヨ","ラ","リ","ル","レ","ロ","ワ","ン","゛","゜",
 		"■","●","▲","▼","□","○","△","▽","Ч","Ш","Щ","Ъ","Ы","Ь","Э","Ю",
 		"Я","а","б","в","г","д","е","ё","ж","з","и","й","к","л","м","╂"};
-	memset(arg2,0x00,sizeof(arg2));
-	strcpy(arg2,table1[arg]);
+	memset(arg2,0x00,sizeof(char)*256);
+	strcpy_s(arg2,256,table1[arg]);
 	return 0;
 }
 

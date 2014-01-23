@@ -40,6 +40,7 @@ char dec2int(const char arg);
 
 st str2mystr(unsigned char arg[256]);
 st str2mystr2(char arg[256]);
+void mystr2str2(st str,char* arg);
 bool mystrcpy2(st *str1,char arg[256]);
 bool mystrcat(st *str1,st str2);
 int mystrcmp(st str1,st str2);

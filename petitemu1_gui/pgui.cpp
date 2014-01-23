@@ -313,25 +313,24 @@ void PutStartMessage(void){
 
 void ProcessDebugScreen(void){
 	unsigned int i=0;
-	char tmpstr[256],tmpstr2[256];
+	char tmpstr[256];
 	static int initialized=0,conslogbufp=0;
 	if(runmode==RMD_STOP)return;
 	if(initialized==0){
 		memset(conslogbuf,0x00,sizeof(conslogbuf));
 		initialized=1;
 	}
-	memset(tmpstr,0x00,sizeof(tmpstr));
-	memset(tmpstr2,0x00,sizeof(tmpstr2));
-	sprintf(tmpstr2,"%s/",TokenCode2Str(error_occured_token));
-	if(strlen(tmpstr2)==0){
+	memset(tmpstr,0x00,sizeof(char)*256);
+	sprintf_s(tmpstr,256,"%s/",TokenCode2Str(error_occured_token));
+	if(strlen(tmpstr)==0){
 		if(*srcpos==0x000D){
-			strcpy(tmpstr2,"CRLF/");
+			strcpy_s(tmpstr,256,"CRLF/");
 		}else{
-			sprintf(tmpstr2,"#%04X/",error_occured_token);
+			sprintf_s(tmpstr,256,"#%04X/",error_occured_token);
 		}
 	}
-	for(i=0;i<strlen(tmpstr2);i++){
-		conslogbuf[conslogbufp]=tmpstr2[i];
+	for(i=0;i<strlen(tmpstr);i++){
+		conslogbuf[conslogbufp]=tmpstr[i];
 		conslogbufp=(conslogbufp+1)%768;
 	}
 	return;

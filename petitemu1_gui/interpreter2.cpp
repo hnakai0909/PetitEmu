@@ -164,8 +164,8 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 	uint16_t *pbegin=p;
 	int cnt=0,tmp=0,beforetokentype=0,nest_depth=0;
 	char argcount[100],brackettype[100];
-	char p_char;
-	int32_t tmpint=0,tmpints[100];
+	char p_char=0;
+	int32_t tmpint=0;
 	int64_t tmpint2=0;
 	double tmpw=0;
 	*errtmp=ERR_NO_ERROR;
@@ -173,36 +173,36 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 	memset(tmpstr2,0x00,sizeof(tmpstr2));
 	memset(argcount,0x00,sizeof(argcount));
 	memset(brackettype,0x00,sizeof(brackettype));
+	mystrclear(&str);
 	while(*p!=0){
 		p_char=Code2Char(*p);
 		if(isalpha(p_char)||(p_char=='_')){
-			memset(tmpstr, 0x00,sizeof(tmpstr));
-			tmpstr_p=0;
+			mystrclear(&str);
 			cnt=0;
 			while((isalpha(p_char)||(p_char=='_')||isdigit(p_char))&&(*p!=0)){
-				if(tmpstr_p>=8){
+				if(cnt>=8){
 					*errtmp=ERR_STRING_TOO_LONG;
 					return p;
 				}
-				tmpstr[tmpstr_p]=toupper(p_char);
-				tmpstr_p++;
+				str.s[cnt]=toupper(p_char);
+				str.len++;
 				p++;
 				p_char=Code2Char(*p);
 				cnt++;
 			}
 			p_char=Code2Char(*p);
 			if(p_char=='$'){ 
-				tmpstr[tmpstr_p]=p_char;
-				tmpstr_p++;
+				str.s[cnt]=p_char;
+				str.len++;
 				p++;
 				p_char=Code2Char(*p);
 				cnt++;
 			}
 			p_char=Code2Char(*p);
 			if(p_char=='(' || p_char=='['){
-				tmpstr[tmpstr_p]='(';
-				tmpstr_p++;
-				tmpint=Str2VarID(tmpstr);
+				str.s[cnt]='(';
+				str.len++;
+				tmpint=Str2VarID(str);
 				if((beforetokentype==TYPE_INT_LIT)||(beforetokentype==TYPE_STR_LIT)){
 					//Next statement
 					//行き過ぎたのを戻す
@@ -210,14 +210,14 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 					return p;
 				}
 				if(tmpint==-1){
-					tmpint=NewVar(tmpstr);
+					tmpint=NewVar(str);
 					RegistDim(tmpint,10,0);
 				}
 				*errtmp=PushCalcStack(TYPE_DIM,tmpint,MYSTR_NULL,0);
 				if(*errtmp!=ERR_NO_ERROR)return p;
 				beforetokentype=TYPE_FUNC;//本来はTYPE_DIMだが便宜的に。
 			}else{
-				tmp=Str2VarID(tmpstr);
+				tmp=Str2VarID(str);
 				if(tmp!=-1){
 					if((beforetokentype==TYPE_INT_LIT)||(beforetokentype==TYPE_STR_LIT)){
 						//Next statement
@@ -241,7 +241,7 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 						p-=cnt;
 						return p;
 					}
-					tmpint=NewVar(tmpstr);
+					tmpint=NewVar(str);
 					if(Variable[tmpint].isStr){
 						*errtmp=PushCalcStack(TYPE_STR_LIT,0,MYSTR_NULL,0);
 						if(*errtmp!=ERR_NO_ERROR)return p;
@@ -786,7 +786,7 @@ int RunProgram(void){
 
 int ResistLabel(uint16_t* input){
 	uint16_t *p=input;
-	int i=0,j=0,k=0;
+	unsigned int i=0,j=0;
 	char tmpstr[16],c;
 	labelcount=0;
 	cur_line=0;
@@ -797,14 +797,14 @@ int ResistLabel(uint16_t* input){
 		if(*p==TOKEN_LABEL || *p==TOKEN_LABEL2){
 			p++;
 			memset(tmpstr,0x00,sizeof(tmpstr));
-			for(k=0;k<8;k++){
+			for(j=0;j<8;j++){
 				c=Code2Char(*p);
 				if((c==' ')||(*p==0x000D)||(*p==0x0000))break;
 				if((c!='_')&&(!isalpha(c))&&(!isdigit(c))){
 					Psys_ERL=i+1;
 					return ERR_SYNTAX_ERROR;
 				}
-				tmpstr[k]=toupper(c);
+				tmpstr[j]=toupper(c);
 				p++;
 			}
 			strcpy(labellist_name[labelcount],tmpstr);
@@ -988,42 +988,41 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 			case TOKEN_DIM:
 				do{
 					srcpos=JumpSpace(srcpos+1);
-					memset(tmpstr,0x00,sizeof(tmpstr));
+					mystrclear(&str);
 					p_char=Code2Char(*srcpos);
-					tmpstr_p=0;
 					while(isalpha(p_char)||(p_char=='_')||(isdigit(p_char))){
-						if((tmpstr_p==0)&&(isdigit(p_char))){
+						if((str.len==0)&&(isdigit(p_char))){
 							return ERR_SYNTAX_ERROR;
 						}
-						if(tmpstr_p>=8)return ERR_STRING_TOO_LONG;
-						tmpstr[tmpstr_p]=toupper(p_char);
-						tmpstr_p++;
+						if(str.len>=8)return ERR_STRING_TOO_LONG;
+						str.s[str.len]=toupper(p_char);
+						str.len++;
 						srcpos++;
 						p_char=Code2Char(*srcpos);
 					}
 					p_char=Code2Char(*srcpos);
 					if(p_char=='$'){
-						tmpstr[tmpstr_p]='$';
-						tmpstr_p++;
+						str.s[str.len]='$';
+						str.len++;
 						srcpos++;
-						tmpint2=1;
+						tmpint=1;
 					}else{
-						tmpint2=0;
+						tmpint=0;
 					}
 					if(Code2Char(*srcpos)=='('){
-						tmpstr[tmpstr_p]='(';
-						tmpstr_p++;
+						str.s[str.len]='(';
+						str.len++;
 					}else if(Code2Char(*srcpos)=='['){
-						tmpstr[tmpstr_p]='(';
-						tmpstr_p++;
+						str.s[str.len]='(';
+						str.len++;
 					}else{
 						return ERR_SYNTAX_ERROR;
 					}
-					tmpint=Str2VarID(tmpstr);
-					if(tmpint!=-1)return ERR_DUPLICATE_DEFINITION;
-					errtmp=PushCalcStack(TYPE_INT_LIT,tmpint2,MYSTR_NULL,0);
+					tmpint2=Str2VarID(str);
+					if(tmpint2!=-1)return ERR_DUPLICATE_DEFINITION;
+					errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,MYSTR_NULL,0);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
+					errtmp=PushCalcStack(TYPE_STR_LIT,0,str,0);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					errtmp=PushCalcStack(TYPE_FUNC,TOKEN_DIM,MYSTR_NULL,0);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
@@ -1087,7 +1086,7 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 						if(tmpint>=524288){
 							return ERR_OVERFLOW;
 						}
-						tmpint*=4096*tmpint2;
+						tmpint*=4096*(int)tmpint2;
 						if(p_char=='.'){
 							read_srcpos++;
 							p_char=Code2Char(*read_srcpos);
@@ -1152,18 +1151,17 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 					}else if(p_char=='"'){
 						read_srcpos++;
 						p_char=Code2Char(*read_srcpos);
-						memset(tmpstr,0x00,sizeof(tmpstr));
-						tmpstr_p=0;
+						mystrclear(&str);
 						while((p_char!='"')&&(*read_srcpos!=0x0000)&&(*read_srcpos!=0x000D)){
 							//ソースは最大でも一行100文字のため、
 							//ここでSTR_LEN_MAX文字を超えることはない
-							tmpstr[tmpstr_p]=Code2Char(*read_srcpos);
-							tmpstr_p++;
+							str.s[str.len]=Code2Char(*read_srcpos);
+							str.len++;
 							read_srcpos++;	
 							p_char=Code2Char(*read_srcpos);
 						}
 						if(p_char=='"'){read_srcpos++;p_char=Code2Char(*read_srcpos);}
-						errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
+						errtmp=PushCalcStack(TYPE_STR_LIT,0,str,0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}
 					ProcessRemainingOperator();
@@ -1184,8 +1182,8 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 				errtmp=ProcessRemainingOperator();
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
-				if(!PopCalcStack_str(tmpstr))return ERR_TYPE_MISMATCH;
-				if(tmpstr[8]!=0)return ERR_SYNTAX_ERROR;
+				if(!PopCalcStack_str(&str))return ERR_TYPE_MISMATCH;
+				if(str.len!=8)return ERR_SYNTAX_ERROR;
 				for(i=0;i<3;i++){					
 					srcpos=JumpSpace(srcpos);
 					if(*srcpos!=Char2Code(','))return ERR_MISSING_OPERAND;
@@ -1194,8 +1192,8 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),MYSTR_NULL,2);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
-					if(inrange(tmpstr[i*3],'0','9')&&inrange(tmpstr[i*3+1],'0','9')&&((i==2)||(tmpstr[i*3+2]==':'))){
-						tmpint=((tmpstr[i*3]-'0')*10+(tmpstr[i*3+1]-'0'))*4096;
+					if(inrange(str.s[i*3],'0','9')&&inrange(str.s[i*3+1],'0','9')&&((i==2)||(str.s[i*3+2]==':'))){
+						tmpint=((str.s[i*3]-'0')*10+(str.s[i*3+1]-'0'))*4096;
 					}else{
 						return ERR_SYNTAX_ERROR;
 					}
@@ -1214,8 +1212,9 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 				errtmp=ProcessRemainingOperator();
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
-				if(!PopCalcStack_str(tmpstr))return ERR_TYPE_MISMATCH;
-				if(tmpstr[10]!=0)return ERR_SYNTAX_ERROR;
+				mystrclear(&str);
+				if(!PopCalcStack_str(&str))return ERR_TYPE_MISMATCH;
+				if(str.len!=10)return ERR_SYNTAX_ERROR;
 				for(i=0;i<3;i++){					
 					srcpos=JumpSpace(srcpos);
 					if(*srcpos!=Char2Code(','))return ERR_MISSING_OPERAND;
@@ -1227,24 +1226,24 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 					switch(i){
 					case 0:
 						if(
-							inrange(tmpstr[0],'0','9')&&inrange(tmpstr[1],'0','9')&&
-							inrange(tmpstr[2],'0','9')&&inrange(tmpstr[3],'0','9')&&(tmpstr[4]=='/')
+							inrange(str.s[0],'0','9')&&inrange(str.s[1],'0','9')&&
+							inrange(str.s[2],'0','9')&&inrange(str.s[3],'0','9')&&(str.s[4]=='/')
 							){
-								tmpint=((tmpstr[0]-'0')*1000+(tmpstr[1]-'0')*100+(tmpstr[2]-'0')*10+(tmpstr[3]-'0'))*4096;
+								tmpint=((str.s[0]-'0')*1000+(str.s[1]-'0')*100+(str.s[2]-'0')*10+(str.s[3]-'0'))*4096;
 						}else{
 							return ERR_SYNTAX_ERROR;
 						}
 						break;
 					case 1:
-						if(inrange(tmpstr[5],'0','9')&&inrange(tmpstr[6],'0','9')&&(tmpstr[7]=='/')){
-							tmpint=((tmpstr[5]-'0')*10+(tmpstr[6]-'0'))*4096;
+						if(inrange(str.s[5],'0','9')&&inrange(str.s[6],'0','9')&&(str.s[7]=='/')){
+							tmpint=((str.s[5]-'0')*10+(str.s[6]-'0'))*4096;
 						}else{
 							return ERR_SYNTAX_ERROR;
 						}
 						break;
 					case 2:
-						if(inrange(tmpstr[8],'0','9')&&inrange(tmpstr[9],'0','9')){
-							tmpint=((tmpstr[8]-'0')*10+(tmpstr[9]-'0'))*4096;
+						if(inrange(str.s[8],'0','9')&&inrange(str.s[9],'0','9')){
+							tmpint=((str.s[8]-'0')*10+(str.s[9]-'0'))*4096;
 						}else{
 							return ERR_SYNTAX_ERROR;
 						}
@@ -1273,15 +1272,15 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 					srcpos=JumpSpace(srcpos+1);
 					if(*srcpos==TOKEN_LABEL || *srcpos==TOKEN_LABEL2){
 						srcpos++;
-						memset(tmpstr,0x00,sizeof(tmpstr));
+						mystrclear(&str);
 						for(i=0;i<8;i++){
 							c=Code2Char(*srcpos);
 							if((c==' ')||(*srcpos==0x000D)||(*srcpos==0x0000)||(*srcpos==':')||(*srcpos=='\''))break;
 							if((c!='_')&&(!isalpha(c))&&(!isdigit(c))){
 								return ERR_SYNTAX_ERROR;
 							}
-							tmpstr[i]=toupper(c);
-							srcpos++;
+							str.s[i]=toupper(c);
+							str.len++;
 						}
 						if(tmpint==0){
 							cur_line++;
@@ -1399,17 +1398,16 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 			case TOKEN_NEXT:
 				if(ForGosub_sl<=0)return ERR_NEXT_WITHOUT_FOR;
 				ForGosub_sl--;
-				memset(tmpstr,0x00,sizeof(tmpstr));
-				tmpstr_p=0;
+				mystrclear(&str);
 				srcpos=JumpSpace(srcpos+1);
 				while(isalpha(Code2Char(*srcpos))||(Code2Char(*srcpos)=='_')||(isdigit(Code2Char(*srcpos)))){
-					if(tmpstr_p>=8)return ERR_STRING_TOO_LONG;
-					tmpstr[tmpstr_p]=toupper(Code2Char(*srcpos));
-					tmpstr_p++;
+					if(str.len>=8)return ERR_STRING_TOO_LONG;
+					str.s[str.len]=toupper(Code2Char(*srcpos));
+					str.len++;
 					srcpos++;
 				}
-				if(tmpstr_p!=0){
-					tmpint=Str2VarID(tmpstr);
+				if(str.len!=0){
+					tmpint=Str2VarID(str);
 					if(tmpint==-1)return ERR_NEXT_WITHOUT_FOR;
 					if(ForGosub_s[ForGosub_sl].VarID!=tmpint)return ERR_NEXT_WITHOUT_FOR;
 				}
@@ -1491,20 +1489,19 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 				}
 				memset(tmpstr,0x00,sizeof(tmpstr));
-				if(!PopCalcStack_str(tmpstr))return ERR_UNDEFINED;
+				if(!PopCalcStack_str(&str))return ERR_UNDEFINED;
 				tmpint3=0;
 				do{
 					if(tmpint3==1)Print2Console(str2mystr2("?REDO FROM START"),0);
 					Print2Console(str2mystr2(tmpstr),0);
-					memset(tmpstr3,0x00,sizeof(tmpstr3));
-					InputLine(tmpstr3);
+					InputLine(&str);
 					if(breakflag==1)break;
 					if(tmpint3==0)srcpos=GetVarID(srcpos,&tmpint,&errtmp);
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 					if(Variable[tmpint].isStr){
 						errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),MYSTR_NULL,2);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
-						errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr3,0);
+						errtmp=PushCalcStack(TYPE_STR_LIT,0,str,0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 						break;
 					}else{
@@ -1512,7 +1509,7 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 							tmpint2=(int32_t)(atof(tmpstr3)*4096.0);//本来はVAL()を内部的に使用
 							errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),MYSTR_NULL,2);
 							if(errtmp!=ERR_NO_ERROR)return errtmp;
-							errtmp=PushCalcStack(TYPE_INT_LIT,tmpint2,MYSTR_NULL,0);
+							errtmp=PushCalcStack(TYPE_INT_LIT,(int32_t)tmpint2,MYSTR_NULL,0);
 							if(errtmp!=ERR_NO_ERROR)return errtmp;
 							break;
 						}
@@ -1526,8 +1523,6 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 				state=ST_NEW_STATEMENT;
 				break;
 			case TOKEN_LINPUT:
-				memset(tmpstr,0x00,sizeof(tmpstr));
-				tmpstr_p=0;
 				srcpos=JumpSpace(srcpos+1);
 				if(*srcpos==Char2Code('"')){
 					srcpos=ReadFormula(srcpos,&errtmp);
@@ -1542,9 +1537,9 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 				errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),MYSTR_NULL,2);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 				srcpos=JumpSpace(srcpos);
-				memset(tmpstr,0x00,sizeof(tmpstr));
-				InputLine(str);
-				errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
+				mystrclear(&str);
+				InputLine(&str);
+				errtmp=PushCalcStack(TYPE_STR_LIT,0,str,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 				errtmp=ProcessRemainingOperator();
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
@@ -1557,7 +1552,8 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 				errtmp=ProcessRemainingOperator();
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 				srcpos=JumpSpace(srcpos);
-				errtmp=PopCalcStack_str(tmpstr);
+				errtmp=PopCalcStack_str(&str);
+				mystr2str2(str,tmpstr);
 				if(!errtmp)return ERR_SYNTAX_ERROR;
 				c2=strchr(tmpstr,':');
 				if(c2==NULL){

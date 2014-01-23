@@ -64,6 +64,10 @@ st str2mystr2(char arg[256]){
 	memcpy(str.s,arg,256);
 	return str;
 }
+void mystr2str2(st str,char* arg){
+	memcpy(arg,str.s,256);
+	return;
+}
 bool mystrcpy2(st *str1,char arg[256]){
 	unsigned int length=strlen(arg);
 	if(length>256)return false;

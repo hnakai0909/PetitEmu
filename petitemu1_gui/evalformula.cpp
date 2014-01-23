@@ -350,11 +350,14 @@ int EvalFormula(const int arg,const int argcount){
 	int64_t tmpint64=0;
 	double tmpw=0;
 	unsigned char tmpc=0;
-	st tmpstr;	
+	st tmpstr={0,""};	
 	st tmpstrs[10];
+	char tmpstr2[256];
 	int argtypes[10];
 	memset(tmpints,0x00,sizeof(tmpints));
 	memset(argtypes,0x00,sizeof(argtypes));
+	memset(tmpstr2,0x00,sizeof(tmpstr2));
+	mystrclear(tmpstrs);
 	if(log_en)printf("EvalFormula arg=%d(%s) argc=%d\n",arg,TokenCode2Str(arg),argcount);
 	if(argcount==0){
 		if(!PopCalcStack_void())return ERR_SYNTAX_ERROR;
@@ -880,8 +883,9 @@ int EvalFormula(const int arg,const int argcount){
 			if(argcount==0)return ERR_MISSING_OPERAND;
 			if(argcount>1)return ERR_SYNTAX_ERROR;
 			if(argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
-			sprintf(tmpstr,"%05X",FloorInt(tmpints[0]));
-			errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
+			memset(tmpstr2,0x00,sizeof(char)*256);
+			sprintf_s(tmpstr2,256,"%05X",FloorInt(tmpints[0]));
+			errtmp=PushCalcStack(TYPE_STR_LIT,0,str2mystr2(tmpstr2),0);
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
 			break;
 		case TOKEN_INKEY:
@@ -895,7 +899,7 @@ int EvalFormula(const int arg,const int argcount){
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else{
 				tmpstr.s[0]=tmpc;
-				tmpstr.len=0;
+				tmpstr.len=1;
 				errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}
@@ -917,12 +921,13 @@ int EvalFormula(const int arg,const int argcount){
 			if(argcount==0)return ERR_MISSING_OPERAND;
 			if(argcount>1)return ERR_SYNTAX_ERROR;
 			if(argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
-			sprintf(tmpstr,"%.3f",(double)tmpint/4096.0);
-			for(i=tmpstr.len-1;(i!=0)&&(tmpstr.s[i]=='0');i--){
-				tmpstr.len--;
+			memset(tmpstr2,0x00,sizeof(char)*256);
+			sprintf_s(tmpstr2,256,"%.3f",(double)tmpint/4096.0);
+			for(i=strlen(tmpstr2)-1;(i>0)&&(tmpstr2[i]=='0');i--){
+				tmpstr2[i]=0;
 			}
-			if(tmpstr.s[i]=='.')tmpstr.len--;
-			errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
+			if(tmpstr2[i]=='.')tmpstr2[i]=0;
+			errtmp=PushCalcStack(TYPE_STR_LIT,0,str2mystr2(tmpstr2),0);
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
 			break;
 		case TOKEN_BEEP:
@@ -948,7 +953,7 @@ int EvalFormula(const int arg,const int argcount){
 					tmpints[1]=FloorInt(tmpints[1]);tmpints[0]=FloorInt(tmpints[0]);
 					if(tmpints[1]<0 || tmpints[1]>69)return ERR_OUT_OF_RANGE;
 					if(tmpints[0]<-8192 || tmpints[0]>8192)return ERR_OUT_OF_RANGE;
-					SetFrequencySoundMem((int)(powf(2.0,(double)tmpints[0]/4096.0)*44100.0),SHandleBEEP[tmpints[1]]);
+					SetFrequencySoundMem((int)(powf(2.0,(float)tmpints[0]/4096.0)*44100.0),SHandleBEEP[tmpints[1]]);
 					ChangeVolumeSoundMem(127,SHandleBEEP[tmpints[1]]);
 					SetPanSoundMem(0,SHandleBEEP[tmpints[1]]);
 					PlaySoundMem(SHandleBEEP[tmpints[1]],DX_PLAYTYPE_BACK);
@@ -959,7 +964,7 @@ int EvalFormula(const int arg,const int argcount){
 					if(tmpints[2]<0 || tmpints[2]>69)return ERR_OUT_OF_RANGE;
 					if(tmpints[1]<-8192 || tmpints[1]>8192)return ERR_OUT_OF_RANGE;
 					if(tmpints[0]<0 || tmpints[0]>127)return ERR_OUT_OF_RANGE;
-					SetFrequencySoundMem((int)(powf(2.0,(double)tmpints[1]/4096.0)*44100.0),SHandleBEEP[tmpints[2]]);
+					SetFrequencySoundMem((int)(powf(2.0,(float)tmpints[1]/4096.0)*44100.0),SHandleBEEP[tmpints[2]]);
 					ChangeVolumeSoundMem(255*tmpints[0]/128,SHandleBEEP[tmpints[2]]);
 					SetPanSoundMem(0,SHandleBEEP[tmpints[2]]);
 					PlaySoundMem(SHandleBEEP[tmpints[2]],DX_PLAYTYPE_BACK);
@@ -971,7 +976,7 @@ int EvalFormula(const int arg,const int argcount){
 					if(tmpints[2]<-8192 || tmpints[2]>8192)return ERR_OUT_OF_RANGE;
 					if(tmpints[1]<0 || tmpints[1]>127)return ERR_OUT_OF_RANGE;
 					if(tmpints[0]<0 || tmpints[0]>127)return ERR_OUT_OF_RANGE;
-					SetFrequencySoundMem((int)(powf(2.0,(double)tmpints[2]/4096.0)*44100.0),SHandleBEEP[tmpints[3]]);
+					SetFrequencySoundMem((int)(powf(2.0,(float)tmpints[2]/4096.0)*44100.0),SHandleBEEP[tmpints[3]]);
 					ChangeVolumeSoundMem(255*tmpints[1]/128,SHandleBEEP[tmpints[3]]);
 					SetPanSoundMem((tmpints[0]-64)*10000/64,SHandleBEEP[tmpints[3]]);
 					PlaySoundMem(SHandleBEEP[tmpints[3]],DX_PLAYTYPE_BACK);
@@ -986,9 +991,10 @@ int EvalFormula(const int arg,const int argcount){
 			if(argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
 			tmpints[0]=FloorInt(tmpints[0]);
 			if(tmpints[0]<0 || tmpints[0]>29)return ERR_OUT_OF_RANGE;
-			sprintf(tmpstr,"BGM/BGM%d.ogg",tmpints[0]);
+			memset(tmpstr2,0x00,sizeof(char)*256);
+			sprintf_s(tmpstr2,256,"BGM/BGM%d.ogg",tmpints[0]);
 			StopSoundMem(SHandleBGM);
-			SHandleBGM=LoadSoundMem(tmpstr);
+			SHandleBGM=LoadSoundMem(tmpstr2);
 			if(isLoop(tmpints[0])){
 				SetLoopSamplePosSoundMem(GetLoopPos(tmpints[0]),SHandleBGM);
 				PlaySoundMem(SHandleBGM,DX_PLAYTYPE_LOOP);
