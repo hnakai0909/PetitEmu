@@ -314,13 +314,13 @@ bool PopCalcStack_void(void){
 
 int RegistDim(int VarID,int d1,int d2){
 	int unit_length=0;
+	if((dim_count>=VAR_MAX)||(dim_count>=DIM_MAX))return ERR_OUT_OF_MEMORY;
 	if(Variable[VarID].isStr){
 		unit_length=STR_LEN_MAX;
 	}else{
 		unit_length=4;
 	}
-	if(dim_count>=VAR_MAX)return ERR_OUT_OF_MEMORY;
-	dim_index[dim_count].address=dim_mem+dim_p;
+	dim_index[dim_count].address=dim_p;
 	dim_index[dim_count].VarID=VarID;
 	dim_index[dim_count].indexmax1=d1;
 	dim_index[dim_count].indexmax2=d2;
@@ -329,7 +329,7 @@ int RegistDim(int VarID,int d1,int d2){
 	Variable[VarID].value=dim_count;
 	dim_count++;
 	if(d2==0)d2=1;
-	if((dim_p+d1*d2*unit_length)>=DIM_MAX)return ERR_OUT_OF_MEMORY;
+	if((dim_p+d1*d2*unit_length)>=(DIM_MAX*STR_LEN_MAX))return ERR_OUT_OF_MEMORY;
 	dim_p+=(d1*d2*unit_length);
 	return ERR_NO_ERROR;
 }
@@ -1193,11 +1193,12 @@ int EvalFormula(const int arg,const int argcount){
 				//PTR
 				if(argtypes[0]==ATYPE_INT){
 					if(argtypes[1]==ATYPE_STR_PTR)return ERR_TYPE_MISMATCH;
-					*(int32_t*)(tmpints[1])=tmpints[0];
+					*(int32_t*)(dim_mem[tmpints[1]])=tmpints[0];
 				}else if(argtypes[0]==ATYPE_STR){
 					if(argtypes[1]==ATYPE_INT_PTR)return ERR_TYPE_MISMATCH;
-					memset((char*)(tmpints[1]),0x00,sizeof(BYTE)*256);
-					strcpy((char*)(tmpints[1]),tmpstrs[0]);
+					memset((char*)(dim_mem[tmpints[1]]),0x00,sizeof(BYTE)*256);
+					mystr2str2(tmpstrs[0],tmpstr2);
+					strcpy_s((char*)(dim_mem[tmpints[1]]),256,tmpstr2);
 				}else{
 					return ERR_SYNTAX_ERROR;
 				}
@@ -1213,10 +1214,10 @@ int EvalFormula(const int arg,const int argcount){
 					if(dim_index[tmpints[3]].indexmax2!=0)return ERR_SYNTAX_ERROR;
 					if(tmpints[0]>=dim_index[tmpints[3]].indexmax1)return ERR_SUBSCRIPT_OUT_OF_RANGE;
 					if(dim_index[tmpints[3]].isStr){
-						errtmp=PushCalcStack(TYPE_STR_LIT,0,(char*)(dim_index[tmpints[3]].address+tmpints[0]*256),0);
+						errtmp=PushCalcStack(TYPE_STR_LIT,0,str2mystr2((char*)(dim_mem[dim_index[tmpints[3]].address+tmpints[0]*256])),0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}else{
-						errtmp=PushCalcStack(TYPE_INT_LIT,*(int32_t *)(dim_index[tmpints[3]].address+tmpints[0]*4),MYSTR_NULL,0);
+						errtmp=PushCalcStack(TYPE_INT_LIT,(int32_t)(dim_mem[dim_index[tmpints[3]].address+tmpints[0]*4]),MYSTR_NULL,0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}
 				}else if(argcount==2){
@@ -1227,10 +1228,10 @@ int EvalFormula(const int arg,const int argcount){
 					if(dim_index[tmpints[3]].indexmax2==0)return ERR_SYNTAX_ERROR;
 					if(tmpints[1]>=dim_index[tmpints[3]].indexmax1 || tmpints[0]>=dim_index[tmpints[3]].indexmax2)return ERR_SUBSCRIPT_OUT_OF_RANGE;
 					if(dim_index[tmpints[3]].isStr){
-						errtmp=PushCalcStack(TYPE_STR_LIT,0,(char*)(dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*256),0);
+						errtmp=PushCalcStack(TYPE_STR_LIT,0,str2mystr2((char*)(dim_mem[dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*256])),0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}else{
-						errtmp=PushCalcStack(TYPE_INT_LIT,(int32_t)(*((int32_t*)(dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*4))),MYSTR_NULL,0);
+						errtmp=PushCalcStack(TYPE_INT_LIT,(int32_t)(dim_mem[dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*4]),MYSTR_NULL,0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}
 				}else{
@@ -1270,8 +1271,9 @@ int EvalFormula(const int arg,const int argcount){
 					return ERR_SYNTAX_ERROR;
 				}
 				break;
+			}else{
+				printf("!!!!!Unknown function(%d)\n",arg);
 			}
-			printf("!!!!!Unknown function(%d)\n",arg);
 			break;
 	}
 	return ERR_NO_ERROR;
@@ -1339,10 +1341,10 @@ void UpdateSystemVariable(void){
 	nowtime2=localtime(&nowtime);
 	maincount=(GetNowCount()-maincount_start)*3/50;
 	memset(tmpstr,0x00,sizeof(tmpstr));
-	sprintf(tmpstr,"%02d:%02d:%02d",nowtime2->tm_hour,nowtime2->tm_min,nowtime2->tm_sec);
+	sprintf_s(tmpstr,256,"%02d:%02d:%02d",nowtime2->tm_hour,nowtime2->tm_min,nowtime2->tm_sec);
 	mystrcpy2(&Psys_TIME,tmpstr);
 	memset(tmpstr,0x00,sizeof(tmpstr));
-	sprintf(tmpstr,"%04d/%02d/%02d",nowtime2->tm_year+1900,nowtime2->tm_mon+1,nowtime2->tm_mday);
+	sprintf_s(tmpstr,256,"%04d/%02d/%02d",nowtime2->tm_year+1900,nowtime2->tm_mon+1,nowtime2->tm_mday);
 	mystrcpy2(&Psys_DATE,tmpstr);
 	//TODO:Psys_FREEMEM
 	Psys_MAINCNTL=(maincount%524288)*4096;

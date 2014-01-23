@@ -70,7 +70,7 @@ struct VisibleFlag{
 	bool graphic:1;
 };
 struct Dimention {
-	BYTE *address;
+	uint16_t address;
 	int VarID;
 	int indexmax1; 
 	int	indexmax2;

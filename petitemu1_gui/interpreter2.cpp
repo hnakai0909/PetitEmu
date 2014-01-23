@@ -689,10 +689,15 @@ void RunInteractive(st input){
 	uint16_t codedata[33];
 	int codelen=0,errtmp=ERR_NO_ERROR,runflag=0;
 	char tmpstr[STR_LEN_MAX];
+	unsigned char tmpstr2[STR_LEN_MAX];
 	error_occured_token=0;
 	breakflag=0;
 	read_initialized=false;
-	TranslateRaw2Code(input,codedata,&codelen);
+	memset(tmpstr,0x00,sizeof(char)*256);
+	memset(tmpstr2,0x00,sizeof(char)*256);
+	mystr2str2(input,tmpstr);
+	memcpy(tmpstr2,tmpstr,256);
+	TranslateRaw2Code(tmpstr2,codedata,&codelen);
 	runmode=RMD_LINE;
 	if(Psys_CSRX!=0)Print2Console(MYSTR_NULL,0);
 	errtmp=Interpret(codedata,codelen,true,&runflag);
@@ -703,7 +708,7 @@ void RunInteractive(st input){
 		errtmp=RunProgram();
 		ClearKeyBuffer();
 		if(breakflag==1){
-			memset(tmpstr,0x00,sizeof(tmpstr));
+			memset(tmpstr,0x00,sizeof(char)*256);
 			sprintf(tmpstr,"BREAK in %d",cur_line+1);
 			if(Psys_CSRX!=0)Print2Console(MYSTR_NULL,0);
 			printf("%s\n",tmpstr);
@@ -1505,8 +1510,9 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 						break;
 					}else{
-						if(isintliteral(tmpstr3)){
-							tmpint2=(int32_t)(atof(tmpstr3)*4096.0);//本来はVAL()を内部的に使用
+						if(isintliteral(str)){
+							mystr2str2(str,tmpstr);
+							tmpint2=(int32_t)(atof(tmpstr)*4096.0);//本来はVAL()を内部的に使用
 							errtmp=PushCalcStack(TYPE_FUNC,Char2Code('='),MYSTR_NULL,2);
 							if(errtmp!=ERR_NO_ERROR)return errtmp;
 							errtmp=PushCalcStack(TYPE_INT_LIT,(int32_t)tmpint2,MYSTR_NULL,0);

@@ -22,7 +22,7 @@
 #include "pgui.h"
 #include "pfile.h"
 //#include "data.h"
-//#include "myutil.h"
+#include "myutil.h"
 
 /*===定数・マクロ宣言===*/
 //指定行にシーク先を移動

@@ -69,7 +69,7 @@ extern "C" bool ProcessFrame(void){
 
 void DrawConsole(void){
 	int i=0,Cr=0,tmp=0;
-	char tmpstr[4];
+	char tmpstr[256];
 	for(i=0;i<768;i++){
 		FontTable(con_buf[i%32][i/32].chr,tmpstr);
 		tmp=con_buf[i%32][i/32].color;

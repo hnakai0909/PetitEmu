@@ -33,7 +33,7 @@ int limitrange(int arg,int min,int max);
 int isdigits(char* arg);
 
 //その文字列は数値リテラルか(簡易判定)
-int isintliteral(char* arg);
+int isintliteral(st str);
 
 char hex2int(const char arg);
 char dec2int(const char arg);

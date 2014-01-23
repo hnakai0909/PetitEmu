@@ -65,6 +65,7 @@ st str2mystr2(char arg[256]){
 	return str;
 }
 void mystr2str2(st str,char* arg){
+	memset(arg,0x00,sizeof(char)*256);
 	memcpy(arg,str.s,256);
 	return;
 }

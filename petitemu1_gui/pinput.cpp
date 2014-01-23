@@ -549,11 +549,9 @@ void InputLine(st* str){
 		if(con_buf[i][Psys_CSRY].chr!=0)break;
 	}
 	for(j=0;(j+i)<32;j++){
-		(*str).s[j]=con_buf[j+i][Psys_CSRY].chr;
+		str->s[j]=con_buf[j+i][Psys_CSRY].chr;
 	}
-	for(i=32-i;i<=32;i++){
-		(*str).s[i]=0;	
-	}
+	str->len=j;
 	Print2Console(MYSTR_NULL,0);
 	return;
 }
