@@ -550,6 +550,7 @@ void InputLine(st* str){
 	}
 	for(j=0;(j+i)<32;j++){
 		str->s[j]=con_buf[j+i][Psys_CSRY].chr;
+		if(con_buf[j+i][Psys_CSRY].chr==0)break;
 	}
 	str->len=j;
 	Print2Console(MYSTR_NULL,0);

@@ -321,7 +321,7 @@ void ProcessDebugScreen(void){
 		initialized=1;
 	}
 	memset(tmpstr,0x00,sizeof(char)*256);
-	sprintf_s(tmpstr,256,"%s/",TokenCode2Str(error_occured_token));
+	sprintf_s(tmpstr,256,"%s/",TokenCode2Str(error_occured_token).s);
 	if(strlen(tmpstr)==0){
 		if(*srcpos==0x000D){
 			strcpy_s(tmpstr,256,"CRLF/");

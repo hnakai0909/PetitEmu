@@ -727,13 +727,13 @@ void RunInteractive(st input){
 			memset(tmpstr,0x00,sizeof(tmpstr));
 			if(Psys_CSRX!=0)Print2Console(MYSTR_NULL,0);
 			if(error_occured_token!=0){
-				sprintf(tmpstr,"%s (%d,%s)",GetErrorMessage(errtmp),Psys_ERL,TokenCode2Str(error_occured_token));
+				sprintf(tmpstr,"%s (%d,%s)",GetErrorMessage(errtmp).s,Psys_ERL,TokenCode2Str(error_occured_token).s);
 				printf("%s\n",tmpstr);
 				printf("*srcpos=%04X=%c\n",*srcpos,Code2Char(*srcpos));
 				Print2Console(str2mystr2(tmpstr),0);
 			}else{
 				printf("*srcpos=%04X=%c\n",*srcpos,Code2Char(*srcpos));
-				printf("%s\n",GetErrorMessage(errtmp));
+				printf("%s\n",GetErrorMessage(errtmp).s);
 				Print2Console(GetErrorMessage(errtmp),0);
 			}
 			if(Psys_SYSBEEP)PlaySoundMem(SHandleBEEP[2],DX_PLAYTYPE_BACKBIT);
@@ -1912,7 +1912,7 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 			}
 		}
 		tmpint=ProcessFrame();
-		if(log_en2)printf("%s/",TokenCode2Str(*srcpos));
+		if(log_en2)printf("%s/",TokenCode2Str(*srcpos).s);
 		if(!tmpint)return ERR_UNDEFINED;
 		if(breakflag)return ERR_NO_ERROR;
 	}
