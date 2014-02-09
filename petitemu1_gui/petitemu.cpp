@@ -1,4 +1,5 @@
 ﻿#include "petitemu.h"
+HANDLE h;
 
 int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	LPSTR lpCmdLine, int nCmdShow )
@@ -8,6 +9,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	if(!InitWindow())return -1;
 	SetAlwaysRunFlag(TRUE);
 	AllocConsole();
+	h=GetStdHandle(STD_OUTPUT_HANDLE);
 	freopen_s(&tmpfp,"CONOUT$","w",stdout);freopen_s(&tmpfp,"CONIN$","r",stdin);
 	//freopen_s(&tmpfp,"/dev/null","w",stdout);freopen_s(&tmpfp,"/dev/null","r",stdin);
 	SystemInit();

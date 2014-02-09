@@ -7,9 +7,9 @@
 
 /*===グローバル変数定義===*/
 
-bool log_en=true;
-int log_en2=true;
-int log_en3=true;
+bool log_en=false;
+int log_en2=false;
+int log_en3=false;
 
 int32_t Psys_VERSION=0x1020000;//ver 1.2
 int32_t Psys_TRUE=0x00001000;
@@ -99,7 +99,7 @@ int PushOpStack(uint16_t op,int argcount){
 	if(op_sl>=OP_S_MAX)return false;
 	op_s[op_sl].op=op;
 	op_s[op_sl].argcount=argcount;
-	if(log_en)printf("push op_s(%d) value=%d,argc=%d\n",op_sl,op,argcount);
+	if(log_en)printf("=> op_s(%d) value=%d,argc=%d\n",op_sl,op,argcount);
 	op_sl++;
 	return true;
 }
@@ -107,7 +107,7 @@ int PushOpStack(uint16_t op,int argcount){
 bool PopOpStack(uint16_t* op,int* argcount){
 	if(op_sl<=0)return false;
 	op_sl--;
-	if(log_en)printf("pop op_s(%d) value=%d,argc=%d\n",op_sl,op_s[op_sl].op,op_s[op_sl].argcount);
+	if(log_en)printf("<= op_s(%d) value=%d,argc=%d\n",op_sl,op_s[op_sl].op,op_s[op_sl].argcount);
 	*op=op_s[op_sl].op;
 	*argcount=op_s[op_sl].argcount;
 	op_s[op_sl].op=0;
@@ -119,7 +119,7 @@ int PushCalcStack(int type,int32_t value,st str,int argc){
 	int errtmp=0;
 	int tmp=0,argcount=0;
 	uint16_t op=0;
-	if(log_en)printf("push?cs(%d) %d %d(%s) %s %d\n",calc_sl,type,value,TokenCode2Str(value).s,str.s,argc);
+	if(log_en)printf("=>?cs(%d) %d %d(%.3f) %s \"%s\" %d\n",calc_sl,type,value,(float)value/4096.0,TokenCode2Str(value).s,str.s,argc);
 	if(type==TYPE_FUNC){
 		if(isFunction(value)){
 			PushOpStack(value,argc);
@@ -197,7 +197,25 @@ int PushCalcStack(int type,int32_t value,st str,int argc){
 		}
 
 	}else{
-		if(log_en)printf("push!cs(%d) %d %d(%.3f) %s %d\n",calc_sl,type,value,(float)value/4096.0,str.s,argc);
+		if(log_en){
+			switch(type){
+			case TYPE_INT_LIT:
+				printf("=>!cs(%d) INT_LIT %d(%.3f)\n",calc_sl,value,(float)value/4096.0);
+				break;
+			case TYPE_STR_LIT:
+				printf("=>!cs(%d) STR_LIT \"%s\"[%dB]\n",calc_sl,str.s,str.len);
+				break;
+			case TYPE_SPECIAL2:
+				printf("=>!cs(%d) SPECIAL2\n",calc_sl);
+				break;
+			case TYPE_VOID:
+				printf("=>!cs(%d) VOID\n",calc_sl);
+				break;
+			default:
+				printf("=>!cs(%d) %d %d(%.3f) \"%s\"[%dB] %d\n",calc_sl,type,value,(float)value/4096.0,str.s,argc);
+				break;
+			}
+		}
 		if(calc_sl>=CALC_S_MAX) return -1;
 		calc_s[calc_sl].type=type;
 		calc_s[calc_sl].value=value;
@@ -213,7 +231,7 @@ bool PopCalcStack_int(int32_t* arg){
 	calc_sl--;
 	if(calc_s[calc_sl].type==TYPE_INT_LIT){
 		*arg=calc_s[calc_sl].value;
-		if(log_en)printf("pop cs(%d) INT %d\n",calc_sl,calc_s[calc_sl].value);
+		if(log_en)printf("<= cs(%d) INT_LIT %d(%.3f)\n",calc_sl,calc_s[calc_sl].value,(float)calc_s[calc_sl].value/4096.0);
 		memset(calc_s+calc_sl,0x00,sizeof(calc_s+calc_sl));
 		return true;
 	}else{
@@ -228,7 +246,7 @@ bool PopCalcStack_str(st* str){
 	if(calc_s[calc_sl].type==TYPE_STR_LIT){
 		mystrclear(str);
 		*str=calc_s[calc_sl].string;
-		if(log_en)printf("pop cs(%d) STR \n",calc_sl/*,calc_s[calc_sl].string.s*/);
+		if(log_en)printf("<= cs(%d) STR_LIT \"%s\"[%dB]\n",calc_sl,calc_s[calc_sl].string.s,calc_s[calc_sl].string.len);
 		memset(calc_s+calc_sl,0x00,sizeof(calc_s+calc_sl));
 		return true;
 	}else{
@@ -251,13 +269,13 @@ bool PopCalcStack_var(int* arg){
 			tmpint=GetSystemVariableType(calc_s[calc_sl].value);
 			switch(tmpint){
 				case 2:
-					printf("pop cs(%d) SYSVAR %s\n",calc_sl,TokenCode2Str(calc_s[calc_sl].value).s);
+					printf("<= cs(%d) SYSVAR %s\n",calc_sl,TokenCode2Str(calc_s[calc_sl].value).s);
 					break;
 				case 4:
-					printf("pop cs(%d) SYSVAR MEM$\n",calc_sl);
+					printf("<= cs(%d) SYSVAR MEM$\n",calc_sl);
 					break;
 				default:
-					printf("pop cs(%d) VAR %s\n",calc_sl,Variable[calc_s[calc_sl].value].name.s);
+					printf("<= cs(%d) VAR %s\n",calc_sl,Variable[calc_s[calc_sl].value].name.s);
 			}
 			
 		}
@@ -275,7 +293,7 @@ bool PopCalcStack_intptr(int* arg){
 	if(calc_s[calc_sl].type==TYPE_INT_PTR){
 	 	memset(arg,0x00,sizeof(arg));
 		*arg=calc_s[calc_sl].value;
-		if(log_en)printf("pop cs(%d) INTPTR %d\n",calc_sl,calc_s[calc_sl].value);
+		if(log_en)printf("<= cs(%d) INTPTR %d\n",calc_sl,calc_s[calc_sl].value);
 		memset(calc_s+calc_sl,0x00,sizeof(calc_s+calc_sl));
 		return true;
 	}else{
@@ -290,7 +308,7 @@ bool PopCalcStack_strptr(int* arg){
 	if(calc_s[calc_sl].type==TYPE_STR_PTR){
 	 	memset(arg,0x00,sizeof(arg));
 		*arg=calc_s[calc_sl].value;
-		if(log_en)printf("pop cs(%d) STRPTR %d\n",calc_sl,calc_s[calc_sl].value);
+		if(log_en)printf("<= cs(%d) STRPTR %d\n",calc_sl,calc_s[calc_sl].value);
 		memset(calc_s+calc_sl,0x00,sizeof(calc_s+calc_sl));
 		return true;
 	}else{
@@ -303,7 +321,7 @@ bool PopCalcStack_void(void){
 	if(calc_sl<=0)return false;
 	calc_sl--;
 	if(calc_s[calc_sl].type==TYPE_VOID){
-		if(log_en)printf("pop cs(%d) VOID\n",calc_sl);
+		if(log_en)printf("<= cs(%d) VOID\n",calc_sl);
 		memset(calc_s+calc_sl,0x00,sizeof(calc_s+calc_sl));
 		return true;
 	}else{
@@ -358,7 +376,7 @@ int EvalFormula(const int arg,const int argcount){
 	memset(argtypes,0x00,sizeof(argtypes));
 	memset(tmpstr2,0x00,sizeof(tmpstr2));
 	mystrclear(tmpstrs);
-	if(log_en)printf("EvalFormula arg=%d(%s) argc=%d\n",arg,TokenCode2Str(arg).s,argcount);
+	if(log_en)printf("EvalFormula arg=%04X(%s) argc=%d\n",arg,TokenCode2Str(arg).s,argcount);
 	if(argcount==0){
 		if(!PopCalcStack_void())return ERR_SYNTAX_ERROR;
 	}else{
@@ -1197,9 +1215,9 @@ int EvalFormula(const int arg,const int argcount){
 					*(int32_t*)(dim_mem+tmpints[1])=tmpints[0];
 				}else if(argtypes[0]==ATYPE_STR){
 					if(argtypes[1]==ATYPE_INT_PTR)return ERR_TYPE_MISMATCH;
-					memset((char*)(dim_mem[tmpints[1]]),0x00,sizeof(BYTE)*256);
+					memset((char*)(dim_mem+tmpints[1]),0x00,sizeof(BYTE)*256);
 					mystr2str2(tmpstrs[0],tmpstr2);
-					strcpy_s((char*)(dim_mem[tmpints[1]]),256,tmpstr2);
+					strcpy_s((char*)(dim_mem+tmpints[1]),256,tmpstr2);
 				}else{
 					return ERR_SYNTAX_ERROR;
 				}
@@ -1215,7 +1233,7 @@ int EvalFormula(const int arg,const int argcount){
 					if(dim_index[tmpints[3]].indexmax2!=0)return ERR_SYNTAX_ERROR;
 					if(tmpints[0]>=dim_index[tmpints[3]].indexmax1)return ERR_SUBSCRIPT_OUT_OF_RANGE;
 					if(dim_index[tmpints[3]].isStr){
-						errtmp=PushCalcStack(TYPE_STR_LIT,0,str2mystr2((char*)(dim_mem[dim_index[tmpints[3]].address+tmpints[0]*256])),0);
+						errtmp=PushCalcStack(TYPE_STR_LIT,0,str2mystr2((char*)(dim_mem+dim_index[tmpints[3]].address+tmpints[0]*256)),0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}else{
 						errtmp=PushCalcStack(TYPE_INT_LIT,(int32_t)*(int32_t*)(dim_mem+(dim_index[tmpints[3]].address+tmpints[0]*4)),MYSTR_NULL,0);
@@ -1229,10 +1247,10 @@ int EvalFormula(const int arg,const int argcount){
 					if(dim_index[tmpints[3]].indexmax2==0)return ERR_SYNTAX_ERROR;
 					if(tmpints[1]>=dim_index[tmpints[3]].indexmax1 || tmpints[0]>=dim_index[tmpints[3]].indexmax2)return ERR_SUBSCRIPT_OUT_OF_RANGE;
 					if(dim_index[tmpints[3]].isStr){
-						errtmp=PushCalcStack(TYPE_STR_LIT,0,str2mystr2((char*)(dim_mem[dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*256])),0);
+						errtmp=PushCalcStack(TYPE_STR_LIT,0,str2mystr2((char*)(dim_mem+dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*256)),0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}else{
-						errtmp=PushCalcStack(TYPE_INT_LIT,(int32_t)(dim_mem[dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*4]),MYSTR_NULL,0);
+						errtmp=PushCalcStack(TYPE_INT_LIT,(int32_t)*(int32_t*)(dim_mem+dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*4),MYSTR_NULL,0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}
 				}else{
@@ -1248,10 +1266,10 @@ int EvalFormula(const int arg,const int argcount){
 					if(dim_index[tmpints[3]].indexmax2!=0)return ERR_SYNTAX_ERROR;
 					if(tmpints[0]>=dim_index[tmpints[3]].indexmax1)return ERR_SUBSCRIPT_OUT_OF_RANGE;
 					if(dim_index[tmpints[3]].isStr){
-						errtmp=PushCalcStack(TYPE_STR_PTR,(int32_t)(dim_index[tmpints[3]].address+tmpints[0]*256),MYSTR_NULL,0);
+						errtmp=PushCalcStack(TYPE_STR_PTR,(int32_t)(dim_index[tmpints[3]].address+tmpints[0]*256)*4096,MYSTR_NULL,0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}else{
-						errtmp=PushCalcStack(TYPE_INT_PTR,(int32_t)(dim_index[tmpints[3]].address+tmpints[0]*4),MYSTR_NULL,0);
+						errtmp=PushCalcStack(TYPE_INT_PTR,(int32_t)(dim_index[tmpints[3]].address+tmpints[0]*4)*4096,MYSTR_NULL,0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}
 				}else if(argcount==2){
@@ -1262,10 +1280,10 @@ int EvalFormula(const int arg,const int argcount){
 					if(dim_index[tmpints[3]].indexmax2==0)return ERR_SYNTAX_ERROR;
 					if(tmpints[1]>=dim_index[tmpints[3]].indexmax1 || tmpints[0]>=dim_index[tmpints[3]].indexmax2)return ERR_SUBSCRIPT_OUT_OF_RANGE;
 					if(dim_index[tmpints[3]].isStr){
-						errtmp=PushCalcStack(TYPE_STR_PTR,(int32_t)(dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*256),MYSTR_NULL,0);
+						errtmp=PushCalcStack(TYPE_STR_PTR,(int32_t)(dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*256)*4096,MYSTR_NULL,0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}else{
-						errtmp=PushCalcStack(TYPE_INT_PTR,(int32_t)(dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*4),MYSTR_NULL,0);
+						errtmp=PushCalcStack(TYPE_INT_PTR,(int32_t)(dim_index[tmpints[3]].address+(tmpints[1]+tmpints[0]*dim_index[tmpints[3]].indexmax1)*4)*4096,MYSTR_NULL,0);
 						if(errtmp!=ERR_NO_ERROR)return errtmp;
 					}
 				}else{

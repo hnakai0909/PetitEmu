@@ -15,6 +15,7 @@ extern "C"{
 #include "interpreter2.h"
 #include "psystem.h"
 //#include "data.h"
+extern HANDLE h;
 #ifdef __cplusplus
 }
 #endif

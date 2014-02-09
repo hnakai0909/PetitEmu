@@ -81,6 +81,8 @@ struct ConsoleBuffer {
 	uint8_t color;
 };
 /*===グローバル変数宣言===*/
+extern HANDLE h;
+
 extern bool log_en;
 extern int log_en2;
 extern int log_en3;

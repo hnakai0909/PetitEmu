@@ -605,7 +605,7 @@ void TranslateRaw2Code(unsigned char* input,uint16_t* output,int *outlen){
 			*outpos=Char2Code('"');
 			outpos++;
 			srcline_token_count[srclinecount]++;
-			if(c!=0x0D)inpos++;
+			if(c!=0x0D && c!=0x00)inpos++;
 		}else if(c=='?'){
 			*outpos=TOKEN_PRINT2;
 			outpos++;
@@ -650,6 +650,7 @@ void TranslateRaw2Code(unsigned char* input,uint16_t* output,int *outlen){
 	*outlen=outpos-output;
 	if(log_en){
 		for(i=0;i<*outlen;i++)printf("%X,",output[i]);
+		puts("");
 	}
 	return;
 }
@@ -1286,6 +1287,7 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 							}
 							str.s[i]=toupper(c);
 							str.len++;
+							srcpos++;
 						}
 						if(tmpint==0){
 							cur_line++;
@@ -1295,7 +1297,7 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 						}
 						tmpint2=0;
 						for(i=0;i<labelcount;i++){
-							if(strcmp(labellist_name[i],tmpstr)==0){
+							if(mystrcmp2(str,labellist_name[i])==0){
 								cur_line=labellist_line[i];
 								GOTOLINE(cur_line);
 								tmpint2=1;

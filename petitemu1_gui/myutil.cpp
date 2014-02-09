@@ -67,6 +67,7 @@ st str2mystr2(char arg[256]){
 void mystr2str2(st str,char* arg){
 	memset(arg,0x00,sizeof(char)*256);
 	memcpy(arg,str.s,256);
+	if(str.len<256)str.s[str.len]=0;
 	return;
 }
 bool mystrcpy2(st *str1,char arg[256]){
@@ -86,6 +87,8 @@ int mystrcmp(st str1,st str2){
 	unsigned int i=0;
 	if(str1.len>str2.len)return 1;
 	if(str1.len<str2.len)return -1;
+	if(str1.len<256)str1.s[str1.len]=0;
+	if(str2.len<256)str2.s[str2.len]=0;	
 	for(;(str1.s[i]==str2.s[i])&&(i<str1.len)&&(i<str2.len);i++);
 	return (str2.s[i]-str1.s[i]);
 }
