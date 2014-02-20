@@ -6,6 +6,10 @@
 
 /*===関数定義===*/
 
+int mymod(int a,int b){
+	return a%b+(a<0)?a:0;
+}
+
 bool inrange(int arg,int min,int max){
 	return (arg>=min)&&(arg<=max);
 }

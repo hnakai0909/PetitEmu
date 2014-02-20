@@ -24,6 +24,9 @@ typedef struct{
 } st;
 
 /*===関数プロトタイプ宣言===*/
+
+int mymod(int a,int b);
+
 //min<=arg<=maxか判定
 bool inrange(int arg,int min,int max);
 

@@ -61,7 +61,10 @@ int bgofs_destx[2][2];
 int bgofs_desty[2][2];
 int bgofs_nowx[2][2];
 int bgofs_nowy[2][2];
-int bgofs_time[2][2];
+int bgofs_ip[2][2];
+struct SPDATA SPData[2][100];
+struct SPDATA_ANGLESCALE SPDataAS[2][32];
+bool sppage;
 unsigned char color_palette[3][256][3];
 struct VisibleFlag VisibleFlags={1,1,1,1,1,1};
 bool kbd_shift_flag;
@@ -902,7 +905,7 @@ int EvalFormula(const int arg,const int argcount){
 			if(argcount>1)return ERR_SYNTAX_ERROR;
 			if(argtypes[0]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
 			memset(tmpstr2,0x00,sizeof(char)*256);
-			sprintf_s(tmpstr2,256,"%05X",FloorInt(tmpints[0]));
+			sprintf_s(tmpstr2,256,"%5X",FloorInt(tmpints[0]));
 			errtmp=PushCalcStack(TYPE_STR_LIT,0,str2mystr2(tmpstr2),0);
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
 			break;
@@ -1138,7 +1141,7 @@ int EvalFormula(const int arg,const int argcount){
 				if(tmpints[0]<0)return ERR_OUT_OF_RANGE;
 				bgofs_destx[bgpage][tmpints[3]]=tmpints[2];
 				bgofs_desty[bgpage][tmpints[3]]=tmpints[1];
-				bgofs_time[bgpage][tmpints[3]]=tmpints[0];
+				bgofs_ip[bgpage][tmpints[3]]=tmpints[0];
 			}else{
 				return ERR_MISSING_OPERAND;
 			}
@@ -1156,6 +1159,27 @@ int EvalFormula(const int arg,const int argcount){
 			BGData[bgpage][tmpints[6]][tmpints[5]][tmpints[4]].palette=tmpints[2];
 			BGData[bgpage][tmpints[6]][tmpints[5]][tmpints[4]].h_inverse=tmpints[1];
 			BGData[bgpage][tmpints[6]][tmpints[5]][tmpints[4]].v_inverse=tmpints[0];
+			break;
+		case TOKEN_BGREAD:
+			if(argcount!=7)return ERR_MISSING_OPERAND;
+			if(argtypes[6]!=ATYPE_INT || argtypes[5]!=ATYPE_INT || argtypes[4]!=ATYPE_INT || argtypes[3]!=ATYPE_VAR || argtypes[2]!=ATYPE_VAR || argtypes[1]!=ATYPE_VAR || argtypes[0]!=ATYPE_VAR)return ERR_TYPE_MISMATCH;
+			tmpints[6]=FloorInt(tmpints[6]);tmpints[5]=FloorInt(tmpints[5]);tmpints[4]=FloorInt(tmpints[4]);
+			if(tmpints[6]>1 || tmpints[6]<0)return ERR_OUT_OF_RANGE;
+			tmpints[5]=mymod(tmpints[5],64);
+			tmpints[4]=mymod(tmpints[4],64);
+			memset(&tmpstr,0x00,sizeof(st));
+			tmpint=BGData[bgpage][tmpints[6]][tmpints[5]][tmpints[4]].character;
+			errtmp=EvalFormula_Substitution(argtypes[3],tmpints[3],ATYPE_INT,tmpint,tmpstr);
+			if(errtmp!=ERR_NO_ERROR)return errtmp;
+			BGData[bgpage][tmpints[6]][tmpints[5]][tmpints[4]].palette;
+			errtmp=EvalFormula_Substitution(argtypes[2],tmpints[2],ATYPE_INT,tmpint,tmpstr);
+			if(errtmp!=ERR_NO_ERROR)return errtmp;
+			BGData[bgpage][tmpints[6]][tmpints[5]][tmpints[4]].h_inverse;
+			errtmp=EvalFormula_Substitution(argtypes[1],tmpints[1],ATYPE_INT,tmpint,tmpstr);
+			if(errtmp!=ERR_NO_ERROR)return errtmp;
+			BGData[bgpage][tmpints[6]][tmpints[5]][tmpints[4]].v_inverse;
+			errtmp=EvalFormula_Substitution(argtypes[0],tmpints[0],ATYPE_INT,tmpint,tmpstr);
+			if(errtmp!=ERR_NO_ERROR)return errtmp;
 			break;
 		case TOKEN_DIM:
 			if(!PopCalcStack_str(&tmpstr))return ERR_SYNTAX_ERROR;
@@ -1183,45 +1207,8 @@ int EvalFormula(const int arg,const int argcount){
 		case OP_SUBSTITUTE:
 			if(argcount<2)return ERR_MISSING_OPERAND;
 			if(argcount>2)return ERR_SYNTAX_ERROR;
-			if(argtypes[1]!=ATYPE_VAR && argtypes[1]!=ATYPE_INT_PTR && argtypes[1]!=ATYPE_STR_PTR)return ERR_SYNTAX_ERROR;
-			if(argtypes[1]==ATYPE_VAR){
-				tmpint=GetSystemVariableType(tmpints[1]);
-				if(tmpint!=0){
-					switch(tmpint){
-						case 2:
-							*GetSystemVariableIntPtr(tmpints[1])=FloorInt(tmpints[0])*4096;
-							break;
-						case 4:
-							Psys_MEM=tmpstrs[0];
-							break;
-						case 1: case 3: default:
-							return ERR_SYNTAX_ERROR;
-					}
-					SystemVariableLimitValue();
-				}else if(argtypes[0]==ATYPE_INT){
-					if(Variable[tmpints[1]].isStr)return ERR_TYPE_MISMATCH;
-					Variable[tmpints[1]].value=tmpints[0];
-				}else if(argtypes[0]==ATYPE_STR){
-					if(!(Variable[tmpints[1]].isStr))return ERR_TYPE_MISMATCH;
-					Variable[tmpints[1]].string=tmpstrs[0];
-				}else{
-					return ERR_SYNTAX_ERROR;
-				}
-			}else{
-				//PTR
-				tmpints[1]=FloorInt(tmpints[1]);
-				if(argtypes[0]==ATYPE_INT){
-					if(argtypes[1]==ATYPE_STR_PTR)return ERR_TYPE_MISMATCH;
-					*(int32_t*)(dim_mem+tmpints[1])=tmpints[0];
-				}else if(argtypes[0]==ATYPE_STR){
-					if(argtypes[1]==ATYPE_INT_PTR)return ERR_TYPE_MISMATCH;
-					memset((char*)(dim_mem+tmpints[1]),0x00,sizeof(BYTE)*256);
-					mystr2str2(tmpstrs[0],tmpstr2);
-					strcpy_s((char*)(dim_mem+tmpints[1]),256,tmpstr2);
-				}else{
-					return ERR_SYNTAX_ERROR;
-				}
-			}
+			errtmp=EvalFormula_Substitution(argtypes[1],tmpints[1],argtypes[0],tmpints[0],tmpstrs[0]);
+			if(errtmp!=ERR_NO_ERROR)return errtmp;
 			break;
 		default:
 			//配列
@@ -1399,4 +1386,51 @@ void InitSystemVariable(void){
 	mystrclear(&Psys_TIME);
 	mystrclear(&Psys_DATE);
 	mystrclear(&Psys_MEM);
+}
+
+int EvalFormula_Substitution(int type1,int value1,int type0,int value0,st str0){
+	int tmpint;
+	st str={0,""};
+	char tmpstr[257];
+	if(type1!=ATYPE_VAR && type1!=ATYPE_INT_PTR && type1!=ATYPE_STR_PTR)return ERR_SYNTAX_ERROR;
+	if(type1==ATYPE_VAR){
+		tmpint=GetSystemVariableType(value1);
+		if(tmpint!=0){
+			switch(tmpint){
+				case 2:
+					*GetSystemVariableIntPtr(value1)=FloorInt(value0)*4096;
+					break;
+				case 4:
+					Psys_MEM=str0;
+					break;
+				case 1: case 3: default:
+					return ERR_SYNTAX_ERROR;
+			}
+			SystemVariableLimitValue();
+		}else if(type0==ATYPE_INT){
+			if(Variable[value1].isStr)return ERR_TYPE_MISMATCH;
+			Variable[value1].value=value0;
+		}else if(type0==ATYPE_STR){
+			if(!(Variable[value1].isStr))return ERR_TYPE_MISMATCH;
+			Variable[value1].string=str0;
+		}else{
+			return ERR_SYNTAX_ERROR;
+		}
+	}else{
+		//PTR
+		value1=FloorInt(value1);
+		if(type0==ATYPE_INT){
+			if(type1==ATYPE_STR_PTR)return ERR_TYPE_MISMATCH;
+			*(int32_t*)(dim_mem+value1)=value0;
+		}else if(type0==ATYPE_STR){
+			if(type1==ATYPE_INT_PTR)return ERR_TYPE_MISMATCH;
+			memset((char*)(dim_mem+value1),0x00,sizeof(BYTE)*256);
+			memset(tmpstr,0x00,257);
+			mystr2str2(str0,tmpstr);
+			strcpy_s((char*)(dim_mem+value1),256,tmpstr);
+		}else{
+			return ERR_SYNTAX_ERROR;
+		}
+	}
+	return ERR_NO_ERROR;
 }

@@ -59,7 +59,7 @@ int PSysInit(void){
 	memset(bgofs_nowy,0x00,sizeof(bgofs_nowy));
 	memset(bgofs_destx,0x00,sizeof(bgofs_destx));
 	memset(bgofs_desty,0x00,sizeof(bgofs_desty));
-	memset(bgofs_time,0x00,sizeof(bgofs_time));
+	memset(bgofs_ip,0x00,sizeof(bgofs_ip));
 	memset(ForGosub_s,0x00,sizeof(ForGosub_s));
 	ForGosub_sl=0;
 	error_occured_token=0;

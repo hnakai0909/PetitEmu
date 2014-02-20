@@ -413,7 +413,11 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 			}
 			p++;
 		}else if(p_char==','){
-			if(nest_depth==0){
+			if(nest_depth<0){
+				//?
+				*errtmp=ERR_NO_ERROR;
+				return p;
+			}else if(nest_depth==0){
 				*errtmp=ERR_NO_ERROR;
 				return p;
 			}else{
@@ -444,6 +448,12 @@ uint16_t* ReadFormula(uint16_t* p,int *errtmp){
 			beforetokentype=TYPE_SPECIAL;
 		}else if(p_char==')'){
 			nest_depth--;
+			if(nest_depth<0){
+				//これが最初ならばエラーにしたい
+				if(beforetokentype==0)*errtmp=ERR_SYNTAX_ERROR;
+				*errtmp=ERR_NO_ERROR;
+				return p;
+			}
 			if(brackettype[nest_depth]!=0){
 				*errtmp=ERR_SYNTAX_ERROR;
 				return p;
@@ -896,6 +906,7 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 	*runflag=0;
 
 	while(srcpos<srcend){
+		memset(&str,0x00,sizeof(st));
 		t=*srcpos;
 		error_occured_token=t;
 		c=Code2Char(t);
@@ -1262,6 +1273,48 @@ int Interpret(uint16_t* input,int srclen,bool interactive_flag,int* runflag){
 					errtmp=ProcessRemainingOperator();
 					if(errtmp!=ERR_NO_ERROR)return errtmp;
 				}
+				srcpos=JumpSpace(srcpos);
+				state=ST_NEW_STATEMENT;
+				break;
+			case TOKEN_BGREAD:
+				//BGREAD( レイヤー, x座標, y座標 ), CHR, PAL, H, V
+				//具体的処理はEvalFormulaに投げる
+				srcpos=JumpSpace(srcpos+1);
+				errtmp=PushCalcStack(TYPE_FUNC,TOKEN_BGREAD,MYSTR_NULL,0);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				if(*srcpos!=Char2Code('('))return ERR_SYNTAX_ERROR;
+				srcpos=JumpSpace(srcpos+1);
+				errtmp=PushCalcStack(TYPE_SPECIAL,Char2Code('('),MYSTR_NULL,0);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
+				for(i=0;i<=2;i++){
+					srcpos=ReadFormula(srcpos,&errtmp);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					if(!PopCalcStack_int(&tmpint))return ERR_TYPE_MISMATCH;
+					errtmp=PushCalcStack(TYPE_INT_LIT,tmpint,MYSTR_NULL,0);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					if(*srcpos!=Char2Code(')')&&i==2){
+						return ERR_SYNTAX_ERROR;
+					}else{
+						srcpos=JumpSpace(srcpos+1);
+					}
+					if(*srcpos!=Char2Code(',')&&i!=2)return ERR_MISSING_OPERAND;
+					errtmp=PushCalcStack(TYPE_SPECIAL,Char2Code(','),MYSTR_NULL,0);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					srcpos=JumpSpace(srcpos+1);
+				}
+				srcpos=JumpSpace(srcpos+1);
+				for(i=0;i<=3;i++){
+					srcpos=GetVarID(srcpos,&tmpint,&errtmp);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					if(Variable[tmpint].isStr)return ERR_TYPE_MISMATCH;
+					if(i==3)break;
+					if(*srcpos!=Char2Code(','))return ERR_MISSING_OPERAND;
+					errtmp=PushCalcStack(TYPE_SPECIAL,Char2Code(','),MYSTR_NULL,0);
+					if(errtmp!=ERR_NO_ERROR)return errtmp;
+					srcpos=JumpSpace(srcpos+1);
+				}
+				errtmp=PushCalcStack(TYPE_SPECIAL,Char2Code(')'),MYSTR_NULL,0);
+				if(errtmp!=ERR_NO_ERROR)return errtmp;
 				srcpos=JumpSpace(srcpos);
 				state=ST_NEW_STATEMENT;
 				break;

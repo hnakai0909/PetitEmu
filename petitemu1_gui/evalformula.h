@@ -60,6 +60,32 @@ struct BGDATA{
 	bool h_inverse:1;
 	int16_t character:10;
 };
+struct SPDATA{
+	char enable:1;
+	char palette:4;
+	char v_inverse:1;
+	char h_inverse:1;
+	char priority:2;
+	char v_size:2;
+	char h_size:2;
+	int16_t character;
+	int16_t ofs_x;
+	int16_t ofs_y;
+	int16_t ofs_destx;
+	int16_t ofs_desty;
+	int16_t anime_pages;
+	int16_t anime_interval;
+	int32_t anime_loopcnt;
+	int32_t ofs_ip;//InterPolation=補間
+};
+struct SPDATA_ANGLESCALE{
+	int16_t angle;
+	int16_t angle_dest;
+	int32_t angle_ip;//InterPolation=補間
+	uint8_t size;
+	uint8_t size_dest;
+	int32_t size_ip;//InterPolation=補間
+};
 struct VisibleFlag{
 	//コンソール,パネル,BG0,BG1,スプライト,グラフィック
 	bool console:1;
@@ -144,7 +170,11 @@ extern int bgofs_destx[2][2];
 extern int bgofs_desty[2][2];
 extern int bgofs_nowx[2][2];
 extern int bgofs_nowy[2][2];
-extern int bgofs_time[2][2];
+extern int bgofs_ip[2][2];//InterPolation=補間
+//SP用各種状態変数(未使用)
+extern struct SPDATA SPData[2][100];
+extern struct SPDATA_ANGLESCALE SPDataAS[2][32];
+extern bool sppage;
 extern unsigned char color_palette[3][256][3];//BG,スプライト,GRPのパレットデータ(未使用)
 extern struct VisibleFlag VisibleFlags;//VISIBLEで指定された描画/非描画情報
 extern unsigned char keybuffer[KEYBUFFER_MAX];//キー入力バッファ(リングバッファ)
@@ -205,6 +235,9 @@ void UpdateSystemVariable(void);
 
 //システム変数初期化
 void InitSystemVariable(void);
+
+//代入処理
+int EvalFormula_Substitution(int type1,int value1,int type0,int value0,st str0);
 
 #ifdef __cplusplus
 }

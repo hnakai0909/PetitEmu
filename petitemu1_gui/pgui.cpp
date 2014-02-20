@@ -179,10 +179,10 @@ void ProcessBG(void){
 	int layer=0,page=0;
 	for(page=0;page<2;page++){
 		for(layer=0;layer<2;layer++){
-			if(bgofs_time[page][layer]>0){
-				bgofs_nowx[page][layer]+=((bgofs_destx[page][layer]-bgofs_nowx[page][layer])/bgofs_time[page][layer]);
-				bgofs_nowy[page][layer]+=((bgofs_desty[page][layer]-bgofs_nowy[page][layer])/bgofs_time[page][layer]);
-				bgofs_time[page][layer]--;
+			if(bgofs_ip[page][layer]>0){
+				bgofs_nowx[page][layer]+=((bgofs_destx[page][layer]-bgofs_nowx[page][layer])/bgofs_ip[page][layer]);
+				bgofs_nowy[page][layer]+=((bgofs_desty[page][layer]-bgofs_nowy[page][layer])/bgofs_ip[page][layer]);
+				bgofs_ip[page][layer]--;
 			}
 		}
 	}
@@ -241,10 +241,15 @@ int PutChar2Console(unsigned char arg,int indent_option){
 		Psys_CSRX=0;
 		Psys_CSRY++;
 	}
-	if(indent_option!=-1){
+	if(indent_option!=1){
 		if(Psys_CSRY>=24){
 			ScrollConsole();
 			Psys_CSRY=23;
+		}
+	}else{
+		if(Psys_CSRY>=24){
+			Psys_CSRY=23;
+			Psys_CSRX=31;
 		}
 	}
 	return 0;
