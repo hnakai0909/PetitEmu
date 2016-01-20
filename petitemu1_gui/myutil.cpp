@@ -93,16 +93,16 @@ int mystrcmp(st str1,st str2){
 	if(str1.len<str2.len)return -1;
 	if(str1.len<256)str1.s[str1.len]=0;
 	if(str2.len<256)str2.s[str2.len]=0;	
-	for(;(str1.s[i]==str2.s[i])&&(i<str1.len)&&(i<str2.len);i++);
-	return (str2.s[i]-str1.s[i]);
+	for(;(str1.s[i]==str2.s[i])&&(i<str1.len);i++);
+	return !(str2.s[i]==str1.s[i]);
 }
 int mystrcmp2(st str1,char arg[256]){
 	unsigned int i=0;
 	unsigned int arglen=strlen(arg);
 	if(str1.len>arglen)return 1;
 	if(str1.len<arglen)return -1;
-	for(;(str1.s[i]==arg[i])&&(i<str1.len)&&(i<arglen);i++)
-	return (arg[i]-str1.s[i]);
+	for(;(str1.s[i]==arg[i])&&(i<str1.len);i++);
+	return !(arg[i]==str1.s[i]);
 }
 void mystrclear(st *str){
 	memset(str,0x00,sizeof(str));
