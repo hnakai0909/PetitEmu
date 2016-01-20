@@ -618,7 +618,8 @@ int EvalFormula(const int arg,const int argcount){
 		case TOKEN_ASC:
 			if(argcount!=1)return ERR_SYNTAX_ERROR;
 			if(argtypes[0]==ATYPE_STR){
-				errtmp=PushCalcStack(TYPE_INT_LIT,((tmpstrs[0].s[0]+256)%256)*4096,MYSTR_NULL,0);
+				//if(tmpstrs[0].len==0)return ERR_?????
+				errtmp=PushCalcStack(TYPE_INT_LIT,(tmpstrs[0].s[0])*4096,MYSTR_NULL,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else{
 				return ERR_TYPE_MISMATCH;
@@ -651,6 +652,28 @@ int EvalFormula(const int arg,const int argcount){
 			if(argcount>0)return ERR_SYNTAX_ERROR;
 			errtmp=PushCalcStack(TYPE_INT_LIT,(uint32_t)button_state*4096,MYSTR_NULL,0);
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
+			break;
+		case TOKEN_COLINIT:
+			//TODO:引数省略可？
+			if(argcount<2){
+				return ERR_MISSING_OPERAND;
+			}else if(argcount>2){
+				return ERR_SYNTAX_ERROR;
+			}
+			if(argtypes[1]!= ATYPE_STR || argtypes[1]!=ATYPE_INT)return ERR_TYPE_MISMATCH;
+			tmpints[0]=FloorInt(tmpints[0]);
+			if(mystrcmp2(tmpstrs[1],"BG")){
+				tmpint=0;
+			}else if(mystrcmp2(tmpstrs[1],"SP")){
+				tmpint=1;
+			}else if(mystrcmp2(tmpstrs[1],"GRP")){
+				tmpint=2;
+			}else{
+				//ERR_ILLEGAL_RESOURCE_TYPEかも
+				return ERR_ILLEGAL_FUNCTION_CALL;
+			}
+			if(!inrange(tmpints[0],0,255))return ERR_ILLEGAL_FUNCTION_CALL;
+			memset(color_palette[2][tmpints[0]],0x00,sizeof(unsigned char)*3);
 			break;
 		case TOKEN_COS:
 			if(argcount==1){
@@ -896,6 +919,7 @@ int EvalFormula(const int arg,const int argcount){
 			tmpint=FloorInt(tmpints[0]);
 			if(tmpint<0 || tmpint>255)return ERR_OUT_OF_RANGE;
 			tmpstr.s[0]=tmpint;
+			tmpstr.s[1]=0;
 			tmpstr.len=1;
 			errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
@@ -920,6 +944,7 @@ int EvalFormula(const int arg,const int argcount){
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
 			}else{
 				tmpstr.s[0]=tmpc;
+				tmpstr.s[1]=0;
 				tmpstr.len=1;
 				errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 				if(errtmp!=ERR_NO_ERROR)return errtmp;
@@ -934,7 +959,9 @@ int EvalFormula(const int arg,const int argcount){
 			//TODO:文字列長の調査によるメモリリーク対策
 			if(tmpints[1]<0)return ERR_OUT_OF_RANGE;
 			if(tmpints[0]<0)return ERR_OUT_OF_RANGE;
+			memset(tmpstr.s,0x00,sizeof(char)*256);
 			memcpy(tmpstr.s,&(tmpstrs[2].s[tmpints[1]]),tmpints[0]);
+			tmpstr.len = tmpints[0];
 			errtmp=PushCalcStack(TYPE_STR_LIT,0,tmpstr,0);
 			if(errtmp!=ERR_NO_ERROR)return errtmp;
 			break;
